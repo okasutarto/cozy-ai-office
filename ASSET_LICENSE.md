@@ -1,20 +1,20 @@
 # Asset License Information
 
-All original art assets (sprites, atlas files, pixel-art tilesets, icons) and audio resources in this repository are licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) license.
+The office and character PNGs in this repository come from 2dPig's Pixel
+Office Asset Pack and are released under the Creative Commons CC0 1.0 Public
+Domain Dedication. The vendored license and source notes are kept in
+`art/vendor/pixel-office/`.
 
-## Creative Commons Attribution 4.0 International (CC BY 4.0)
+Source: <https://2dpig.itch.io/pixel-office>
 
-You are free to:
+License: <https://creativecommons.org/publicdomain/zero/1.0/>
 
-- **Share** — copy and redistribute the material in any medium or format.
-- **Adapt** — remix, transform, and build upon the material for any purpose, even commercially.
-
-Under the following terms:
-
-- **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
-
-For details, see the full license text at [https://creativecommons.org/licenses/by/4.0/](https://creativecommons.org/licenses/by/4.0/).
+Attribution is not required under CC0, but this repository retains the author
+credit and records the imported files, transformations, and generated hashes
+in `public/assets/licenses.json`.
 
 ## Asset Manifest & Compliance
 
-All included assets must be listed in `public/assets/asset-manifest.json` with their corresponding license, source, and attribution records. Proprietary assets or resources copied from third-party games (e.g., Stardew Valley or other commercial releases) are strictly prohibited.
+All generated assets must be listed in `public/assets/asset-manifest.json` and
+their source/license records must remain synchronized in `public/assets/licenses.json`.
+Proprietary assets or resources copied from third-party games are prohibited.

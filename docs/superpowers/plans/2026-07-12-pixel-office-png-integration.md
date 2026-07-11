@@ -18,6 +18,7 @@
 ### Task 1: Vendor the downloaded PNG source
 
 **Files:**
+
 - Create: `art/vendor/pixel-office/PixelOffice.png`
 - Create: `art/vendor/pixel-office/LargePixelOffice.png`
 - Create: `art/vendor/pixel-office/PixelOfficeAssets.png`
@@ -31,11 +32,12 @@
 ### Task 2: Replace procedural generation with deterministic PNG composition
 
 **Files:**
+
 - Modify: `scripts/generate-assets.mjs`
 
 - [ ] Read `art/source/characters.json` only for the existing actor IDs and animation frame counts.
 - [ ] Compose the 352x240 office frame by nearest-neighbor scaling `PixelOffice.png` to fill width 352, cropping source rows 24 through 199, then place it at `(0,0)` in a transparent 512x512 atlas.
-- [ ] Crop five source character cells at `(0,96)`, `(16,96)`, `(32,96)`, `(0,128)`, and `(16,128)` from `PixelOfficeAssets.png`; place each 16x16 crop at y=8 in a 16x24 frame.
+- [ ] Crop five source character cells at `(0,112)`, `(16,112)`, `(32,112)`, `(0,128)`, and `(16,128)` from `PixelOfficeAssets.png`; place each 16x16 crop at y=8 in a 16x24 frame.
 - [ ] Map actor index modulo five to those cells, reuse the mapped cell for every animation frame, and preserve the existing 64-column atlas packing and JSON frame metadata.
 - [ ] Generate `asset-manifest.json` with the existing runtime paths and dimensions.
 - [ ] Generate `licenses.json` with CC0 source hashes, transformation notes, and output hashes.
@@ -43,6 +45,7 @@
 ### Task 3: Update license and validation metadata
 
 **Files:**
+
 - Modify: `ASSET_LICENSE.md`
 - Modify: `THIRD_PARTY_NOTICES.md`
 - Modify: `scripts/validate-assets.mjs`
@@ -54,6 +57,7 @@
 ### Task 4: Generate and verify the replacement
 
 **Files:**
+
 - Modify: generated files under `public/assets/`
 
 - [ ] Run `npm run assets:generate` with the project Node 24 runtime.

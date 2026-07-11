@@ -84,6 +84,12 @@ async function main() {
     });
   } else {
     app.log.info(`Server listening in DEV mode on port ${actualPort}`);
+    const origin = config.publicOrigin || `http://127.0.0.1:${actualPort}`;
+    const launchUrl = `${origin}/#session=${config.sessionToken}`;
+    app.log.info("Opening authenticated development browser session...");
+    await open(launchUrl).catch((err) => {
+      app.log.error(`Could not open browser automatically: ${err?.message || err}`);
+    });
   }
 
   // 8. Graceful shutdown

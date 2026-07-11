@@ -6,10 +6,12 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 const dataDir = fileURLToPath(new URL("../.data/dev", import.meta.url));
 await mkdir(dataDir, { recursive: true });
 
-const npx = process.platform === "win32" ? "npx.cmd" : "npx";
+const node = process.execPath;
+const tsxCli = fileURLToPath(new URL("../node_modules/tsx/dist/cli.mjs", import.meta.url));
+const viteCli = fileURLToPath(new URL("../node_modules/vite/bin/vite.js", import.meta.url));
 const commands = [
-  [npx, ["tsx", "watch", "src/server/cli.ts"]],
-  [npx, ["vite"]],
+  [node, [tsxCli, "watch", "src/server/cli.ts"]],
+  [node, [viteCli]],
 ];
 const children = commands.map(([command, args]) =>
   spawn(command, args, {

@@ -216,12 +216,16 @@ try {
   }
 
   const cozyAsset = licenses.assets[0];
-  if (cozyAsset.id !== "cozy-original-art") throw new Error("Invalid asset ID in licenses.json");
-  if (cozyAsset.license !== "CC-BY-4.0") throw new Error("Invalid license in licenses.json");
+  if (cozyAsset.id !== "pixel-office-2dpig") throw new Error("Invalid asset ID in licenses.json");
+  if (cozyAsset.license !== "CC0-1.0") throw new Error("Invalid license in licenses.json");
+  if (cozyAsset.sourceUrl !== "https://2dpig.itch.io/pixel-office") {
+    throw new Error("Invalid source URL in licenses.json");
+  }
 
   // Validate hashes inside licenses.json
   cozyAsset.sourceFiles.forEach((file) => {
-    const calculated = getTextSha256(file.path);
+    if (!fs.existsSync(file.path)) throw new Error(`Missing licensed source file: ${file.path}`);
+    const calculated = file.path.endsWith(".txt") ? getTextSha256(file.path) : getSha256(file.path);
     if (file.sha256 !== calculated) {
       throw new Error(
         `Hash mismatch for source file ${file.path}: expected ${file.sha256}, got ${calculated}`,

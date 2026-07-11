@@ -2,43 +2,50 @@
   "version": 1,
   "assets": [
     {
-      "id": "cozy-original-art",
-      "author": "Cozy Agent Office contributors",
-      "sourceUrl": "repository:art/source",
-      "license": "CC-BY-4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "id": "pixel-office-2dpig",
+      "author": "2dPig",
+      "sourceUrl": "https://2dpig.itch.io/pixel-office",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceFiles": [
         {
-          "path": "art/source/palettes.json",
-          "sha256": "2308c4824a1c34be68968a87ddaf995956ff8f45f878971186a36bcc62a4beb6"
+          "path": "art/vendor/pixel-office/PixelOffice.png",
+          "sha256": "ac74c7c168a51aa7dfd6ac19e4b78694d4cafca13938af43b04b986e3eea66aa"
         },
         {
-          "path": "art/source/office.json",
-          "sha256": "aedcb0f02d136f1867bfcc3d1b97713a8a7057a4d4b6932c7faf73f34e148dc3"
+          "path": "art/vendor/pixel-office/LargePixelOffice.png",
+          "sha256": "338bf1dac21ac6ee7febb9d9b870e2210f59f428f0b4a060115fe041098f0c5a"
         },
         {
-          "path": "art/source/characters.json",
-          "sha256": "2e5274a6783286dab7d0452a84ec2749c317f40410d6866751c7f23c7e5eb1e1"
+          "path": "art/vendor/pixel-office/PixelOfficeAssets.png",
+          "sha256": "797bec77277d0e1144ed6dd536758deef6cabb84d3a0df42b6866c205c146598"
+        },
+        {
+          "path": "art/vendor/pixel-office/LICENSE.txt",
+          "sha256": "047e4410311f7dda2fa18559bf8fd7441a919159f170f41b0bfb0ecef0fcf9dd"
+        },
+        {
+          "path": "art/vendor/pixel-office/README.txt",
+          "sha256": "6db80b1699e5e94bff22ee8b614bf7efac31f8ed808a944ef4e70eea409f7a63"
         }
       ],
       "outputs": [
         {
           "path": "public/assets/office/office-atlas.png",
-          "sha256": "6d226cec32e476212d14418047d54d35bc63ea0a88b98f596be27328af27b8e4",
           "frames": [
             "office.background"
-          ]
+          ],
+          "sha256": "47a6d777c1d1886c29d1cbb4d44944c8c7b1eb8be72ae7d87e865bb8ea63959d"
         },
         {
           "path": "public/assets/office/office-atlas.json",
-          "sha256": "eb08d2537a59c4d9b88aacdb662b44a289022c7deb789477ff1560fc9e9390bf",
           "frames": [
             "office.background"
-          ]
+          ],
+          "sha256": "396ddfcc98cea84fd6f8d21292b2e0bd33688125695960859dce67035dd8aea2"
         },
         {
           "path": "public/assets/characters/characters-atlas.png",
-          "sha256": "17ca0342a8270323cad9f74d10063be270639880798c6939833b3f02a2b1946a",
           "frames": [
             "manager.idle.0",
             "manager.idle.1",
@@ -376,11 +383,11 @@
             "qa.celebrate.5",
             "qa.error.0",
             "qa.error.1"
-          ]
+          ],
+          "sha256": "32558badab61bc1bee1cbc0b8df353f0b54021e92b8c8e5c65620c3a059f4a43"
         },
         {
           "path": "public/assets/characters/characters-atlas.json",
-          "sha256": "a21433eff521413de1ff8c791a40c00856a5aa16b4aa38a36abeadc5dc467a3f",
           "frames": [
             "manager.idle.0",
             "manager.idle.1",
@@ -718,10 +725,11 @@
             "qa.celebrate.5",
             "qa.error.0",
             "qa.error.1"
-          ]
+          ],
+          "sha256": "f0bd8a5aa84fe38a7c9e8a0f8d525ab40565de3f45693c215ce9e0e8a1c8a191"
         }
       ],
-      "modifications": "Deterministically generated original pixel art; no third-party pixels included"
+      "modifications": "PixelOffice.png was cropped and nearest-neighbor scaled into the existing 352x240 office frame. Five 16x16 character cells from PixelOfficeAssets.png were centered in 16x24 frames and reused across existing actor animation keys. No renderer code or source pixels were synthesized."
     }
   ]
 }
