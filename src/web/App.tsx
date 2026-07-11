@@ -10,7 +10,14 @@ import { TaskBoard } from "./components/TaskBoard.js";
 import { Inspector } from "./components/Inspector.js";
 import { ConfirmDialog } from "./components/ConfirmDialog.js";
 import { DiffDialog } from "./components/DiffDialog.js";
-import type { AttemptView, DiffView, QaReportView, AdvisorReviewView, RunEvidence, RunStorage } from "../shared/api.js";
+import type {
+  AttemptView,
+  DiffView,
+  QaReportView,
+  AdvisorReviewView,
+  RunEvidence,
+  RunStorage,
+} from "../shared/api.js";
 
 export const App: React.FC = () => {
   const state = useAppState();
@@ -18,8 +25,6 @@ export const App: React.FC = () => {
   const [token, setToken] = useState<string | null>(null);
   const [roleProfiles, setRoleProfiles] = useState<RoleProfile[]>([]);
   const [contextSnapshotId, setContextSnapshotId] = useState<string>("");
-
-
 
   // 1. Consume session token
   useEffect(() => {
@@ -114,7 +119,11 @@ export const App: React.FC = () => {
           dispatch({ type: "run_snapshot", run: updated });
           setConfirmDialog((prev) => ({ ...prev, open: false, pending: false }));
         } catch (err: any) {
-          setConfirmDialog((prev) => ({ ...prev, pending: false, error: err.message || String(err) }));
+          setConfirmDialog((prev) => ({
+            ...prev,
+            pending: false,
+            error: err.message || String(err),
+          }));
         }
       },
     });
@@ -134,7 +143,11 @@ export const App: React.FC = () => {
           dispatch({ type: "run_snapshot", run: updated });
           setConfirmDialog((prev) => ({ ...prev, open: false, pending: false }));
         } catch (err: any) {
-          setConfirmDialog((prev) => ({ ...prev, pending: false, error: err.message || String(err) }));
+          setConfirmDialog((prev) => ({
+            ...prev,
+            pending: false,
+            error: err.message || String(err),
+          }));
         }
       },
     });
@@ -158,7 +171,11 @@ export const App: React.FC = () => {
             dispatch({ type: "run_snapshot", run: null });
             setConfirmDialog((prev) => ({ ...prev, open: false, pending: false }));
           } catch (err: any) {
-            setConfirmDialog((prev) => ({ ...prev, pending: false, error: err.message || String(err) }));
+            setConfirmDialog((prev) => ({
+              ...prev,
+              pending: false,
+              error: err.message || String(err),
+            }));
           }
         },
       });
@@ -197,7 +214,11 @@ export const App: React.FC = () => {
           dispatch({ type: "run_snapshot", run: runSnap });
           setConfirmDialog((prev) => ({ ...prev, open: false, pending: false }));
         } catch (err: any) {
-          setConfirmDialog((prev) => ({ ...prev, pending: false, error: err.message || String(err) }));
+          setConfirmDialog((prev) => ({
+            ...prev,
+            pending: false,
+            error: err.message || String(err),
+          }));
         }
       },
     });

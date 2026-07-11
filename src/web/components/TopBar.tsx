@@ -30,9 +30,14 @@ export const TopBar: React.FC<TopBarProps> = ({
     run &&
     !isTerminal &&
     !run.dispatchPaused &&
-    ["advisor_preflight", "dispatching", "working", "integrating", "testing", "advisor_delivery"].includes(
-      run.state,
-    );
+    [
+      "advisor_preflight",
+      "dispatching",
+      "working",
+      "integrating",
+      "testing",
+      "advisor_delivery",
+    ].includes(run.state);
 
   const showResume = run && !isTerminal && run.dispatchPaused;
 

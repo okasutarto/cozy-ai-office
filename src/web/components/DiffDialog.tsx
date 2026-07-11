@@ -22,10 +22,18 @@ export const DiffDialog: React.FC<DiffDialogProps> = ({
     const dialog = dialogRef.current;
     if (open && dialog) {
       if (!dialog.open) {
-        dialog.showModal();
+        if (typeof dialog.showModal === "function") {
+          dialog.showModal();
+        } else {
+          dialog.setAttribute("open", "true");
+        }
       }
     } else if (dialog && dialog.open) {
-      dialog.close();
+      if (typeof dialog.close === "function") {
+        dialog.close();
+      } else {
+        dialog.removeAttribute("open");
+      }
     }
   }, [open]);
 
@@ -34,6 +42,7 @@ export const DiffDialog: React.FC<DiffDialogProps> = ({
   return (
     <dialog
       ref={dialogRef}
+      open={open}
       onClose={onClose}
       style={{
         background: "var(--ink-900)",
@@ -48,7 +57,14 @@ export const DiffDialog: React.FC<DiffDialogProps> = ({
         boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
         <h2 style={{ margin: 0, color: "var(--gold-400)" }}>Run Evidence & Diffs</h2>
         <button
           type="button"
@@ -66,7 +82,13 @@ export const DiffDialog: React.FC<DiffDialogProps> = ({
       </div>
 
       {/* QA Status */}
-      <section style={{ marginBottom: "25px", borderBottom: "1px solid var(--ink-700)", paddingBottom: "15px" }}>
+      <section
+        style={{
+          marginBottom: "25px",
+          borderBottom: "1px solid var(--ink-700)",
+          paddingBottom: "15px",
+        }}
+      >
         <h3 style={{ color: "var(--gold-400)", margin: "0 0 10px 0" }}>QA Report</h3>
         {qa ? (
           <div>
@@ -106,22 +128,37 @@ export const DiffDialog: React.FC<DiffDialogProps> = ({
             </table>
           </div>
         ) : (
-          <p style={{ fontSize: "13px", color: "var(--parchment-300)" }}>No QA report generated yet.</p>
+          <p style={{ fontSize: "13px", color: "var(--parchment-300)" }}>
+            No QA report generated yet.
+          </p>
         )}
       </section>
 
       {/* Advisor Reviews */}
-      <section style={{ marginBottom: "25px", borderBottom: "1px solid var(--ink-700)", paddingBottom: "15px" }}>
+      <section
+        style={{
+          marginBottom: "25px",
+          borderBottom: "1px solid var(--ink-700)",
+          paddingBottom: "15px",
+        }}
+      >
         <h3 style={{ color: "var(--gold-400)", margin: "0 0 10px 0" }}>Advisor Gates</h3>
         {advisorReviews.length > 0 ? (
           <ul style={{ paddingLeft: "20px", margin: 0, fontSize: "13px" }}>
             {advisorReviews.map((rev, i) => (
               <li key={i} style={{ marginBottom: "8px" }}>
                 <strong>{rev.gate.toUpperCase()}</strong> (Pass {rev.pass}):{" "}
-                <span style={{ color: rev.review.verdict === "approve" ? "var(--moss)" : "var(--warning)" }}>
+                <span
+                  style={{
+                    color: rev.review.verdict === "approve" ? "var(--moss)" : "var(--warning)",
+                  }}
+                >
                   {rev.review.verdict}
                 </span>{" "}
-                - <span style={{ fontSize: "11px", color: "var(--parchment-300)" }}>{rev.createdAt}</span>
+                -{" "}
+                <span style={{ fontSize: "11px", color: "var(--parchment-300)" }}>
+                  {rev.createdAt}
+                </span>
               </li>
             ))}
           </ul>
@@ -156,7 +193,9 @@ export const DiffDialog: React.FC<DiffDialogProps> = ({
             </pre>
           </div>
         ) : (
-          <p style={{ fontSize: "13px", color: "var(--parchment-300)" }}>No diff patch generated yet.</p>
+          <p style={{ fontSize: "13px", color: "var(--parchment-300)" }}>
+            No diff patch generated yet.
+          </p>
         )}
       </section>
     </dialog>

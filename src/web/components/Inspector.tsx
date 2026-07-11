@@ -17,8 +17,6 @@ export const Inspector: React.FC<InspectorProps> = ({
   attempts,
   providerStatuses,
 }) => {
-
-
   const selectedTask = run?.tasks.find((t: any) => t.id === taskId);
   const taskAttempts = attempts.filter((a) => a.taskId === taskId);
 
@@ -36,7 +34,15 @@ export const Inspector: React.FC<InspectorProps> = ({
         borderLeft: "1px solid var(--ink-800)",
       }}
     >
-      <h3 style={{ margin: 0, fontSize: "14px", color: "var(--gold-400)", borderBottom: "1px solid var(--ink-800)", paddingBottom: "5px" }}>
+      <h3
+        style={{
+          margin: 0,
+          fontSize: "14px",
+          color: "var(--gold-400)",
+          borderBottom: "1px solid var(--ink-800)",
+          paddingBottom: "5px",
+        }}
+      >
         Inspector
       </h3>
 
@@ -65,7 +71,14 @@ export const Inspector: React.FC<InspectorProps> = ({
           </div>
           {providerStatuses.map((status) => {
             return (
-              <div key={status.provider} style={{ borderTop: "1px solid var(--ink-850)", paddingTop: "4px", marginTop: "4px" }}>
+              <div
+                key={status.provider}
+                style={{
+                  borderTop: "1px solid var(--ink-850)",
+                  paddingTop: "4px",
+                  marginTop: "4px",
+                }}
+              >
                 <div>
                   <strong>Provider:</strong> {status.provider} (v{status.version || "unknown"})
                 </div>
@@ -131,7 +144,16 @@ export const Inspector: React.FC<InspectorProps> = ({
                 No execution attempts made yet.
               </p>
             ) : (
-              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "6px" }}>
+              <ul
+                style={{
+                  listStyle: "none",
+                  padding: 0,
+                  margin: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                }}
+              >
                 {taskAttempts.map((att) => (
                   <li
                     key={att.id}
@@ -143,9 +165,19 @@ export const Inspector: React.FC<InspectorProps> = ({
                       border: "1px solid var(--ink-800)",
                     }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: "4px",
+                      }}
+                    >
                       <span>Attempt #{att.attemptNumber}</span>
-                      <span style={{ color: att.status === "succeeded" ? "var(--moss)" : "var(--warning)" }}>
+                      <span
+                        style={{
+                          color: att.status === "succeeded" ? "var(--moss)" : "var(--warning)",
+                        }}
+                      >
                         {att.status.toUpperCase()}
                       </span>
                     </div>
@@ -158,7 +190,11 @@ export const Inspector: React.FC<InspectorProps> = ({
                           href={`/api/artifacts/${att.stdoutArtifactId}`}
                           target="_blank"
                           rel="noreferrer"
-                          style={{ color: "var(--teal-400)", textDecoration: "underline", marginRight: "8px" }}
+                          style={{
+                            color: "var(--teal-400)",
+                            textDecoration: "underline",
+                            marginRight: "8px",
+                          }}
                         >
                           Stdout Log
                         </a>

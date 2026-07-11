@@ -39,7 +39,14 @@ export const Timeline: React.FC<TimelineProps> = ({ events, onLoadEarlier }) => 
       )}
 
       {events.length === 0 ? (
-        <div style={{ color: "var(--parchment-300)", textAlign: "center", fontSize: "12px", padding: "20px" }}>
+        <div
+          style={{
+            color: "var(--parchment-300)",
+            textAlign: "center",
+            fontSize: "12px",
+            padding: "20px",
+          }}
+        >
           No run events recorded yet.
         </div>
       ) : (
@@ -57,7 +64,10 @@ export const Timeline: React.FC<TimelineProps> = ({ events, onLoadEarlier }) => 
             } else if (event.kind === "advisor.gate") {
               icon = "🛡️";
               color = "var(--rose-400)";
-            } else if (event.kind.includes("task.finished") || event.kind.includes("integration.finished")) {
+            } else if (
+              event.kind.includes("task.finished") ||
+              event.kind.includes("integration.finished")
+            ) {
               icon = "✅";
               color = "var(--moss)";
             } else if (event.kind.includes("failed")) {

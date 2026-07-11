@@ -98,17 +98,36 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ run, onSelectTask }) => {
                       e.currentTarget.style.borderColor = "var(--ink-750)";
                     }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: "4px",
+                      }}
+                    >
                       <span style={{ fontWeight: "bold", color: "#fff" }}>{task.id}</span>
                       <span style={{ color: statusColor, fontSize: "10px", fontWeight: "bold" }}>
                         {task.status.toUpperCase()}
                       </span>
                     </div>
-                    <div style={{ color: "var(--parchment-200)", fontSize: "11px", marginBottom: "6px" }}>
+                    <div
+                      style={{
+                        color: "var(--parchment-200)",
+                        fontSize: "11px",
+                        marginBottom: "6px",
+                      }}
+                    >
                       {task.title}
                     </div>
                     {task.assignedProfileId && (
-                      <div style={{ display: "flex", justifyContent: "flex-end", fontSize: "10px", color: "var(--gold-300)" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "flex-end",
+                          fontSize: "10px",
+                          color: "var(--gold-300)",
+                        }}
+                      >
                         Actor: {task.assignedProfileId}
                       </div>
                     )}

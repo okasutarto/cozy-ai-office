@@ -39,7 +39,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       const dialog = dialogRef.current;
       if (dialog) {
         if (!dialog.open) {
-          dialog.showModal();
+          if (typeof dialog.showModal === "function") {
+            dialog.showModal();
+          } else {
+            dialog.setAttribute("open", "true");
+          }
         }
         // Focus first control
         const input = dialog.querySelector("input, button");
@@ -48,7 +52,11 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     } else {
       const dialog = dialogRef.current;
       if (dialog && dialog.open) {
-        dialog.close();
+        if (typeof dialog.close === "function") {
+          dialog.close();
+        } else {
+          dialog.removeAttribute("open");
+        }
       }
       if (triggerRef.current) {
         triggerRef.current.focus();
@@ -79,6 +87,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   return (
     <dialog
       ref={dialogRef}
+      open={open}
       style={{
         background: "var(--ink-900)",
         border: "var(--pixel-border)",
@@ -92,9 +101,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       <h3 style={{ margin: "0 0 10px 0", color: danger ? "var(--warning)" : "var(--gold-400)" }}>
         {title}
       </h3>
-      <p style={{ margin: "0 0 15px 0", fontSize: "14px", lineHeight: "1.4" }}>
-        {description}
-      </p>
+      <p style={{ margin: "0 0 15px 0", fontSize: "14px", lineHeight: "1.4" }}>{description}</p>
 
       {requiredText && (
         <div style={{ margin: "0 0 15px 0" }}>
@@ -120,7 +127,10 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
       {showConcurrency && (
         <div style={{ margin: "0 0 15px 0" }}>
-          <label htmlFor="confirm-concurrency" style={{ display: "block", fontSize: "12px", marginBottom: "5px" }}>
+          <label
+            htmlFor="confirm-concurrency"
+            style={{ display: "block", fontSize: "12px", marginBottom: "5px" }}
+          >
             Concurrency Limit (Parallel Workers):
           </label>
           <select
@@ -146,9 +156,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       )}
 
       {error && (
-        <p style={{ color: "var(--warning)", fontSize: "12px", margin: "0 0 15px 0" }}>
-          {error}
-        </p>
+        <p style={{ color: "var(--warning)", fontSize: "12px", margin: "0 0 15px 0" }}>{error}</p>
       )}
 
       <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>

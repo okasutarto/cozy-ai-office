@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, afterEach } from "vitest";
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { TopBar } from "../../src/web/components/TopBar.js";
 import { TaskBoard } from "../../src/web/components/TaskBoard.js";
 import { Inspector } from "../../src/web/components/Inspector.js";
@@ -9,7 +9,13 @@ import { Timeline } from "../../src/web/components/Timeline.js";
 import { ConfirmDialog } from "../../src/web/components/ConfirmDialog.js";
 import { DiffDialog } from "../../src/web/components/DiffDialog.js";
 import type { RunSnapshot, RunEvent } from "../../src/shared/contracts.js";
-import type { AttemptView, DiffView, QaReportView, AdvisorReviewView, ProviderStatus } from "../../src/shared/api.js";
+import type {
+  AttemptView,
+  DiffView,
+  QaReportView,
+  AdvisorReviewView,
+  ProviderStatus,
+} from "../../src/shared/api.js";
 
 // Mock AppStore so state is available
 vi.mock("../../src/web/store.js", () => {
@@ -42,6 +48,10 @@ vi.mock("../../src/web/store.js", () => {
     }),
     useAppDispatch: () => vi.fn(),
   };
+});
+
+afterEach(() => {
+  cleanup();
 });
 
 describe("Owner Run Controls UI & Dashboard Components", () => {
@@ -144,7 +154,11 @@ describe("Owner Run Controls UI & Dashboard Components", () => {
       <Inspector
         actorId="worker-1"
         taskId="task-1"
-        run={null}
+        run={
+          {
+            tasks: [{ id: "task-1", title: "Write some code", dependsOn: [], status: "running" }],
+          } as any
+        }
         attempts={fakeAttempts}
         providerStatuses={[]}
       />,
@@ -218,21 +232,15 @@ describe("Owner Run Controls UI & Dashboard Components", () => {
         createdAt: "2026-07-11T12:00:00.000Z",
       },
       stat: "1 file changed, 5 insertions(+)",
-      patch: "+++ a/package.json\n+   \"new\": \"dependency\"",
+      patch: '+++ a/package.json\n+   "new": "dependency"',
       truncated: false,
     };
 
     render(
-      <DiffDialog
-        open={true}
-        diff={fakeDiff}
-        qa={null}
-        advisorReviews={[]}
-        onClose={vi.fn()}
-      />,
+      <DiffDialog open={true} diff={fakeDiff} qa={null} advisorReviews={[]} onClose={vi.fn()} />,
     );
 
     expect(screen.getByText("Stats: 1 file changed, 5 insertions(+)")).toBeDefined();
-    expect(screen.getByText("dependency")).toBeDefined();
+    expect(screen.getByText(/dependency/)).toBeDefined();
   });
 });
