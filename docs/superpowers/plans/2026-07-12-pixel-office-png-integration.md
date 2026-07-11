@@ -25,9 +25,9 @@
 - Create: `art/vendor/pixel-office/LICENSE.txt`
 - Create: `art/vendor/pixel-office/README.txt`
 
-- [ ] Extract the five source files from `C:/Users/USER/Downloads/PixelOffice.zip` into `art/vendor/pixel-office/`.
-- [ ] Verify the source dimensions are 256x224, 1024x896, and 256x160 for the three PNGs.
-- [ ] Verify the vendored license is CC0 and retains the original attribution.
+- [x] Extract the five source files from `C:/Users/USER/Downloads/PixelOffice.zip` into `art/vendor/pixel-office/`.
+- [x] Verify the source dimensions are 256x224, 1024x896, and 256x160 for the three PNGs.
+- [x] Verify the vendored license is CC0 and retains the original attribution.
 
 ### Task 2: Replace procedural generation with deterministic PNG composition
 
@@ -35,12 +35,12 @@
 
 - Modify: `scripts/generate-assets.mjs`
 
-- [ ] Read `art/source/characters.json` only for the existing actor IDs and animation frame counts.
-- [ ] Compose the 352x240 office frame by nearest-neighbor scaling `PixelOffice.png` to fill width 352, cropping source rows 24 through 199, then place it at `(0,0)` in a transparent 512x512 atlas.
-- [ ] Crop five source character cells at `(0,112)`, `(16,112)`, `(32,112)`, `(0,128)`, and `(16,128)` from `PixelOfficeAssets.png`; place each 16x16 crop at y=8 in a 16x24 frame.
-- [ ] Map actor index modulo five to those cells, reuse the mapped cell for every animation frame, and preserve the existing 64-column atlas packing and JSON frame metadata.
-- [ ] Generate `asset-manifest.json` with the existing runtime paths and dimensions.
-- [ ] Generate `licenses.json` with CC0 source hashes, transformation notes, and output hashes.
+- [x] Read `art/source/characters.json` only for the existing actor IDs and animation frame counts.
+- [x] Compose the 352x240 office frame by nearest-neighbor scaling `PixelOffice.png` to fill width 352, cropping source rows 24 through 199, then place it at `(0,0)` in a transparent 512x512 atlas.
+- [x] Crop five source character cells at `(0,112)`, `(16,112)`, `(32,112)`, `(0,128)`, and `(16,128)` from `PixelOfficeAssets.png`; place each 16x16 crop at y=8 in a 16x24 frame.
+- [x] Map actor index modulo five to those cells, reuse the mapped cell for every animation frame, and preserve the existing 64-column atlas packing and JSON frame metadata.
+- [x] Generate `asset-manifest.json` with the existing runtime paths and dimensions.
+- [x] Generate `licenses.json` with CC0 source hashes, transformation notes, and output hashes.
 
 ### Task 3: Update license and validation metadata
 
@@ -50,9 +50,9 @@
 - Modify: `THIRD_PARTY_NOTICES.md`
 - Modify: `scripts/validate-assets.mjs`
 
-- [ ] Change the repository art notice from CC-BY-4.0 to CC0 for the vendored PixelOffice source.
-- [ ] Add the 2dPig Pixel Office source URL, CC0 URL, and attribution note to third-party notices.
-- [ ] Update validation to expect the same 512x512 and 1024x256 atlas dimensions but require the `pixel-office-2dpig` CC0 license record and vendor source hashes.
+- [x] Change the repository art notice from CC-BY-4.0 to CC0 for the vendored PixelOffice source.
+- [x] Add the 2dPig Pixel Office source URL, CC0 URL, and attribution note to third-party notices.
+- [x] Update validation to expect the same 512x512 and 1024x256 atlas dimensions but require the `pixel-office-2dpig` CC0 license record and vendor source hashes.
 
 ### Task 4: Generate and verify the replacement
 
@@ -60,8 +60,8 @@
 
 - Modify: generated files under `public/assets/`
 
-- [ ] Run `npm run assets:generate` with the project Node 24 runtime.
-- [ ] Run `npm run assets:check` and confirm all frame bounds, hashes, keys, and licenses pass.
-- [ ] Run `npm run format:check`, `npm run typecheck`, and the office/auth tests.
-- [ ] Refresh the running dev app and verify the new background and characters visually at nearest-neighbor scale.
-- [ ] Record the final generated hashes and ensure only intended files are changed.
+- [x] Run `npm run assets:generate` with the project Node 24 runtime.
+- [x] Run `npm run assets:check` and confirm all frame bounds, hashes, keys, and licenses pass.
+- [x] Run `npm run format:check`, `npm run typecheck`, and the office/auth tests.
+- [x] Refresh the running dev app and verify the new background and characters visually at nearest-neighbor scale.
+- [x] Record the final generated hashes and ensure only intended files are changed.
