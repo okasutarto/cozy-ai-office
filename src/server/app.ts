@@ -19,6 +19,9 @@ import { RepositoryService } from "./git/repository.js";
 import { ProjectService } from "./projects/service.js";
 import { registerProjectRoutes } from "./routes/projects.js";
 import { ContextSnapshotService } from "./context/snapshots.js";
+import { ConversationService } from "./conversations/service.js";
+import { registerConversationRoutes } from "./routes/conversations.js";
+import { registerDraftRoutes } from "./routes/drafts.js";
 
 export type AppDependencies = {
   config: ServerConfig;
@@ -120,6 +123,21 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
 
   // Register project routes
   registerProjectRoutes(app, projectService, snapshotService);
+
+  const conversationService = new ConversationService(
+    (dependencies.projects as any).db,
+    dependencies.projects,
+    dependencies.conversations,
+    dependencies.providers,
+    snapshotService,
+    dependencies.artifacts,
+  );
+
+  // Register conversation routes
+  registerConversationRoutes(app, conversationService);
+
+  // Register draft routes
+  registerDraftRoutes(app, conversationService);
 
   // WebSocket Route
   app.get(
