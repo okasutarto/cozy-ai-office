@@ -80,26 +80,34 @@ async function createFreshFixture() {
     name: "fixture-project",
     version: "1.0.0",
     scripts: {
-      test: `node test/barrier-check.js`,
-      typecheck: "node -e \"process.exit(0)\"",
+      test: "vitest run",
+    },
+    devDependencies: {
+      vitest: "^4.1.10",
     },
   };
   await writeFile(path.join(projDir, "package.json"), JSON.stringify(pkgJson, null, 2));
 
-  // Write a simple barrier-check script (no vitest dependency needed)
+  // Write testing tests with barriers
   await mkdir(path.join(projDir, "test"), { recursive: true });
-  const barrierCheckScript = `
-const fs = require('fs');
-const path = require('path');
-const barrierPath = path.join(${JSON.stringify(path.join(e2eDir, "data"))}, "testing.barrier");
-while (fs.existsSync(barrierPath)) {
-  try {
-    require('child_process').execSync('node -e "setTimeout(() => {}, 50)"');
-  } catch (e) {}
-}
-process.exit(0);
-`;
-  await writeFile(path.join(projDir, "test/barrier-check.js"), barrierCheckScript);
+  const dummyTestSnippet = `
+    import { test, expect } from "vitest";
+    import * as fs from "node:fs";
+    import * as path from "node:path";
+
+    test("dummy test checks testing barrier", () => {
+      const barrierPath = path.join(${JSON.stringify(path.join(e2eDir, "data"))}, "testing.barrier");
+      while (fs.existsSync(barrierPath)) {
+        try {
+          require("child_process").execSync('node -e "setTimeout(() => {}, 50)"');
+        } catch (e) {}
+      }
+      expect(true).toBe(true);
+    });
+  `;
+  await writeFile(path.join(projDir, "test/greeting.test.ts"), dummyTestSnippet);
+  await writeFile(path.join(projDir, "test/farewell.test.ts"), dummyTestSnippet);
+  await writeFile(path.join(projDir, "test/punctuation.test.ts"), dummyTestSnippet);
 
   execSync("git add .", { cwd: projDir, stdio: "ignore" });
   execSync('git commit -m "initial commit"', { cwd: projDir, stdio: "ignore" });
@@ -155,7 +163,16 @@ process.exit(0);
   registry.loadStatuses(mockStatuses);
 
   // Create initial barriers
-  const barriers = ["planning", "worker-1", "worker-2", "worker-3", "testing", "reviewing", "ready"];
+  const barriers = [
+    "planning",
+    "worker-1",
+    "worker-2",
+    "worker-3",
+    "testing",
+    "reviewing",
+    "reviewing-delivery",
+    "ready",
+  ];
   for (const b of barriers) {
     fs.writeFileSync(path.join(e2eDir, "data", `${b}.barrier`), "");
   }
@@ -220,7 +237,8 @@ async function start() {
 
   app.post("/__test/reset", async (request, reply) => {
     const active = dependencies.runs.listActiveRuns();
-    if (active.length > 0) {
+    const executing = active.filter((run) => run.state !== "ready_to_apply");
+    if (executing.length > 0) {
       reply.status(400).send({ error: "Engine controller active" });
       return reply;
     }
@@ -339,7 +357,16 @@ async function start() {
     dependencies.projects.saveProviderStatus(mockStatuses[2]!);
 
     // Recreate barriers
-    const barriers = ["planning", "worker-1", "worker-2", "worker-3", "testing", "reviewing", "ready"];
+    const barriers = [
+      "planning",
+      "worker-1",
+      "worker-2",
+      "worker-3",
+      "testing",
+      "reviewing",
+      "reviewing-delivery",
+      "ready",
+    ];
     for (const b of barriers) {
       fs.writeFileSync(path.join(e2eDir, "data", `${b}.barrier`), "");
     }

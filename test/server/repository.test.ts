@@ -68,6 +68,19 @@ describe("Git repository service", () => {
         "test",
         "build",
       ]);
+      const npmExecutable = process.platform === "win32" ? process.env.ComSpec || "cmd.exe" : "npm";
+      expect(
+        inspection.commandCandidates.every((candidate) => candidate.executable === npmExecutable),
+      ).toBe(true);
+      if (process.platform === "win32") {
+        expect(inspection.commandCandidates.map((candidate) => candidate.args)).toEqual([
+          ["/d", "/s", "/c", "npm.cmd run format:check"],
+          ["/d", "/s", "/c", "npm.cmd run lint"],
+          ["/d", "/s", "/c", "npm.cmd run typecheck"],
+          ["/d", "/s", "/c", "npm.cmd run test"],
+          ["/d", "/s", "/c", "npm.cmd run build"],
+        ]);
+      }
 
       // Propose flutter analyze and flutter test only when pubspec.yaml is tracked
       expect(inspection.commandCandidates.map((c) => c.executable)).not.toContain("flutter");

@@ -8,6 +8,11 @@ function getSha256(filePath) {
   return crypto.createHash("sha256").update(content).digest("hex");
 }
 
+function getTextSha256(filePath) {
+  const content = fs.readFileSync(filePath, "utf8").replaceAll("\r\n", "\n");
+  return crypto.createHash("sha256").update(content).digest("hex");
+}
+
 function hexToRgba(hex) {
   const clean = hex.replace("#", "");
   return {
@@ -346,9 +351,9 @@ const licenses = {
       license: "CC-BY-4.0",
       licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
       sourceFiles: [
-        { path: "art/source/palettes.json", sha256: getSha256("art/source/palettes.json") },
-        { path: "art/source/office.json", sha256: getSha256("art/source/office.json") },
-        { path: "art/source/characters.json", sha256: getSha256("art/source/characters.json") },
+        { path: "art/source/palettes.json", sha256: getTextSha256("art/source/palettes.json") },
+        { path: "art/source/office.json", sha256: getTextSha256("art/source/office.json") },
+        { path: "art/source/characters.json", sha256: getTextSha256("art/source/characters.json") },
       ],
       outputs: [
         {

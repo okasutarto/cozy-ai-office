@@ -56,6 +56,7 @@ type TaskState = {
 
 export class WorkerScheduler {
   private dispatchPaused = false;
+  private readonly integrationQueues = new Map<string, Promise<void>>();
 
   constructor(
     private readonly runs: RunStore,
@@ -71,6 +72,29 @@ export class WorkerScheduler {
   resume(runId: string): void {
     this.runs.setDispatchPaused(runId, false);
     this.dispatchPaused = false;
+  }
+
+  private async withIntegrationLock<T>(
+    integrationWorktree: string,
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    const previous = this.integrationQueues.get(integrationWorktree) ?? Promise.resolve();
+    let release!: () => void;
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const tail = previous.then(() => current);
+    this.integrationQueues.set(integrationWorktree, tail);
+
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+      if (this.integrationQueues.get(integrationWorktree) === tail) {
+        this.integrationQueues.delete(integrationWorktree);
+      }
+    }
   }
 
   /**
@@ -329,27 +353,29 @@ export class WorkerScheduler {
 
         // Integrate into integration worktree
         if (commitSha) {
-          const integration = await this.worktrees.integrateCommit({
-            integrationWorktree,
-            commitSha,
-            signal,
-          });
-
-          if (integration.conflictFiles.length > 0) {
-            // Attempt conflict resolution
-            await this.executor.resolveConflict({
-              conflictFiles: integration.conflictFiles,
-              profile,
-              cwd: integrationWorktree,
-              signal,
-            });
-
-            await this.worktrees.resolveConflict({
+          await this.withIntegrationLock(integrationWorktree, async () => {
+            const integration = await this.worktrees.integrateCommit({
               integrationWorktree,
-              conflictFiles: integration.conflictFiles,
+              commitSha,
               signal,
             });
-          }
+
+            if (integration.conflictFiles.length > 0) {
+              // Attempt conflict resolution
+              await this.executor.resolveConflict({
+                conflictFiles: integration.conflictFiles,
+                profile,
+                cwd: integrationWorktree,
+                signal,
+              });
+
+              await this.worktrees.resolveConflict({
+                integrationWorktree,
+                conflictFiles: integration.conflictFiles,
+                signal,
+              });
+            }
+          });
         }
       }
 

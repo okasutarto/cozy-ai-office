@@ -15,7 +15,7 @@ export function registerBootstrapRoute(app: FastifyInstance, dependencies: AppDe
     const activeRun =
       activeRuns.length > 0
         ? [...activeRuns].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
-        : null;
+        : dependencies.runs.getLatestRun();
 
     const data = {
       projects,

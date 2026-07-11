@@ -89,6 +89,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api }) => {
         body: JSON.stringify({ rootPath: repoPath }),
       });
       setProjectId(result.id);
+      if (Array.isArray(result.commandCandidates)) {
+        setCommands(
+          result.commandCandidates.map(
+            (command: { id: string; executable: string; args: string[]; required: boolean }) => ({
+              id: command.id,
+              executable: command.executable,
+              args: command.args,
+              required: command.required,
+            }),
+          ),
+        );
+      }
       setProjectStatus(
         `Clean root. Branch: ${result.branch ?? "main"}, HEAD: ${result.head ?? "n/a"}`,
       );

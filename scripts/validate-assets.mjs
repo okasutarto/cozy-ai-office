@@ -7,6 +7,11 @@ function getSha256(filePath) {
   return crypto.createHash("sha256").update(content).digest("hex");
 }
 
+function getTextSha256(filePath) {
+  const content = fs.readFileSync(filePath, "utf8").replaceAll("\r\n", "\n");
+  return crypto.createHash("sha256").update(content).digest("hex");
+}
+
 function isPowerOfTwo(n) {
   return n > 0 && (n & (n - 1)) === 0;
 }
@@ -216,7 +221,7 @@ try {
 
   // Validate hashes inside licenses.json
   cozyAsset.sourceFiles.forEach((file) => {
-    const calculated = getSha256(file.path);
+    const calculated = getTextSha256(file.path);
     if (file.sha256 !== calculated) {
       throw new Error(
         `Hash mismatch for source file ${file.path}: expected ${file.sha256}, got ${calculated}`,

@@ -316,6 +316,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     workerScheduler,
     qaRunner,
   );
+  orchestratorEngine.recoverInterruptedRuns();
 
   // Register run and storage routes
   registerRunRoutes(

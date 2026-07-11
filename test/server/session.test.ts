@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { readFile } from "node:fs/promises";
 import WebSocketClient from "ws";
 import { buildApp } from "../../src/server/app.js";
 import { createTestDependencies } from "../helpers/test-dependencies.js";
+
+describe("startup logging", () => {
+  it("does not interpolate the authenticated launch URL into logs", async () => {
+    const cliSource = await readFile(new URL("../../src/server/cli.ts", import.meta.url), "utf8");
+    expect(cliSource).not.toContain("Opening ${launchUrl}");
+    expect(cliSource).not.toContain("Session Token: ${config.sessionToken}");
+  });
+});
 
 describe("local session security", () => {
   it("rejects API requests without the server token", async () => {

@@ -76,6 +76,7 @@ export interface RunStore {
   transaction<T>(work: () => T): T;
   createRun(input: NewRunRecord): void;
   getRun(id: string): RunSnapshot | null;
+  getLatestRun(): RunSnapshot | null;
   listActiveRuns(): RunSnapshot[];
   setRunState(id: string, state: RunState, blockReason: string | null): void;
   setDispatchPaused(id: string, paused: boolean): void;
@@ -176,6 +177,13 @@ export class SqliteRunStore implements RunStore {
       )
       .all() as { id: string }[];
     return rows.map((r) => this.getRun(r.id)!).filter(Boolean);
+  }
+
+  getLatestRun(): RunSnapshot | null {
+    const row = this.db
+      .prepare("SELECT id FROM runs ORDER BY created_at DESC, rowid DESC LIMIT 1")
+      .get() as { id: string } | undefined;
+    return row ? this.getRun(row.id) : null;
   }
 
   setRunState(id: string, state: RunState, blockReason: string | null): void {

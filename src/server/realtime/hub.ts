@@ -17,9 +17,15 @@ export class RealtimeHub {
   }
 
   publish(event: RunEvent): void {
-    const message = JSON.stringify({ type: "event", event });
+    const eventMessage = JSON.stringify({ type: "event", event });
+    const snapshotMessage = event.runId
+      ? JSON.stringify({ type: "snapshot", run: this.runs.getRun(event.runId) })
+      : null;
     for (const [socket, runId] of this.clients) {
-      if (socket.readyState === WebSocket.OPEN && runId === event.runId) socket.send(message);
+      if (socket.readyState === WebSocket.OPEN && runId === event.runId) {
+        socket.send(eventMessage);
+        if (snapshotMessage) socket.send(snapshotMessage);
+      }
     }
   }
 }

@@ -2,8 +2,6 @@
 
 Cozy Agent Office is a local-first, multi-model coding-agent orchestrator with a pixel-office UI.
 
-
-
 ## What it does
 
 - Detects locally installed Codex, Claude, and Antigravity CLIs and verifies their capabilities.
@@ -106,4 +104,3 @@ npm start
 ## License
 
 Apache-2.0
-

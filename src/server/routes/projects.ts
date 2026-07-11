@@ -60,7 +60,10 @@ export function registerProjectRoutes(
     "/api/projects/:projectId/providers/antigravity/verify-login",
     async (request, reply) => {
       const body = VerifyAntigravityLoginSchema.parse(request.body);
-      const result = await projectService.verifyAntigravityLogin(body.model, new AbortController().signal);
+      const result = await projectService.verifyAntigravityLogin(
+        body.model,
+        new AbortController().signal,
+      );
       return reply.send(result);
     },
   );
@@ -74,10 +77,12 @@ export function registerProjectRoutes(
     }
     const commands = projectService.store.listCommands(projectId);
     const roles = projectService.store.listRoleProfiles(projectId);
+    const contextSnapshotId = projectService.store.getLatestContextSnapshot(projectId)?.id ?? null;
     return reply.send({
       project,
       commands,
       roles,
+      contextSnapshotId,
     });
   });
 
@@ -171,7 +176,10 @@ export function registerProjectRoutes(
       throw new AppError("project_not_found", "Project not found", 404);
     }
 
-    const inspection = await projectService.repositories.inspect(project.rootPath, new AbortController().signal);
+    const inspection = await projectService.repositories.inspect(
+      project.rootPath,
+      new AbortController().signal,
+    );
 
     const candidates: string[] = [];
     const excluded: { path: string; reason: string }[] = [];
@@ -217,7 +225,11 @@ export function registerProjectRoutes(
   app.post("/api/projects/:projectId/context-snapshots", async (request, reply) => {
     const { projectId } = request.params as { projectId: string };
     const body = CreateContextSnapshotRequestSchema.parse(request.body);
-    const snapshot = await snapshotService.create(projectId, body.paths, new AbortController().signal);
+    const snapshot = await snapshotService.create(
+      projectId,
+      body.paths,
+      new AbortController().signal,
+    );
     return reply.send(snapshot);
   });
 

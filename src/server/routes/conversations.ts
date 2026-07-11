@@ -64,7 +64,11 @@ export function registerConversationRoutes(
   app.post("/api/conversations/:conversationId/forward-to-manager", async (request, reply) => {
     const { conversationId } = request.params as { conversationId: string };
     const body = ForwardToManagerRequestSchema.parse(request.body);
-    const result = await service.forwardToManager(conversationId, body.messageIds, new AbortController().signal);
+    const result = await service.forwardToManager(
+      conversationId,
+      body.messageIds,
+      new AbortController().signal,
+    );
     return reply.send(result);
   });
 }

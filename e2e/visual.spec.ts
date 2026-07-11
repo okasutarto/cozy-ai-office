@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 
 async function resetTestServer(baseURL: string) {
   const res = await fetch(`${baseURL}/__test/reset`, { method: "POST" });
+  if (!res.ok) throw new Error(`E2E reset failed: ${res.status} ${await res.text()}`);
   return res.json();
 }
 
@@ -23,6 +24,10 @@ async function setScenario(baseURL: string, scenario: string) {
 test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
   // Only capture snapshots on Linux as requested to avoid cross-platform font/renderer mismatches
   test.skip(process.platform !== "linux", "Visual screenshot baseline tests run on Linux only");
+
+  test.beforeEach(async ({ baseURL }) => {
+    await resetTestServer(baseURL!);
+  });
 
   test("captures all workflow visual states in sequence", async ({ page, baseURL }) => {
     // 1. Initial State: Onboard to main office dashboard
@@ -47,7 +52,10 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     });
 
     // 2. Planning State
-    await page.fill('textarea[placeholder*="Type a message..."]', "Implement greeting, farewell, and punctuation constants");
+    await page.fill(
+      'textarea[placeholder*="Type a message..."]',
+      "Implement greeting, farewell, and punctuation constants",
+    );
     await page.click('button:has-text("Send")');
 
     // Wait for and select the message checkbox to enable "Send to Manager"
@@ -57,7 +65,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
 
     await page.click('button:has-text("Send to Manager")');
     await page.click('button:has-text("Draft Task")');
-    await page.click('button:has-text("Start Execution")');
+    await page.click('button:has-text("Review execution")');
     await page.click('dialog button:has-text("Start Execution")');
 
     await expect(page.locator("text=PLANNED")).toBeVisible();
@@ -102,8 +110,8 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     });
 
     // 6. Ready State
-    await releaseBarrier(baseURL!, "reviewing");
-    await expect(page.locator("text=Ready to Apply")).toBeVisible();
+    await releaseBarrier(baseURL!, "reviewing-delivery");
+    await expect(page.getByText("READY_TO_APPLY", { exact: true })).toBeVisible();
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({
@@ -112,7 +120,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     });
 
     // 7. Applied (Done) State
-    await page.click('button:has-text("Apply")');
+    await page.getByRole("button", { name: "Apply Changes" }).click();
     await page.click('dialog button:has-text("Apply")');
     await expect(page.locator("text=APPLIED")).toBeVisible();
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
@@ -136,7 +144,10 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     await page.click('button:has-text("Next")');
     await page.click('button:has-text("Complete Onboarding")');
 
-    await page.fill('textarea[placeholder*="Type a message..."]', "Implement greeting, farewell, and punctuation constants");
+    await page.fill(
+      'textarea[placeholder*="Type a message..."]',
+      "Implement greeting, farewell, and punctuation constants",
+    );
     await page.click('button:has-text("Send")');
 
     // Wait for and select the message checkbox to enable "Send to Manager"
@@ -146,7 +157,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
 
     await page.click('button:has-text("Send to Manager")');
     await page.click('button:has-text("Draft Task")');
-    await page.click('button:has-text("Start Execution")');
+    await page.click('button:has-text("Review execution")');
     await page.click('dialog button:has-text("Start Execution")');
 
     // Run planning
@@ -182,7 +193,10 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     await page.click('button:has-text("Next")');
     await page.click('button:has-text("Complete Onboarding")');
 
-    await page.fill('textarea[placeholder*="Type a message..."]', "Implement greeting, farewell, and punctuation constants");
+    await page.fill(
+      'textarea[placeholder*="Type a message..."]',
+      "Implement greeting, farewell, and punctuation constants",
+    );
     await page.click('button:has-text("Send")');
 
     // Wait for and select the message checkbox to enable "Send to Manager"
@@ -192,7 +206,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
 
     await page.click('button:has-text("Send to Manager")');
     await page.click('button:has-text("Draft Task")');
-    await page.click('button:has-text("Start Execution")');
+    await page.click('button:has-text("Review execution")');
     await page.click('dialog button:has-text("Start Execution")');
 
     // Planning and preflight review (rejected)

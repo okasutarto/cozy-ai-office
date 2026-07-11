@@ -9,6 +9,7 @@ async function getTestStatus(baseURL: string) {
 
 async function resetTestServer(baseURL: string) {
   const res = await fetch(`${baseURL}/__test/reset`, { method: "POST" });
+  if (!res.ok) throw new Error(`E2E reset failed: ${res.status} ${await res.text()}`);
   return res.json();
 }
 
@@ -31,7 +32,9 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
       console.error(`[BROWSER EXCEPTION]: ${err.message}`);
     });
     page.on("requestfailed", (req) => {
-      console.error(`[BROWSER REQUEST FAILED]: ${req.url()} - ${req.failure()?.errorText || "404"}`);
+      console.error(
+        `[BROWSER REQUEST FAILED]: ${req.url()} - ${req.failure()?.errorText || "404"}`,
+      );
     });
     page.on("response", (res) => {
       if (res.status() >= 400) {
@@ -41,7 +44,10 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     await resetTestServer(baseURL!);
   });
 
-  test("runs the full three-worker parallel execution to fast-forward apply", async ({ page, baseURL }) => {
+  test("runs the full three-worker parallel execution to fast-forward apply", async ({
+    page,
+    baseURL,
+  }) => {
     // 1. Open with session fragment
     const launchUrl = `/#session=e2e-session-token-0000000000000000000000000001`;
     await page.goto(launchUrl);
@@ -62,7 +68,10 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     // 7. Onboarding completes -> main dashboard appears. Enter discussion.
     await expect(page.locator("text=Cozy Agent Office")).toBeVisible();
 
-    await page.fill('textarea[placeholder*="Type a message..."]', "Implement greeting, farewell, and punctuation constants");
+    await page.fill(
+      'textarea[placeholder*="Type a message..."]',
+      "Implement greeting, farewell, and punctuation constants",
+    );
     await page.click('button:has-text("Send")');
 
     // Wait for and select the message checkbox to enable "Send to Manager"
@@ -102,14 +111,16 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     await releaseBarrier(baseURL!, "testing");
 
     // Finally, Advisor delivery review
-    await releaseBarrier(baseURL!, "reviewing");
+    await releaseBarrier(baseURL!, "reviewing-delivery");
 
     // We should reload during execution / ready stage to prove it reconnects cleanly
     await page.reload();
     await expect(page.locator("text=Cozy Agent Office")).toBeVisible();
 
     // 11. Reach ready_to_apply
-    await expect(page.locator("text=Ready to Apply")).toBeVisible();
+    await expect(page.getByText("READY_TO_APPLY", { exact: true })).toBeVisible({
+      timeout: 30_000,
+    });
 
     // Verify none of the three files exist on root branch yet
     expect(fs.existsSync(path.join(projectPath, "src/greeting.ts"))).toBe(false);
@@ -118,28 +129,38 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
 
     // 12. Open diff evidence
     await page.click('button:has-text("View Evidence")');
-    await expect(page.locator("text=Run Evidence & Diffs")).toBeVisible();
-    await expect(page.locator("text=greeting.ts")).toBeVisible();
-    await page.click('button:has-text("Close")');
+    const evidenceDialog = page.getByRole("dialog");
+    await expect(evidenceDialog.getByText("Run Evidence & Diffs")).toBeVisible();
+    await expect(evidenceDialog).toContainText("greeting.ts");
+    await evidenceDialog.getByRole("button", { name: "Close" }).click();
 
     // 13. Apply run integration
-    await page.click('button:has-text("Apply")');
+    await page.getByRole("button", { name: "Apply Changes" }).click();
     await expect(page.locator("text=Apply Integration Branch")).toBeVisible();
     await page.click('dialog button:has-text("Apply")');
 
     // 14. Wait for applied state and verify files are integrated
     await expect(page.locator("text=APPLIED")).toBeVisible();
 
-    expect(fs.readFileSync(path.join(projectPath, "src/greeting.ts"), "utf8")).toContain('export const greeting = "hello";');
-    expect(fs.readFileSync(path.join(projectPath, "src/farewell.ts"), "utf8")).toContain('export const farewell = "goodbye";');
-    expect(fs.readFileSync(path.join(projectPath, "src/punctuation.ts"), "utf8")).toContain('export const punctuation = "!";');
+    expect(fs.readFileSync(path.join(projectPath, "src/greeting.ts"), "utf8")).toContain(
+      'export const greeting = "hello";',
+    );
+    expect(fs.readFileSync(path.join(projectPath, "src/farewell.ts"), "utf8")).toContain(
+      'export const farewell = "goodbye";',
+    );
+    expect(fs.readFileSync(path.join(projectPath, "src/punctuation.ts"), "utf8")).toContain(
+      'export const punctuation = "!";',
+    );
 
     // 15. Reload and check history remains
     await page.reload();
     await expect(page.locator("text=APPLIED")).toBeVisible();
   });
 
-  test("runs sequential concurrency=1, pauses, resumes, and cancels run", async ({ page, baseURL }) => {
+  test("runs sequential concurrency=1, pauses, resumes, and cancels run", async ({
+    page,
+    baseURL,
+  }) => {
     // 1. Onboard project
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
@@ -151,7 +172,10 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     await page.click('button:has-text("Next")');
     await page.click('button:has-text("Complete Onboarding")');
 
-    await page.fill('textarea[placeholder*="Type a message..."]', "Implement greeting, farewell, and punctuation constants");
+    await page.fill(
+      'textarea[placeholder*="Type a message..."]',
+      "Implement greeting, farewell, and punctuation constants",
+    );
     await page.click('button:has-text("Send")');
 
     // Wait for and select the message checkbox to enable "Send to Manager"

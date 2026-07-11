@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 
 async function resetTestServer(baseURL: string) {
   const res = await fetch(`${baseURL}/__test/reset`, { method: "POST" });
+  if (!res.ok) throw new Error(`E2E reset failed: ${res.status} ${await res.text()}`);
   return res.json();
 }
 
@@ -19,7 +20,9 @@ test.describe("Cozy Agent Office Canvas Lifecycle & PixiJS 8 Integrity", () => {
       console.error(`[BROWSER EXCEPTION]: ${err.message}`);
     });
     page.on("requestfailed", (req) => {
-      console.error(`[BROWSER REQUEST FAILED]: ${req.url()} - ${req.failure()?.errorText || "404"}`);
+      console.error(
+        `[BROWSER REQUEST FAILED]: ${req.url()} - ${req.failure()?.errorText || "404"}`,
+      );
     });
     await resetTestServer(baseURL!);
   });
@@ -51,7 +54,10 @@ test.describe("Cozy Agent Office Canvas Lifecycle & PixiJS 8 Integrity", () => {
     expect(canvasCount).toBe(1);
   });
 
-  test("resists crashes on unmount under React StrictMode double effect simulations", async ({ page, baseURL }) => {
+  test("resists crashes on unmount under React StrictMode double effect simulations", async ({
+    page,
+    baseURL,
+  }) => {
     // Navigate and complete onboarding
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
@@ -80,7 +86,10 @@ test.describe("Cozy Agent Office Canvas Lifecycle & PixiJS 8 Integrity", () => {
     expect(await container.locator("canvas").count()).toBe(1);
   });
 
-  test("proves the disposed guard by destroying scene during delayed asset loading", async ({ page, baseURL }) => {
+  test("proves the disposed guard by destroying scene during delayed asset loading", async ({
+    page,
+    baseURL,
+  }) => {
     // Setup route interception with 500ms delay for assets loading
     await page.route("**/assets/office/office-atlas.json", async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 500));

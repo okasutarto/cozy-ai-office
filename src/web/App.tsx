@@ -274,17 +274,10 @@ export const App: React.FC = () => {
       .request<any>(`/api/projects/${state.selectedProjectId}/onboarding`)
       .then((data) => {
         setRoleProfiles(data.roles);
+        setContextSnapshotId(data.contextSnapshotId ?? state.run?.contextSnapshotId ?? "");
       })
       .catch(() => {});
-
-    api
-      .request<any>(`/api/projects/${state.selectedProjectId}/context-snapshots`, {
-        method: "POST",
-        body: JSON.stringify({ paths: ["package.json"] }),
-      })
-      .then((s) => setContextSnapshotId(s.id))
-      .catch(() => {});
-  }, [api, state.selectedProjectId, state.phase]);
+  }, [api, state.selectedProjectId, state.phase, state.run?.contextSnapshotId]);
 
   if (state.phase === "booting") {
     return (

@@ -10,6 +10,7 @@ We welcome contributions to Cozy Agent Office! Please adhere to the guidelines b
    - Recommended: [NVM](https://github.com/nvm-sh/nvm) (uses `.nvmrc`).
 
 2. **Installation**:
+
    ```bash
    npm ci
    ```

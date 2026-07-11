@@ -1,4 +1,11 @@
-import type { ProviderAdapter, ProviderRequest, ProviderProbeRuntime, ProviderStatus, BuiltCommand, StructuredSchema } from "../../src/server/providers/types.js";
+import type {
+  ProviderAdapter,
+  ProviderRequest,
+  ProviderProbeRuntime,
+  ProviderStatus,
+  BuiltCommand,
+  StructuredSchema,
+} from "../../src/server/providers/types.js";
 import type { ProviderId, ProviderCapabilities } from "../../src/shared/contracts.js";
 import * as path from "node:path";
 
@@ -107,8 +114,8 @@ export class ScriptedAdapter implements ProviderAdapter {
 
     // 2. Handle Advisor Preflight & Delivery Review
     else if (request.outputContract === "advisor_review") {
-      barrierName = "reviewing";
       const gate = request.prompt.includes("delivery") ? "delivery" : "preflight";
+      barrierName = gate === "delivery" ? "reviewing-delivery" : "reviewing";
       const approve = this.scenario !== "advisor_blocked";
 
       mockJSON = {

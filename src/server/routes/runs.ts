@@ -13,6 +13,26 @@ import type { ArtifactStore } from "../artifacts/store.js";
 import type { ConversationStore } from "../db/conversation-store.js";
 import { AppError } from "../errors.js";
 
+function mapAttemptForClient(attempt: any) {
+  const durationMs = attempt.finishedAt
+    ? Math.max(0, Date.parse(attempt.finishedAt) - Date.parse(attempt.startedAt))
+    : null;
+  return {
+    ...attempt,
+    status: attempt.status === "completed" ? "succeeded" : attempt.status,
+    durationMs: Number.isFinite(durationMs) ? durationMs : null,
+  };
+}
+
+function commandStdout(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && "stdout" in value) {
+    const stdout = (value as { stdout?: unknown }).stdout;
+    if (typeof stdout === "string") return stdout;
+  }
+  return "";
+}
+
 export function registerRunRoutes(
   app: FastifyInstance,
   engine: OrchestratorEngine,
@@ -80,6 +100,8 @@ export function registerRunRoutes(
 
     const contentStr = await readFile(resolvedPath, "utf8");
     const parsed = JSON.parse(contentStr);
+    const stat = commandStdout(parsed.stat);
+    const patch = commandStdout(parsed.patch);
 
     return reply.send({
       artifact: {
@@ -91,9 +113,9 @@ export function registerRunRoutes(
         sizeBytes: artifact.sizeBytes,
         createdAt: artifact.createdAt,
       },
-      stat: parsed.stat,
-      patch: parsed.patch,
-      truncated: false,
+      stat,
+      patch,
+      truncated: patch.includes("[OUTPUT TRUNCATED]"),
     });
   });
 
@@ -142,11 +164,7 @@ export function registerRunRoutes(
       )
       .all(runId) as any[];
 
-    // Ensure all numeric fields are converted properly
-    const mapped = attempts.map((a) => ({
-      ...a,
-      durationMs: 0, // Placeholder as we don't save durationMs in attempts database schema
-    }));
+    const mapped = attempts.map(mapAttemptForClient);
 
     return reply.send(mapped);
   });
@@ -266,17 +284,24 @@ export function registerRunRoutes(
         "SELECT id, task_id as taskId, role, profile_id as profileId, provider, model, stage, attempt_number as attemptNumber, status, exit_code as exitCode, error_code as errorCode, stdout_artifact_id as stdoutArtifactId, stderr_artifact_id as stderrArtifactId, started_at as startedAt, ended_at as finishedAt FROM attempts WHERE run_id = ?",
       )
       .all(runId) as any[];
-    const attemptsMapped = attempts.map((a) => ({
-      ...a,
-      durationMs: 0,
-    }));
+    const attemptsMapped = attempts.map(mapAttemptForClient);
 
     // Fetch advisor reviews
-    const advisorReviews = db
+    const advisorReviewRows = db
       .prepare(
         "SELECT id, run_id as runId, gate, pass_number as passNumber, verdict, artifact_id as artifactId, created_at as createdAt FROM advisor_reviews WHERE run_id = ?",
       )
       .all(runId) as any[];
+    const advisorReviews = advisorReviewRows.map((review) => ({
+      gate: review.gate,
+      pass: review.passNumber,
+      review: {
+        verdict: review.verdict,
+        blockingFindings: [],
+      },
+      artifactId: review.artifactId,
+      createdAt: review.createdAt,
+    }));
 
     // Fetch diff
     const diffArtifact = artifacts.getArtifactByKind(runId, "integration-diff");
@@ -286,10 +311,21 @@ export function registerRunRoutes(
       try {
         const contentStr = await readFile(absPath, "utf8");
         const parsed = JSON.parse(contentStr);
+        const stat = commandStdout(parsed.stat);
+        const patch = commandStdout(parsed.patch);
         diff = {
-          artifactId: diffArtifact.id,
-          stat: parsed.stat,
-          patch: parsed.patch,
+          artifact: {
+            id: diffArtifact.id,
+            runId: diffArtifact.runId,
+            taskId: diffArtifact.taskId,
+            kind: diffArtifact.kind,
+            sha256: diffArtifact.sha256,
+            sizeBytes: diffArtifact.sizeBytes,
+            createdAt: diffArtifact.createdAt,
+          },
+          stat,
+          patch,
+          truncated: patch.includes("[OUTPUT TRUNCATED]"),
         };
       } catch {}
     }

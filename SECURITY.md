@@ -23,4 +23,4 @@ Cozy Agent Office executes local processes and interacts with the host filesyste
 
 ## Reporting a Vulnerability
 
-To report security issues or disclosure concerns, please contact the maintainers directly at security@example.com instead of opening public GitHub issues.
+Report security issues privately through the repository's [GitHub Security Advisory form](https://github.com/okasutarto/cozy-ai-office/security/advisories/new). Do not include vulnerability details in a public GitHub issue.

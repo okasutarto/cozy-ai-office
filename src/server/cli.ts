@@ -78,13 +78,12 @@ async function main() {
     session.setPublicOrigin(origin);
     const launchUrl = `${origin}/#session=${config.sessionToken}`;
     app.log.info(`Server listening on ${origin}`);
-    app.log.info(`Opening ${launchUrl} in browser...`);
+    app.log.info("Opening authenticated local browser session...");
     await open(launchUrl).catch((err) => {
       app.log.error(`Could not open browser automatically: ${err?.message || err}`);
     });
   } else {
     app.log.info(`Server listening in DEV mode on port ${actualPort}`);
-    app.log.info(`Session Token: ${config.sessionToken}`);
   }
 
   // 8. Graceful shutdown
