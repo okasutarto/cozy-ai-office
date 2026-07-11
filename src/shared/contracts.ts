@@ -172,7 +172,7 @@ export const TaskBriefWireSchema = Object.assign(
 );
 export type TaskBriefWire = z.infer<typeof TaskBriefWireSchema>;
 
-function normalizeTaskBrief(brief: TaskBriefWire) {
+function normalizeTaskBrief<T extends TaskBriefWire>(brief: T) {
   return {
     ...brief,
     allowedPaths: brief.allowedPaths.map(normalizeRelativePath),
