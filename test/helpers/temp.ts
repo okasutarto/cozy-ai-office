@@ -7,6 +7,16 @@ export async function withTempDir<T>(run: (path: string) => Promise<T>): Promise
   try {
     return await run(path);
   } finally {
-    await rm(path, { recursive: true, force: true });
+    let retries = 5;
+    while (retries > 0) {
+      try {
+        await rm(path, { recursive: true, force: true });
+        break;
+      } catch (err) {
+        retries--;
+        if (retries === 0) throw err;
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
+    }
   }
 }
