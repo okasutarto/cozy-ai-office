@@ -42,7 +42,12 @@ async function main() {
   const claude = new ClaudeAdapter();
   const agy = new AntigravityAdapter();
 
-  const registry = new ProviderRegistry([codex, claude, agy], supervisor, projectStore, config.tempDir);
+  const registry = new ProviderRegistry(
+    [codex, claude, agy],
+    supervisor,
+    projectStore,
+    config.tempDir,
+  );
 
   // Load status from DB but mark stale on startup
   const savedStatuses = projectStore.listProviderStatuses();
@@ -85,7 +90,7 @@ async function main() {
   // 8. Graceful shutdown
   const shutdown = async (signal: string) => {
     app.log.info(`Received ${signal}. Shutting down...`);
-    
+
     // Abort active runs
     try {
       const activeRuns = runStore.listActiveRuns();

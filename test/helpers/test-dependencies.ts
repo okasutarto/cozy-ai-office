@@ -45,7 +45,7 @@ export async function createTestDependencies(): Promise<TestDependencies> {
   const runStore = new SqliteRunStore(db);
   const artifacts = new ArtifactStore(db, config.artifactsDir);
   const supervisor = new ProcessSupervisor();
-  
+
   // We can initialize the registry with empty adapters for the tests
   const providers = new ProviderRegistry([], supervisor, projectStore, config.tempDir);
   const session = new SessionGuard(config.sessionToken, config.publicOrigin);

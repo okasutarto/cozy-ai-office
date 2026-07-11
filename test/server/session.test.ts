@@ -222,7 +222,10 @@ describe("WebSocket upgrade and auth flows", () => {
       });
     } finally {
       clientsToClose.forEach((ws) => {
-        if (ws.readyState === WebSocketClient.OPEN || ws.readyState === WebSocketClient.CONNECTING) {
+        if (
+          ws.readyState === WebSocketClient.OPEN ||
+          ws.readyState === WebSocketClient.CONNECTING
+        ) {
           ws.terminate();
         }
       });
