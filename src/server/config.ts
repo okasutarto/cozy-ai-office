@@ -1,0 +1,52 @@
+import { randomBytes } from "node:crypto";
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
+
+export type ServerConfig = {
+  dev: boolean;
+  host: "127.0.0.1";
+  port: number;
+  publicOrigin: string;
+  sessionToken: string;
+  dataDir: string;
+  databasePath: string;
+  artifactsDir: string;
+  worktreesDir: string;
+  contextsDir: string;
+  tempDir: string;
+  webRoot: string;
+  websocketAuthTimeoutMs: number;
+};
+
+function defaultDataDir(): string {
+  if (process.platform === "win32") {
+    return join(process.env.APPDATA ?? join(homedir(), "AppData", "Roaming"), "Cozy Agent Office");
+  }
+  if (process.platform === "darwin") {
+    return join(homedir(), "Library", "Application Support", "Cozy Agent Office");
+  }
+  return join(process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share"), "cozy-agent-office");
+}
+
+export function loadConfig(environment: NodeJS.ProcessEnv = process.env): ServerConfig {
+  const dev = environment.COZY_DEV === "1";
+  const port = environment.COZY_PORT ? Number(environment.COZY_PORT) : 0;
+  if (!Number.isInteger(port) || port < 0 || port > 65_535) throw new Error("Invalid COZY_PORT");
+  const dataDir = resolve(environment.COZY_DATA_DIR ?? defaultDataDir());
+  const publicOrigin = environment.COZY_PUBLIC_ORIGIN ?? "";
+  return {
+    dev,
+    host: "127.0.0.1",
+    port,
+    publicOrigin,
+    sessionToken: randomBytes(32).toString("base64url"),
+    dataDir,
+    databasePath: join(dataDir, "state.db"),
+    artifactsDir: join(dataDir, "runs"),
+    worktreesDir: join(dataDir, "worktrees"),
+    contextsDir: join(dataDir, "contexts"),
+    tempDir: join(dataDir, "tmp"),
+    webRoot: resolve("dist/web"),
+    websocketAuthTimeoutMs: 2_000,
+  };
+}
