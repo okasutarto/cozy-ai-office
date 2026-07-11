@@ -47,6 +47,31 @@ export type TaskPatch = {
   resultArtifactId?: string | null;
 };
 
+export type NewAttempt = {
+  id: string;
+  runId: string | null;
+  taskId: string | null;
+  conversationId: string | null;
+  role: string;
+  profileId: string;
+  provider: string;
+  model: string | null;
+  stage: string;
+  attemptNumber: number;
+  status: string;
+  startedAt: string;
+};
+
+export type AttemptPatch = {
+  stage?: string;
+  status?: string;
+  exitCode?: number | null;
+  errorCode?: string | null;
+  stdoutArtifactId?: string | null;
+  stderrArtifactId?: string | null;
+  endedAt?: string | null;
+};
+
 export interface RunStore {
   transaction<T>(work: () => T): T;
   createRun(input: NewRunRecord): void;
@@ -59,6 +84,8 @@ export interface RunStore {
   appendEvent(event: NewEvent): RunEvent;
   listEvents(runId: string | null, afterSequence: number): RunEvent[];
   markRunningAttemptsInterrupted(): number;
+  createAttempt(input: NewAttempt): void;
+  updateAttempt(id: string, patch: AttemptPatch): void;
 }
 
 export class SqliteRunStore implements RunStore {
@@ -260,5 +287,54 @@ export class SqliteRunStore implements RunStore {
       .prepare("UPDATE attempts SET status = 'interrupted', ended_at = ? WHERE status = 'running'")
       .run(new Date().toISOString());
     return res.changes;
+  }
+
+  createAttempt(input: NewAttempt): void {
+    this.db
+      .prepare(
+        "INSERT INTO attempts (id, run_id, task_id, conversation_id, role, profile_id, provider, model, stage, attempt_number, status, started_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+      .run(
+        input.id,
+        input.runId,
+        input.taskId,
+        input.conversationId,
+        input.role,
+        input.profileId,
+        input.provider,
+        input.model,
+        input.stage,
+        input.attemptNumber,
+        input.status,
+        input.startedAt,
+      );
+  }
+
+  updateAttempt(id: string, patch: AttemptPatch): void {
+    const keys = Object.keys(patch) as (keyof AttemptPatch)[];
+    if (keys.length === 0) return;
+
+    const columnMap: Record<keyof AttemptPatch, string> = {
+      stage: "stage",
+      status: "status",
+      exitCode: "exit_code",
+      errorCode: "error_code",
+      stdoutArtifactId: "stdout_artifact_id",
+      stderrArtifactId: "stderr_artifact_id",
+      endedAt: "ended_at",
+    };
+
+    const sets: string[] = [];
+    const values: any[] = [];
+    for (const key of keys) {
+      const col = columnMap[key];
+      if (!col) continue;
+      sets.push(`${col} = ?`);
+      values.push(patch[key] === undefined ? null : patch[key]);
+    }
+    values.push(id);
+
+    const query = `UPDATE attempts SET ${sets.join(", ")} WHERE id = ?`;
+    this.db.prepare(query).run(...values);
   }
 }
