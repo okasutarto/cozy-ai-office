@@ -305,7 +305,10 @@ const charJson = {
     scale: "1",
   },
 };
-fs.writeFileSync("public/assets/characters/characters-atlas.json", JSON.stringify(charJson, null, 2));
+fs.writeFileSync(
+  "public/assets/characters/characters-atlas.json",
+  JSON.stringify(charJson, null, 2),
+);
 
 // ==========================================
 // Generate asset-manifest.json
@@ -343,35 +346,36 @@ const licenses = {
       license: "CC-BY-4.0",
       licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
       sourceFiles: [
-        { "path": "art/source/palettes.json", "sha256": getSha256("art/source/palettes.json") },
-        { "path": "art/source/office.json", "sha256": getSha256("art/source/office.json") },
-        { "path": "art/source/characters.json", "sha256": getSha256("art/source/characters.json") },
+        { path: "art/source/palettes.json", sha256: getSha256("art/source/palettes.json") },
+        { path: "art/source/office.json", sha256: getSha256("art/source/office.json") },
+        { path: "art/source/characters.json", sha256: getSha256("art/source/characters.json") },
       ],
-      "outputs": [
+      outputs: [
         {
-          "path": "public/assets/office/office-atlas.png",
-          "sha256": getSha256("public/assets/office/office-atlas.png"),
-          "frames": ["office.background"]
+          path: "public/assets/office/office-atlas.png",
+          sha256: getSha256("public/assets/office/office-atlas.png"),
+          frames: ["office.background"],
         },
         {
-          "path": "public/assets/office/office-atlas.json",
-          "sha256": getSha256("public/assets/office/office-atlas.json"),
-          "frames": ["office.background"]
+          path: "public/assets/office/office-atlas.json",
+          sha256: getSha256("public/assets/office/office-atlas.json"),
+          frames: ["office.background"],
         },
         {
-          "path": "public/assets/characters/characters-atlas.png",
-          "sha256": getSha256("public/assets/characters/characters-atlas.png"),
-          "frames": Object.keys(characterFrames)
+          path: "public/assets/characters/characters-atlas.png",
+          sha256: getSha256("public/assets/characters/characters-atlas.png"),
+          frames: Object.keys(characterFrames),
         },
         {
-          "path": "public/assets/characters/characters-atlas.json",
-          "sha256": getSha256("public/assets/characters/characters-atlas.json"),
-          "frames": Object.keys(characterFrames)
-        }
+          path: "public/assets/characters/characters-atlas.json",
+          sha256: getSha256("public/assets/characters/characters-atlas.json"),
+          frames: Object.keys(characterFrames),
+        },
       ],
-      "modifications": "Deterministically generated original pixel art; no third-party pixels included"
-    }
-  ]
+      modifications:
+        "Deterministically generated original pixel art; no third-party pixels included",
+    },
+  ],
 };
 fs.writeFileSync("public/assets/licenses.json", JSON.stringify(licenses, null, 2));
 

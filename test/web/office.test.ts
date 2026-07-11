@@ -1,7 +1,17 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
-import { OFFICE_WIDTH, OFFICE_HEIGHT, TILE_SIZE, STATIONS, NAV_GRAPH, NAV_ROUTES, ROOMS, COLLIDERS, segmentIntersectsCollider } from "../../src/web/office/layout.js";
+import {
+  OFFICE_WIDTH,
+  OFFICE_HEIGHT,
+  TILE_SIZE,
+  STATIONS,
+  NAV_GRAPH,
+  NAV_ROUTES,
+  ROOMS,
+  COLLIDERS,
+  segmentIntersectsCollider,
+} from "../../src/web/office/layout.js";
 import { assetManifest } from "../../src/web/office/asset-manifest.js";
 
 describe("Office Geometry & Navigation Specifications", () => {
@@ -91,5 +101,67 @@ describe("Office Geometry & Navigation Specifications", () => {
     expect(fs.existsSync("public/assets/characters/characters-atlas.png")).toBe(true);
     expect(fs.existsSync("public/assets/characters/characters-atlas.json")).toBe(true);
     expect(fs.existsSync("public/assets/licenses.json")).toBe(true);
+  });
+});
+
+import {
+  projectActorPoses,
+  shortestStationPath,
+  stationRoutePoints,
+} from "../../src/web/office/animation.js";
+import type { RunEvent } from "../../shared/contracts.js";
+
+describe("Office Animation & State Projection", () => {
+  it("computes shortest paths correctly based on NAV_GRAPH", () => {
+    const path = shortestStationPath("manager-desk", "meeting");
+    expect(path).toEqual(["manager-desk", "meeting"]);
+
+    const pts = stationRoutePoints("manager-desk", "meeting");
+    expect(pts.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("projects events to correct actor animations and deduplicates by sequence", () => {
+    const events: RunEvent[] = [
+      {
+        sequence: 1,
+        runId: "963d3fb6-787f-44e2-a7cb-df95880df965",
+        kind: "run.created",
+        actorId: null,
+        taskId: null,
+        payload: {},
+        createdAt: "2026-07-11T12:00:00.000Z",
+      },
+      {
+        sequence: 2,
+        runId: "963d3fb6-787f-44e2-a7cb-df95880df965",
+        kind: "task.started",
+        actorId: "worker-1",
+        taskId: "task-1",
+        payload: {},
+        createdAt: "2026-07-11T12:01:00.000Z",
+      },
+      // Duplicate sequence to verify normalization
+      {
+        sequence: 2,
+        runId: "963d3fb6-787f-44e2-a7cb-df95880df965",
+        kind: "task.started",
+        actorId: "worker-1",
+        taskId: "task-1",
+        payload: {},
+        createdAt: "2026-07-11T12:01:00.000Z",
+      },
+    ];
+
+    const poses = projectActorPoses(null, events);
+    const mgr = poses.find((p) => p.actorId === "manager")!;
+    const adv = poses.find((p) => p.actorId === "advisor")!;
+    const w1 = poses.find((p) => p.actorId === "worker-1")!;
+
+    expect(mgr.station).toBe("meeting");
+    expect(mgr.animation).toBe("talk");
+    expect(adv.station).toBe("meeting");
+    expect(adv.animation).toBe("read");
+    expect(w1.station).toBe("worker-1-desk");
+    expect(w1.animation).toBe("work");
   });
 });

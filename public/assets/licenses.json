@@ -14,11 +14,11 @@
         },
         {
           "path": "art/source/office.json",
-          "sha256": "03101d1e60e4d6c97c9ea2b80c3359f5b07d37563386a0b9891da91d5b917a2f"
+          "sha256": "aedcb0f02d136f1867bfcc3d1b97713a8a7057a4d4b6932c7faf73f34e148dc3"
         },
         {
           "path": "art/source/characters.json",
-          "sha256": "08eb050d1d691caaacab6d22d40f2a9f2c22d2ee81ec5ea41b9cf11d979987aa"
+          "sha256": "2e5274a6783286dab7d0452a84ec2749c317f40410d6866751c7f23c7e5eb1e1"
         }
       ],
       "outputs": [

@@ -1,12 +1,22 @@
-import { Application, Container, Sprite, Assets, Spritesheet } from "pixi.js";
+import { Application, Container, Sprite, Assets, Spritesheet, Texture } from "pixi.js";
 import { OFFICE_WIDTH, OFFICE_HEIGHT } from "./layout.js";
+import { CharacterSprite } from "./CharacterSprite.js";
+import { type ActorPose, type CharacterAnimation, projectActorPoses } from "./animation.js";
+import type { ProfileId, RunSnapshot, RunEvent } from "../../shared/contracts.js";
 
 export class OfficeScene {
   public app: Application;
   public worldContainer: Container;
   public backgroundSprite: Sprite | null = null;
   public disposed = false;
-  private resizeCallback: (() => void) | null = null;
+
+  // Characters registry
+  private characters: Map<ProfileId, CharacterSprite> = new Map();
+  private maxHydratedSequence = 0;
+  private currentMotionState: "moving" | "settled" = "settled";
+
+  public onMotionState: ((state: "moving" | "settled") => void) | null = null;
+  public onSelectActor: ((actorId: ProfileId) => void) | null = null;
 
   constructor() {
     this.app = new Application();
@@ -59,6 +69,94 @@ export class OfficeScene {
       this.backgroundSprite = new Sprite(officeSheet.textures["office.background"]);
       this.worldContainer.addChild(this.backgroundSprite);
     }
+
+    // Initialize character sprites
+    const charSheet = charAtlas as Spritesheet;
+    const actorIds: ProfileId[] = [
+      "manager",
+      "worker-1",
+      "worker-2",
+      "worker-3",
+      "worker-4",
+      "advisor",
+      "qa",
+    ];
+    const anims: CharacterAnimation[] = [
+      "idle",
+      "walk.down",
+      "walk.left",
+      "walk.right",
+      "walk.up",
+      "work",
+      "read",
+      "talk",
+      "test",
+      "celebrate",
+      "error",
+    ];
+
+    actorIds.forEach((actorId) => {
+      const textures: Record<CharacterAnimation, Texture[]> = {} as any;
+      anims.forEach((anim) => {
+        const frames: Texture[] = [];
+        let idx = 0;
+        while (true) {
+          const key = `${actorId}.${anim}.${idx}`;
+          const tex = charSheet.textures[key];
+          if (!tex) break;
+          frames.push(tex);
+          idx++;
+        }
+        textures[anim] = frames;
+      });
+
+      const charSprite = new CharacterSprite({
+        actorId,
+        textures,
+        onSelect: (id) => this.onSelectActor?.(id),
+        onMotionChanged: () => this.checkMotionState(),
+      });
+
+      this.characters.set(actorId, charSprite);
+      this.worldContainer.addChild(charSprite.container);
+    });
+
+    // Start ticker loop
+    this.app.ticker.add((ticker) => {
+      if (this.disposed) return;
+      const deltaSeconds = ticker.deltaTime / 60;
+      this.characters.forEach((char) => char.update(deltaSeconds));
+    });
+  }
+
+  setState(input: {
+    run: RunSnapshot | null;
+    events: RunEvent[];
+    selectedActorId: ProfileId;
+    reduceMotion: boolean;
+  }): void {
+    if (this.disposed) return;
+
+    // Get projected poses
+    const poses = projectActorPoses(input.run, input.events);
+
+    // Determine if we should perform live animation or recovery
+    const maxSeq = input.events.reduce((acc, e) => Math.max(acc, e.sequence), 0);
+    const live = this.maxHydratedSequence > 0 && maxSeq > this.maxHydratedSequence;
+
+    if (maxSeq > this.maxHydratedSequence) {
+      this.maxHydratedSequence = maxSeq;
+    }
+
+    poses.forEach((pose) => {
+      const char = this.characters.get(pose.actorId);
+      if (char) {
+        char.setSelected(pose.actorId === input.selectedActorId);
+        char.setPose(pose, { live, reduceMotion: input.reduceMotion });
+      }
+    });
+
+    this.checkMotionState();
   }
 
   resize(containerWidth: number, containerHeight: number): void {
@@ -76,8 +174,23 @@ export class OfficeScene {
   destroy(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.characters.forEach((char) => char.destroy());
+    this.characters.clear();
     try {
       this.app.destroy(true, { children: true });
     } catch {}
+  }
+
+  private checkMotionState(): void {
+    let allSettled = true;
+    this.characters.forEach((char) => {
+      if (!char.isSettled()) allSettled = false;
+    });
+
+    const nextState = allSettled ? "settled" : "moving";
+    if (nextState !== this.currentMotionState) {
+      this.currentMotionState = nextState;
+      this.onMotionState?.(nextState);
+    }
   }
 }

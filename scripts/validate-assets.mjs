@@ -41,7 +41,9 @@ function validatePngHeader(filePath, expectedW, expectedH) {
   }
 
   if (width !== expectedW || height !== expectedH) {
-    throw new Error(`PNG dimensions mismatch for ${filePath}. Expected ${expectedW}x${expectedH}, got ${width}x${height}`);
+    throw new Error(
+      `PNG dimensions mismatch for ${filePath}. Expected ${expectedW}x${expectedH}, got ${width}x${height}`,
+    );
   }
 
   if (!isPowerOfTwo(width) || !isPowerOfTwo(height)) {
@@ -60,7 +62,8 @@ function validateAtlasJson(filePath, expectedImageName, expectedW, expectedH, ex
   // Check meta
   const meta = data.meta;
   if (!meta) throw new Error(`Missing meta block in ${filePath}`);
-  if (meta.app !== "cozy-agent-office-generator") throw new Error(`Invalid meta.app in ${filePath}`);
+  if (meta.app !== "cozy-agent-office-generator")
+    throw new Error(`Invalid meta.app in ${filePath}`);
   if (meta.version !== "1") throw new Error(`Invalid meta.version in ${filePath}`);
   if (meta.image !== expectedImageName) throw new Error(`Invalid meta.image in ${filePath}`);
   if (meta.format !== "RGBA8888") throw new Error(`Invalid meta.format in ${filePath}`);
@@ -75,7 +78,13 @@ function validateAtlasJson(filePath, expectedImageName, expectedW, expectedH, ex
 
   for (const [key, frameData] of Object.entries(data.frames)) {
     const f = frameData.frame;
-    if (!f || typeof f.x !== "number" || typeof f.y !== "number" || typeof f.w !== "number" || typeof f.h !== "number") {
+    if (
+      !f ||
+      typeof f.x !== "number" ||
+      typeof f.y !== "number" ||
+      typeof f.w !== "number" ||
+      typeof f.h !== "number"
+    ) {
       throw new Error(`Invalid frame shape for key ${key} in ${filePath}`);
     }
     if (f.x < 0 || f.y < 0 || f.x + f.w > expectedW || f.y + f.h > expectedH) {
@@ -96,7 +105,9 @@ function validateAtlasJson(filePath, expectedImageName, expectedW, expectedH, ex
 
     const anchor = frameData.anchor;
     if (!anchor || anchor.x !== expectedAnchor.x || anchor.y !== expectedAnchor.y) {
-      throw new Error(`Invalid anchor for ${key} in ${filePath}. Expected ${JSON.stringify(expectedAnchor)}, got ${JSON.stringify(anchor)}`);
+      throw new Error(
+        `Invalid anchor for ${key} in ${filePath}. Expected ${JSON.stringify(expectedAnchor)}, got ${JSON.stringify(anchor)}`,
+      );
     }
   }
 
@@ -111,8 +122,17 @@ try {
   validatePngHeader("public/assets/characters/characters-atlas.png", 1024, 256);
 
   // 2. Validate Atlases JSON structure
-  validateAtlasJson("public/assets/office/office-atlas.json", "office-atlas.png", 512, 512, { x: 0, y: 0 });
-  const charsData = validateAtlasJson("public/assets/characters/characters-atlas.json", "characters-atlas.png", 1024, 256, { x: 0.5, y: 1 });
+  validateAtlasJson("public/assets/office/office-atlas.json", "office-atlas.png", 512, 512, {
+    x: 0,
+    y: 0,
+  });
+  const charsData = validateAtlasJson(
+    "public/assets/characters/characters-atlas.json",
+    "characters-atlas.png",
+    1024,
+    256,
+    { x: 0.5, y: 1 },
+  );
 
   // 3. Verify exactly 336 character frames exist
   const actors = ["manager", "worker-1", "worker-2", "worker-3", "worker-4", "advisor", "qa"];
@@ -140,12 +160,16 @@ try {
   });
 
   if (expectedFrameKeys.length !== 336) {
-    throw new Error(`Internal error: Expected frame keys length should be 336, got ${expectedFrameKeys.length}`);
+    throw new Error(
+      `Internal error: Expected frame keys length should be 336, got ${expectedFrameKeys.length}`,
+    );
   }
 
   const actualFrameKeys = Object.keys(charsData.frames);
   if (actualFrameKeys.length !== 336) {
-    throw new Error(`Expected exactly 336 frames in characters-atlas.json, got ${actualFrameKeys.length}`);
+    throw new Error(
+      `Expected exactly 336 frames in characters-atlas.json, got ${actualFrameKeys.length}`,
+    );
   }
 
   expectedFrameKeys.forEach((key) => {
@@ -168,7 +192,9 @@ try {
         throw new Error(`Missing animation mapping for ${animKey}`);
       }
       if (list.length !== anims[animName]) {
-        throw new Error(`Invalid frame count for animation ${animKey}: expected ${anims[animName]}, got ${list.length}`);
+        throw new Error(
+          `Invalid frame count for animation ${animKey}: expected ${anims[animName]}, got ${list.length}`,
+        );
       }
     });
   });
@@ -192,14 +218,18 @@ try {
   cozyAsset.sourceFiles.forEach((file) => {
     const calculated = getSha256(file.path);
     if (file.sha256 !== calculated) {
-      throw new Error(`Hash mismatch for source file ${file.path}: expected ${file.sha256}, got ${calculated}`);
+      throw new Error(
+        `Hash mismatch for source file ${file.path}: expected ${file.sha256}, got ${calculated}`,
+      );
     }
   });
 
   cozyAsset.outputs.forEach((file) => {
     const calculated = getSha256(file.path);
     if (file.sha256 !== calculated) {
-      throw new Error(`Hash mismatch for output file ${file.path}: expected ${file.sha256}, got ${calculated}`);
+      throw new Error(
+        `Hash mismatch for output file ${file.path}: expected ${file.sha256}, got ${calculated}`,
+      );
     }
   });
 

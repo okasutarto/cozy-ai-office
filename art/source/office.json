@@ -3,13 +3,69 @@
   "width": 352,
   "height": 240,
   "rooms": [
-    { "name": "manager-cabin", "x": 16, "y": 16, "w": 80, "h": 64, "floor": "wood-dark", "wall": "wood-mid" },
-    { "name": "meeting-area", "x": 112, "y": 16, "w": 112, "h": 64, "floor": "stone", "wall": "stone-light" },
-    { "name": "advisor-library", "x": 240, "y": 16, "w": 96, "h": 64, "floor": "wood-mid", "wall": "wood-light" },
-    { "name": "worker-floor", "x": 16, "y": 96, "w": 320, "h": 64, "floor": "wood-mid", "wall": "outline" },
-    { "name": "coffee-area", "x": 16, "y": 176, "w": 80, "h": 48, "floor": "stone-light", "wall": "stone" },
-    { "name": "integration-area", "x": 112, "y": 176, "w": 112, "h": 48, "floor": "stone", "wall": "stone-light" },
-    { "name": "qa-lab", "x": 240, "y": 176, "w": 96, "h": 48, "floor": "wood-dark", "wall": "wood-mid" }
+    {
+      "name": "manager-cabin",
+      "x": 16,
+      "y": 16,
+      "w": 80,
+      "h": 64,
+      "floor": "wood-dark",
+      "wall": "wood-mid"
+    },
+    {
+      "name": "meeting-area",
+      "x": 112,
+      "y": 16,
+      "w": 112,
+      "h": 64,
+      "floor": "stone",
+      "wall": "stone-light"
+    },
+    {
+      "name": "advisor-library",
+      "x": 240,
+      "y": 16,
+      "w": 96,
+      "h": 64,
+      "floor": "wood-mid",
+      "wall": "wood-light"
+    },
+    {
+      "name": "worker-floor",
+      "x": 16,
+      "y": 96,
+      "w": 320,
+      "h": 64,
+      "floor": "wood-mid",
+      "wall": "outline"
+    },
+    {
+      "name": "coffee-area",
+      "x": 16,
+      "y": 176,
+      "w": 80,
+      "h": 48,
+      "floor": "stone-light",
+      "wall": "stone"
+    },
+    {
+      "name": "integration-area",
+      "x": 112,
+      "y": 176,
+      "w": 112,
+      "h": 48,
+      "floor": "stone",
+      "wall": "stone-light"
+    },
+    {
+      "name": "qa-lab",
+      "x": 240,
+      "y": 176,
+      "w": 96,
+      "h": 48,
+      "floor": "wood-dark",
+      "wall": "wood-mid"
+    }
   ],
   "props": [
     { "name": "manager-desk", "x": 56, "y": 64, "w": 16, "h": 16, "sprite": "desk" },

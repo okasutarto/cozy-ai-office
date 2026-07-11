@@ -31,21 +31,81 @@ export const NAV_GRAPH: Record<StationName, StationName[]> = {
 };
 
 export const NAV_ROUTES: Record<string, { x: number; y: number }[]> = {
-  "manager-desk|meeting": [STATIONS["manager-desk"], { x: 56, y: 88 }, { x: 168, y: 88 }, STATIONS["meeting"]],
-  "manager-desk|worker-1-desk": [STATIONS["manager-desk"], { x: 56, y: 88 }, { x: 48, y: 88 }, STATIONS["worker-1-desk"]],
-  "meeting|bookshelf": [STATIONS["meeting"], { x: 168, y: 88 }, { x: 288, y: 88 }, STATIONS["bookshelf"]],
-  "meeting|worker-2-desk": [STATIONS["meeting"], { x: 168, y: 88 }, { x: 128, y: 88 }, STATIONS["worker-2-desk"]],
-  "meeting|worker-3-desk": [STATIONS["meeting"], { x: 168, y: 88 }, { x: 208, y: 88 }, STATIONS["worker-3-desk"]],
+  "manager-desk|meeting": [
+    STATIONS["manager-desk"],
+    { x: 56, y: 88 },
+    { x: 168, y: 88 },
+    STATIONS["meeting"],
+  ],
+  "manager-desk|worker-1-desk": [
+    STATIONS["manager-desk"],
+    { x: 56, y: 88 },
+    { x: 48, y: 88 },
+    STATIONS["worker-1-desk"],
+  ],
+  "meeting|bookshelf": [
+    STATIONS["meeting"],
+    { x: 168, y: 88 },
+    { x: 288, y: 88 },
+    STATIONS["bookshelf"],
+  ],
+  "meeting|worker-2-desk": [
+    STATIONS["meeting"],
+    { x: 168, y: 88 },
+    { x: 128, y: 88 },
+    STATIONS["worker-2-desk"],
+  ],
+  "meeting|worker-3-desk": [
+    STATIONS["meeting"],
+    { x: 168, y: 88 },
+    { x: 208, y: 88 },
+    STATIONS["worker-3-desk"],
+  ],
   "bookshelf|worker-4-desk": [STATIONS["bookshelf"], { x: 288, y: 88 }, STATIONS["worker-4-desk"]],
-  "worker-1-desk|worker-2-desk": [STATIONS["worker-1-desk"], { x: 48, y: 168 }, { x: 128, y: 168 }, STATIONS["worker-2-desk"]],
+  "worker-1-desk|worker-2-desk": [
+    STATIONS["worker-1-desk"],
+    { x: 48, y: 168 },
+    { x: 128, y: 168 },
+    STATIONS["worker-2-desk"],
+  ],
   "worker-1-desk|coffee": [STATIONS["worker-1-desk"], { x: 48, y: 168 }, STATIONS["coffee"]],
-  "worker-2-desk|worker-3-desk": [STATIONS["worker-2-desk"], { x: 128, y: 168 }, { x: 208, y: 168 }, STATIONS["worker-3-desk"]],
-  "worker-2-desk|integration": [STATIONS["worker-2-desk"], { x: 128, y: 168 }, { x: 168, y: 168 }, STATIONS["integration"]],
-  "worker-3-desk|worker-4-desk": [STATIONS["worker-3-desk"], { x: 208, y: 168 }, { x: 288, y: 168 }, STATIONS["worker-4-desk"]],
-  "worker-3-desk|integration": [STATIONS["worker-3-desk"], { x: 208, y: 168 }, { x: 168, y: 168 }, STATIONS["integration"]],
+  "worker-2-desk|worker-3-desk": [
+    STATIONS["worker-2-desk"],
+    { x: 128, y: 168 },
+    { x: 208, y: 168 },
+    STATIONS["worker-3-desk"],
+  ],
+  "worker-2-desk|integration": [
+    STATIONS["worker-2-desk"],
+    { x: 128, y: 168 },
+    { x: 168, y: 168 },
+    STATIONS["integration"],
+  ],
+  "worker-3-desk|worker-4-desk": [
+    STATIONS["worker-3-desk"],
+    { x: 208, y: 168 },
+    { x: 288, y: 168 },
+    STATIONS["worker-4-desk"],
+  ],
+  "worker-3-desk|integration": [
+    STATIONS["worker-3-desk"],
+    { x: 208, y: 168 },
+    { x: 168, y: 168 },
+    STATIONS["integration"],
+  ],
   "worker-4-desk|qa": [STATIONS["worker-4-desk"], { x: 288, y: 168 }, STATIONS["qa"]],
-  "coffee|integration": [STATIONS["coffee"], { x: 48, y: 168 }, { x: 168, y: 168 }, STATIONS["integration"]],
-  "integration|qa": [STATIONS["integration"], { x: 168, y: 168 }, { x: 288, y: 168 }, STATIONS["qa"]],
+  "coffee|integration": [
+    STATIONS["coffee"],
+    { x: 48, y: 168 },
+    { x: 168, y: 168 },
+    STATIONS["integration"],
+  ],
+  "integration|qa": [
+    STATIONS["integration"],
+    { x: 168, y: 168 },
+    { x: 288, y: 168 },
+    STATIONS["qa"],
+  ],
 };
 
 export const ROOMS = [
