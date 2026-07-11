@@ -2,17 +2,19 @@
 
 ## Goal
 
-Replace the generated placeholder office and character art with the user-provided
-`PixelOffice.zip` PNGs while keeping the existing renderer, runtime asset URLs,
+Replace the generated placeholder office art with the user-provided
+`PixelOffice.zip` PNGs and replace placeholder characters with the downloaded
+MetroCity animated PNGs while keeping the existing renderer, runtime asset URLs,
 actor IDs, station layout, and nearest-neighbor rendering unchanged.
 
 ## Source
 
 Use the local archive at `C:/Users/USER/Downloads/PixelOffice.zip`, authored by
-2dPig. The archive contains `PixelOffice.png` (256x224),
-`LargePixelOffice.png` (1024x896), `PixelOfficeAssets.png` (256x160), and a
-CC0 license. Vendor the selected PNGs and license under
-`art/vendor/pixel-office/`; do not depend on the Downloads folder at build time.
+2dPig, for the office scene. Use the downloaded MetroCity character sheet at
+`C:/Users/USER/Downloads/MetroCity/CharacterModel/Character Model.png`,
+authored by JIK-A-4, for animated characters. Both sources are CC0. Vendor the
+selected PNGs and license records under `art/vendor/`; do not depend on the
+Downloads folder at build time.
 
 ## Integration contract
 
@@ -25,11 +27,12 @@ CC0 license. Vendor the selected PNGs and license under
   - `public/assets/characters/characters-atlas.json`
 - Use `PixelOffice.png` as the office scene source and deterministically fit it
   into the existing `352x240` background frame without filtering.
-- Crop character cells from `PixelOfficeAssets.png`, center them in the existing
-  `16x24` frame contract, and map the five source characters across the seven
-  existing actor IDs.
-- Reuse the closest available source frame for missing animation states or
-  frame counts. Every existing actor/animation key must remain resolvable.
+- Crop MetroCity's 32x32 directional frames into the existing `16x24` frame
+  contract, map three source models across the seven existing actor IDs, and
+  mirror the side-facing cycle for the opposite direction.
+- Reuse the closest available source frame for non-directional states while
+  preserving actual walk cycles for `walk.*`. Every existing actor/animation
+  key must remain resolvable.
 
 ## Build and licensing
 

@@ -17,10 +17,6 @@
           "sha256": "338bf1dac21ac6ee7febb9d9b870e2210f59f428f0b4a060115fe041098f0c5a"
         },
         {
-          "path": "art/vendor/pixel-office/PixelOfficeAssets.png",
-          "sha256": "797bec77277d0e1144ed6dd536758deef6cabb84d3a0df42b6866c205c146598"
-        },
-        {
           "path": "art/vendor/pixel-office/LICENSE.txt",
           "sha256": "047e4410311f7dda2fa18559bf8fd7441a919159f170f41b0bfb0ecef0fcf9dd"
         },
@@ -43,7 +39,27 @@
             "office.background"
           ],
           "sha256": "396ddfcc98cea84fd6f8d21292b2e0bd33688125695960859dce67035dd8aea2"
+        }
+      ],
+      "modifications": "PixelOffice.png was cropped and nearest-neighbor scaled into the existing 352x240 office frame. No renderer code or source pixels were synthesized."
+    },
+    {
+      "id": "metrocity-characters-jik-a-4",
+      "author": "JIK-A-4",
+      "sourceUrl": "https://jik-a-4.itch.io/metrocity-free-topdown-character-pack",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceFiles": [
+        {
+          "path": "art/vendor/metrocity/CharacterModel/Character Model.png",
+          "sha256": "8abcddb8265ec5effc02ee4b3c7dbd455a02dd33378e02c664a729b885eec6a2"
         },
+        {
+          "path": "art/vendor/metrocity/LICENSE.txt",
+          "sha256": "15991b6a875da578b016d31e9ad55c0483a67252d432f77512ca61993650cb72"
+        }
+      ],
+      "outputs": [
         {
           "path": "public/assets/characters/characters-atlas.png",
           "frames": [
@@ -384,7 +400,7 @@
             "qa.error.0",
             "qa.error.1"
           ],
-          "sha256": "32558badab61bc1bee1cbc0b8df353f0b54021e92b8c8e5c65620c3a059f4a43"
+          "sha256": "4b7599e6d99a5f77a6c0f1277d362dc4c8903024c2482f5413b1b21b85500ce5"
         },
         {
           "path": "public/assets/characters/characters-atlas.json",
@@ -729,7 +745,7 @@
           "sha256": "f0bd8a5aa84fe38a7c9e8a0f8d525ab40565de3f45693c215ce9e0e8a1c8a191"
         }
       ],
-      "modifications": "PixelOffice.png was cropped and nearest-neighbor scaled into the existing 352x240 office frame. Five 16x16 character cells from PixelOfficeAssets.png were centered in 16x24 frames and reused across existing actor animation keys. No renderer code or source pixels were synthesized."
+      "modifications": "Three MetroCity base models were cropped from 32x32 animation cells into the existing 16x24 frame contract. Directional cycles are mapped to the existing animation keys and right-facing frames are mirrored from the left-facing cycle. No renderer code or source pixels were synthesized."
     }
   ]
 }

@@ -6,12 +6,13 @@ import { PNG } from "pngjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const vendorDir = path.join(root, "art/vendor/pixel-office");
+const metroCityVendorDir = path.join(root, "art/vendor/metrocity");
 const outputDir = path.join(root, "public/assets");
 const officeOutputDir = path.join(outputDir, "office");
 const charactersOutputDir = path.join(outputDir, "characters");
 
 const officeSourcePath = path.join(vendorDir, "PixelOffice.png");
-const charactersSourcePath = path.join(vendorDir, "PixelOfficeAssets.png");
+const charactersSourcePath = path.join(metroCityVendorDir, "CharacterModel/Character Model.png");
 const charactersRecipePath = path.join(root, "art/source/characters.json");
 
 function readPng(filePath) {
@@ -65,6 +66,21 @@ function blitNearest(source, destination, options) {
   }
 }
 
+function copyFrameCrop(source, destination, options) {
+  const { sourceX, sourceY, destinationX, destinationY, flipX = false } = options;
+  for (let y = 0; y < 24; y++) {
+    for (let x = 0; x < 16; x++) {
+      const sourceColumn = sourceX + (flipX ? 15 - x : x);
+      const sourceIndex = ((sourceY + y) * source.width + sourceColumn) << 2;
+      const destinationIndex = ((destinationY + y) * destination.width + destinationX + x) << 2;
+      destination.data[destinationIndex] = source.data[sourceIndex];
+      destination.data[destinationIndex + 1] = source.data[sourceIndex + 1];
+      destination.data[destinationIndex + 2] = source.data[sourceIndex + 2];
+      destination.data[destinationIndex + 3] = source.data[sourceIndex + 3];
+    }
+  }
+}
+
 function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
@@ -75,7 +91,7 @@ fs.mkdirSync(charactersOutputDir, { recursive: true });
 const officeSource = readPng(officeSourcePath);
 const charactersSource = readPng(charactersSourcePath);
 ensureSourceDimensions(officeSource, 256, 224, officeSourcePath);
-ensureSourceDimensions(charactersSource, 256, 160, charactersSourcePath);
+ensureSourceDimensions(charactersSource, 768, 192, charactersSourcePath);
 
 // The source scene is 16:14 while the existing runtime frame is 22:15.
 // Crop the source vertically, then scale with nearest-neighbor into that frame.
@@ -121,20 +137,28 @@ const animations = charactersRecipe.animations;
 const characterAtlas = new PNG({ width: 1024, height: 256 });
 const characterFrames = {};
 const characterAnimations = {};
-const sourceCells = [
-  { x: 0, y: 112 },
-  { x: 16, y: 112 },
-  { x: 32, y: 112 },
-  { x: 0, y: 128 },
-  { x: 16, y: 128 },
-];
+const animationSourceMap = {
+  idle: { row: 0, columns: [0] },
+  "walk.down": { row: 0, columns: [0, 1, 2, 3] },
+  "walk.left": { row: 0, columns: [4, 5, 6, 7] },
+  "walk.right": { row: 0, columns: [4, 5, 6, 7], flipX: true },
+  "walk.up": { row: 1, columns: [0, 1, 2, 3] },
+  work: { row: 0, columns: [0, 1, 2, 3] },
+  read: { row: 1, columns: [0, 1] },
+  talk: { row: 0, columns: [0, 1, 2, 3] },
+  test: { row: 0, columns: [4, 5, 6, 7] },
+  celebrate: { row: 1, columns: [0, 1, 2, 3] },
+  error: { row: 1, columns: [0, 1] },
+};
 let globalFrameCount = 0;
 
 for (const [actorIndex, actorId] of actors.entries()) {
-  const sourceCell = sourceCells[actorIndex % sourceCells.length];
+  const modelOffsetX = (actorIndex % 3) * 256;
   for (const [animationName, frameCount] of Object.entries(animations)) {
     const animationKey = `${actorId}.${animationName}`;
     characterAnimations[animationKey] = [];
+    const sourceAnimation = animationSourceMap[animationName];
+    if (!sourceAnimation) throw new Error(`Missing MetroCity mapping for ${animationName}`);
 
     for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
       const frameName = `${actorId}.${animationName}.${frameIndex}`;
@@ -144,15 +168,13 @@ for (const [actorIndex, actorId] of actors.entries()) {
       const frameY = row * 24;
       characterAnimations[animationKey].push(frameName);
 
-      blitNearest(charactersSource, characterAtlas, {
-        sourceX: sourceCell.x,
-        sourceY: sourceCell.y,
-        sourceWidth: 16,
-        sourceHeight: 16,
+      const sourceColumn = sourceAnimation.columns[frameIndex % sourceAnimation.columns.length];
+      copyFrameCrop(charactersSource, characterAtlas, {
+        sourceX: modelOffsetX + sourceColumn * 32 + 8,
+        sourceY: sourceAnimation.row * 32 + 4,
         destinationX: frameX,
-        destinationY: frameY + 8,
-        destinationWidth: 16,
-        destinationHeight: 16,
+        destinationY: frameY,
+        flipX: sourceAnimation.flipX,
       });
 
       characterFrames[frameName] = {
@@ -204,10 +226,9 @@ writeJson(path.join(outputDir, "asset-manifest.json"), {
   scaleMode: "nearest",
 });
 
-const sourceFiles = [
+const officeSourceFiles = [
   { path: "art/vendor/pixel-office/PixelOffice.png", hash: "binary" },
   { path: "art/vendor/pixel-office/LargePixelOffice.png", hash: "binary" },
-  { path: "art/vendor/pixel-office/PixelOfficeAssets.png", hash: "binary" },
   { path: "art/vendor/pixel-office/LICENSE.txt", hash: "text" },
   { path: "art/vendor/pixel-office/README.txt", hash: "text" },
 ].map(({ path: relativePath, hash }) => ({
@@ -218,7 +239,18 @@ const sourceFiles = [
       : getSha256(path.join(root, relativePath)),
 }));
 
-const outputFiles = [
+const metroCitySourceFiles = [
+  { path: "art/vendor/metrocity/CharacterModel/Character Model.png", hash: "binary" },
+  { path: "art/vendor/metrocity/LICENSE.txt", hash: "text" },
+].map(({ path: relativePath, hash }) => ({
+  path: relativePath,
+  sha256:
+    hash === "text"
+      ? getTextSha256(path.join(root, relativePath))
+      : getSha256(path.join(root, relativePath)),
+}));
+
+const officeOutputFiles = [
   {
     path: "public/assets/office/office-atlas.png",
     frames: ["office.background"],
@@ -227,6 +259,12 @@ const outputFiles = [
     path: "public/assets/office/office-atlas.json",
     frames: ["office.background"],
   },
+].map((output) => ({
+  ...output,
+  sha256: getSha256(path.join(root, output.path)),
+}));
+
+const metroCityOutputFiles = [
   {
     path: "public/assets/characters/characters-atlas.png",
     frames: Object.keys(characterFrames),
@@ -249,12 +287,23 @@ writeJson(path.join(outputDir, "licenses.json"), {
       sourceUrl: "https://2dpig.itch.io/pixel-office",
       license: "CC0-1.0",
       licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
-      sourceFiles,
-      outputs: outputFiles,
+      sourceFiles: officeSourceFiles,
+      outputs: officeOutputFiles,
       modifications:
-        "PixelOffice.png was cropped and nearest-neighbor scaled into the existing 352x240 office frame. Five 16x16 character cells from PixelOfficeAssets.png were centered in 16x24 frames and reused across existing actor animation keys. No renderer code or source pixels were synthesized.",
+        "PixelOffice.png was cropped and nearest-neighbor scaled into the existing 352x240 office frame. No renderer code or source pixels were synthesized.",
+    },
+    {
+      id: "metrocity-characters-jik-a-4",
+      author: "JIK-A-4",
+      sourceUrl: "https://jik-a-4.itch.io/metrocity-free-topdown-character-pack",
+      license: "CC0-1.0",
+      licenseUrl: "https://creativecommons.org/publicdomain/zero/1.0/",
+      sourceFiles: metroCitySourceFiles,
+      outputs: metroCityOutputFiles,
+      modifications:
+        "Three MetroCity base models were cropped from 32x32 animation cells into the existing 16x24 frame contract. Directional cycles are mapped to the existing animation keys and right-facing frames are mirrored from the left-facing cycle. No renderer code or source pixels were synthesized.",
     },
   ],
 });
 
-console.log("Assets successfully generated from vendored PixelOffice PNGs!");
+console.log("Assets successfully generated from vendored PixelOffice and MetroCity PNGs!");

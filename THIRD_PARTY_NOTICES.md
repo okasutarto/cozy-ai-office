@@ -34,3 +34,11 @@ This project incorporates third-party open-source components. This file contains
 - **License URL**: https://creativecommons.org/publicdomain/zero/1.0/
 - **Imported files**: `art/vendor/pixel-office/`
 - **Notes**: PNGs are cropped, scaled, and repacked into the existing Cozy Agent Office atlas contract. Attribution is not required, but author credit is retained.
+
+## 7. MetroCity Character Pack (https://jik-a-4.itch.io/metrocity-free-topdown-character-pack)
+
+- **Author**: JIK-A-4
+- **License**: Creative Commons CC0 1.0 Public Domain Dedication
+- **License URL**: https://creativecommons.org/publicdomain/zero/1.0/
+- **Imported files**: `art/vendor/metrocity/`
+- **Notes**: Animated 32x32 character frames are cropped and repacked into the existing 16x24 atlas contract. Attribution is not required, but author credit is retained.

@@ -1,0 +1,10 @@
+MetroCity - Free Top Down Character Pack
+
+Author: JIK-A-4
+Source: https://jik-a-4.itch.io/metrocity-free-topdown-character-pack
+License: Creative Commons Zero 1.0 Universal (CC0)
+License URL: https://creativecommons.org/publicdomain/zero/1.0/
+
+The source page states that the pack is free to use and that attribution is
+optional. This repository keeps the author credit and source URL in its asset
+metadata.

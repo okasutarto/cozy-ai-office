@@ -215,39 +215,53 @@ try {
     throw new Error("licenses.json assets must be a non-empty array");
   }
 
-  const cozyAsset = licenses.assets[0];
-  if (cozyAsset.id !== "pixel-office-2dpig") throw new Error("Invalid asset ID in licenses.json");
-  if (cozyAsset.license !== "CC0-1.0") throw new Error("Invalid license in licenses.json");
-  if (cozyAsset.sourceUrl !== "https://2dpig.itch.io/pixel-office") {
-    throw new Error("Invalid source URL in licenses.json");
+  const expectedAssets = {
+    "pixel-office-2dpig": "https://2dpig.itch.io/pixel-office",
+    "metrocity-characters-jik-a-4": "https://jik-a-4.itch.io/metrocity-free-topdown-character-pack",
+  };
+  if (licenses.assets.length !== Object.keys(expectedAssets).length) {
+    throw new Error(`Expected ${Object.keys(expectedAssets).length} licensed assets`);
   }
 
   // Validate hashes inside licenses.json
-  cozyAsset.sourceFiles.forEach((file) => {
-    if (!fs.existsSync(file.path)) throw new Error(`Missing licensed source file: ${file.path}`);
-    const calculated = file.path.endsWith(".txt") ? getTextSha256(file.path) : getSha256(file.path);
-    if (file.sha256 !== calculated) {
-      throw new Error(
-        `Hash mismatch for source file ${file.path}: expected ${file.sha256}, got ${calculated}`,
-      );
+  for (const asset of licenses.assets) {
+    if (!expectedAssets[asset.id])
+      throw new Error(`Invalid asset ID in licenses.json: ${asset.id}`);
+    if (asset.license !== "CC0-1.0") throw new Error(`Invalid license for ${asset.id}`);
+    if (asset.sourceUrl !== expectedAssets[asset.id]) {
+      throw new Error(`Invalid source URL for ${asset.id}`);
     }
-  });
 
-  cozyAsset.outputs.forEach((file) => {
-    const calculated = getSha256(file.path);
-    if (file.sha256 !== calculated) {
-      throw new Error(
-        `Hash mismatch for output file ${file.path}: expected ${file.sha256}, got ${calculated}`,
-      );
-    }
-  });
+    asset.sourceFiles.forEach((file) => {
+      if (!fs.existsSync(file.path)) throw new Error(`Missing licensed source file: ${file.path}`);
+      const calculated = file.path.endsWith(".txt")
+        ? getTextSha256(file.path)
+        : getSha256(file.path);
+      if (file.sha256 !== calculated) {
+        throw new Error(
+          `Hash mismatch for source file ${file.path}: expected ${file.sha256}, got ${calculated}`,
+        );
+      }
+    });
+
+    asset.outputs.forEach((file) => {
+      const calculated = getSha256(file.path);
+      if (file.sha256 !== calculated) {
+        throw new Error(
+          `Hash mismatch for output file ${file.path}: expected ${file.sha256}, got ${calculated}`,
+        );
+      }
+    });
+  }
 
   // Print compact SHA-256 table
   console.log("\nAsset Hashing Verification Table:");
   console.log("------------------------------------------------------------------");
-  cozyAsset.outputs.forEach((file) => {
-    console.log(`${file.path.padEnd(50)} [${file.sha256.substring(0, 10)}...]`);
-  });
+  licenses.assets.forEach((asset) =>
+    asset.outputs.forEach((file) => {
+      console.log(`${file.path.padEnd(50)} [${file.sha256.substring(0, 10)}...]`);
+    }),
+  );
   console.log("------------------------------------------------------------------");
 
   console.log("\nAssets validation passed successfully!");
