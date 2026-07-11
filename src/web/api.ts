@@ -1,9 +1,17 @@
 import {
   BootstrapResponseSchema,
   WsServerMessageSchema,
+  ConversationRecordSchema,
+  ConversationListResponseSchema,
+  MessageListResponseSchema,
+  MessageRecordSchema,
+  TaskDraftVersionSchema,
   type BootstrapResponse,
   type WsClientMessage,
+  type ConversationRecord,
+  type MessageRecord,
 } from "../shared/api.js";
+import type { TaskDraftVersion } from "../shared/contracts.js";
 
 const SESSION_KEY = "cozy-session";
 
@@ -37,6 +45,53 @@ export class ApiClient {
 
   async bootstrap(): Promise<BootstrapResponse> {
     return BootstrapResponseSchema.parse(await this.request("/api/bootstrap"));
+  }
+
+  async createConversation(projectId: string, body: unknown): Promise<ConversationRecord> {
+    const res = await this.request("/api/conversations", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    return ConversationRecordSchema.parse(res);
+  }
+
+  async listConversations(projectId: string): Promise<ConversationRecord[]> {
+    const res = await this.request(`/api/conversations?projectId=${projectId}`);
+    return ConversationListResponseSchema.parse(res);
+  }
+
+  async listMessages(conversationId: string): Promise<MessageRecord[]> {
+    const res = await this.request(`/api/conversations/${conversationId}/messages`);
+    return MessageListResponseSchema.parse(res);
+  }
+
+  async sendMessage(conversationId: string, body: unknown): Promise<MessageRecord> {
+    const res = await this.request(`/api/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    return MessageRecordSchema.parse(res);
+  }
+
+  async forwardToManager(conversationId: string, messageIds: string[]): Promise<TaskDraftVersion> {
+    const res = await this.request(`/api/conversations/${conversationId}/forward`, {
+      method: "POST",
+      body: JSON.stringify({ messageIds }),
+    });
+    return TaskDraftVersionSchema.parse(res);
+  }
+
+  async getDraft(draftId: string): Promise<TaskDraftVersion> {
+    const res = await this.request(`/api/drafts/${draftId}`);
+    return TaskDraftVersionSchema.parse(res);
+  }
+
+  async updateDraft(draftId: string, body: unknown): Promise<TaskDraftVersion> {
+    const res = await this.request(`/api/drafts/${draftId}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+    return TaskDraftVersionSchema.parse(res);
   }
 }
 

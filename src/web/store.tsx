@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, type ReactNode } from "react";
 import type { BootstrapResponse } from "../shared/api.js";
-import type { RunSnapshot, RunEvent, ProfileId } from "../shared/contracts.js";
+import type { RunSnapshot, RunEvent, ProfileId, TaskDraftVersion } from "../shared/contracts.js";
 
 export type AppState = {
   phase: "booting" | "missing_session" | "onboarding" | "office" | "fatal";
@@ -9,6 +9,7 @@ export type AppState = {
   selectedActorId: ProfileId;
   selectedTaskId: string | null;
   run: RunSnapshot | null;
+  draft: TaskDraftVersion | null;
   events: RunEvent[];
   reduceMotion: boolean;
   error: string | null;
@@ -19,6 +20,7 @@ export type AppAction =
   | { type: "missing_session" }
   | { type: "project_selected"; projectId: string }
   | { type: "run_snapshot"; run: RunSnapshot | null }
+  | { type: "draft_loaded"; value: TaskDraftVersion | null }
   | { type: "event_received"; event: RunEvent }
   | { type: "actor_selected"; actorId: ProfileId }
   | { type: "task_selected"; taskId: string | null }
@@ -32,6 +34,7 @@ const initialState: AppState = {
   selectedActorId: "worker-1",
   selectedTaskId: null,
   run: null,
+  draft: null,
   events: [],
   reduceMotion: false,
   error: null,
@@ -67,6 +70,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         run: action.run,
+      };
+    case "draft_loaded":
+      return {
+        ...state,
+        draft: action.value,
       };
     case "event_received": {
       // Deduplicate and cap to 2000

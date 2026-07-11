@@ -144,16 +144,21 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api }) => {
       });
 
       // 2. Save role profiles
-      await api.request(`/api/projects/${projectId}/profiles`, {
+      await api.request(`/api/projects/${projectId}/roles`, {
         method: "PUT",
         body: JSON.stringify({ profiles }),
       });
 
       // 3. Create context snapshot
-      const snapshotResult = await api.request<any>(`/api/projects/${projectId}/snapshots`, {
-        method: "POST",
-        body: JSON.stringify({ paths: contextPaths.length > 0 ? contextPaths : ["package.json"] }),
-      });
+      const snapshotResult = await api.request<any>(
+        `/api/projects/${projectId}/context-snapshots`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            paths: contextPaths.length > 0 ? contextPaths : ["package.json"],
+          }),
+        },
+      );
 
       // 4. Onboarding complete -> transition back to office phase
       dispatch({ type: "project_selected", projectId });

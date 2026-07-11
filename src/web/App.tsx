@@ -3,11 +3,15 @@ import { consumeSessionToken, ApiClient, RealtimeClient } from "./api.js";
 import { useAppState, useAppDispatch } from "./store.js";
 import { TopBar } from "./components/TopBar.js";
 import { Onboarding } from "./components/Onboarding.js";
+import { ConversationDock } from "./components/ConversationDock.js";
+import type { RoleProfile } from "../shared/contracts.js";
 
 export const App: React.FC = () => {
   const state = useAppState();
   const dispatch = useAppDispatch();
   const [token, setToken] = useState<string | null>(null);
+  const [roleProfiles, setRoleProfiles] = useState<RoleProfile[]>([]);
+  const [contextSnapshotId, setContextSnapshotId] = useState<string>("");
 
   // 1. Consume session token
   useEffect(() => {
@@ -63,6 +67,25 @@ export const App: React.FC = () => {
       rt.close();
     };
   }, [token, state.selectedProjectId, state.run?.id, dispatch]);
+
+  useEffect(() => {
+    if (!api || !state.selectedProjectId || state.phase !== "office") return;
+
+    api
+      .request<any>(`/api/projects/${state.selectedProjectId}/onboarding`)
+      .then((data) => {
+        setRoleProfiles(data.roles);
+      })
+      .catch(() => {});
+
+    api
+      .request<any>(`/api/projects/${state.selectedProjectId}/context-snapshots`, {
+        method: "POST",
+        body: JSON.stringify({ paths: ["package.json"] }),
+      })
+      .then((s) => setContextSnapshotId(s.id))
+      .catch(() => {});
+  }, [api, state.selectedProjectId, state.phase]);
 
   if (state.phase === "booting") {
     return (
@@ -213,10 +236,15 @@ export const App: React.FC = () => {
           padding: "12px",
         }}
       >
-        <h3 style={{ margin: "0 0 8px 0", color: "var(--gold-400)", fontSize: "14px" }}>Console</h3>
-        <p style={{ fontSize: "12px", color: "var(--parchment-300)", margin: 0 }}>
-          Conversation threads and running task metrics
-        </p>
+        <ConversationDock
+          projectId={state.selectedProjectId || ""}
+          selectedActorId={state.selectedActorId}
+          activeRun={state.run}
+          roleProfiles={roleProfiles}
+          providerStatuses={state.bootstrap?.providers || []}
+          contextSnapshotId={contextSnapshotId}
+          onDraftCreated={(draft) => dispatch({ type: "draft_loaded", value: draft })}
+        />
       </footer>
     </div>
   );

@@ -1,0 +1,215 @@
+// @vitest-environment jsdom
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import React from "react";
+import { render, screen, waitFor } from "@testing-library/react";
+import { ConversationDock } from "../../src/web/components/ConversationDock.js";
+import { AppStoreProvider } from "../../src/web/store.js";
+import type { RoleProfile, ProviderStatus } from "../../shared/contracts.js";
+
+const mockProfiles: RoleProfile[] = [
+  {
+    id: "manager",
+    role: "manager",
+    label: "Manager",
+    providerChain: [{ provider: "claude", model: null }],
+    timeoutMs: 120_000,
+    promptVersion: "v1",
+  },
+  {
+    id: "advisor",
+    role: "advisor",
+    label: "Advisor",
+    providerChain: [{ provider: "claude", model: null }],
+    timeoutMs: 60_000,
+    promptVersion: "v1",
+  },
+  {
+    id: "worker-1",
+    role: "worker",
+    label: "worker-1",
+    providerChain: [{ provider: "antigravity", model: null }],
+    timeoutMs: 60_000,
+    promptVersion: "v1",
+  },
+];
+
+const mockProviders: ProviderStatus[] = [
+  {
+    provider: "antigravity",
+    installed: true,
+    authenticated: true,
+    capabilities: { readOnly: false, worktreeWrite: true, nonInteractive: true },
+    diagnostics: null,
+  },
+  {
+    provider: "claude",
+    installed: true,
+    authenticated: true,
+    capabilities: { readOnly: true, worktreeWrite: true, nonInteractive: true },
+    diagnostics: null,
+  },
+];
+
+// Valid mock UUIDs
+const VALID_PROJECT_ID = "8a604cb7-d0d1-4475-bebe-8df76189ef94";
+const VALID_CONV_ID = "3c49ab46-4cb2-4c28-98e3-8aa39f28df19";
+const VALID_SNAP_ID = "963d3fb6-787f-44e2-a7cb-df95880df965";
+const VALID_MSG_ID = "0c2a2b0e-6f86-455b-80a2-2ab248ea6114";
+
+describe("ConversationDock Component", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    sessionStorage.setItem("cozy-session", "test-token");
+
+    // Unified schema-valid fetch stub
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((url, options = {}) => {
+        const urlStr = String(url);
+
+        // 1. messages list / send message
+        if (urlStr.includes("messages")) {
+          const mockMsg = {
+            id: VALID_MSG_ID,
+            conversationId: VALID_CONV_ID,
+            sender: "owner",
+            body: "Hello Manager",
+            sourceMessageIds: [],
+            artifactIds: [],
+            createdAt: "2026-07-11T12:01:00.000Z",
+          };
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve(options.method === "POST" ? mockMsg : [mockMsg]),
+          });
+        }
+
+        // 2. onboarding info
+        if (urlStr.includes("onboarding")) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ commands: [], roles: mockProfiles }),
+          });
+        }
+
+        // 3. create conversation / list conversations
+        if (urlStr.includes("conversations")) {
+          if (options.method === "POST") {
+            const body = JSON.parse(options.body || "{}");
+            return Promise.resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  id: VALID_CONV_ID,
+                  projectId: VALID_PROJECT_ID,
+                  role: body.role || "worker",
+                  profileId: body.profileId || "worker-1",
+                  contextSnapshotId: VALID_SNAP_ID,
+                  runId: null,
+                  title: "New Conversation",
+                  createdAt: "2026-07-11T12:00:00.000Z",
+                  updatedAt: "2026-07-11T12:00:00.000Z",
+                }),
+            });
+          }
+
+          // GET /conversations
+          const urlObj = new URL(urlStr, "http://localhost");
+          const roleQuery = urlObj.searchParams.get("role") || "manager";
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve([
+                {
+                  id: VALID_CONV_ID,
+                  projectId: VALID_PROJECT_ID,
+                  role: roleQuery,
+                  profileId: roleQuery,
+                  contextSnapshotId: VALID_SNAP_ID,
+                  runId: null,
+                  title: `${roleQuery} Chat`,
+                  createdAt: "2026-07-11T12:00:00.000Z",
+                  updatedAt: "2026-07-11T12:00:00.000Z",
+                },
+              ]),
+          });
+        }
+
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+      }),
+    );
+  });
+
+  it("renders with initial tabs, header read-only status and message log", async () => {
+    const onDraftCreated = vi.fn();
+
+    render(
+      <AppStoreProvider>
+        <ConversationDock
+          projectId={VALID_PROJECT_ID}
+          selectedActorId="manager"
+          activeRun={null}
+          roleProfiles={mockProfiles}
+          providerStatuses={mockProviders}
+          contextSnapshotId={VALID_SNAP_ID}
+          onDraftCreated={onDraftCreated}
+        />
+      </AppStoreProvider>,
+    );
+
+    // Initial label check
+    expect(screen.getByText("Discussion")).toBeDefined();
+    expect(screen.getByText("Draft Task")).toBeDefined();
+    expect(screen.getByText("Execution")).toBeDefined();
+
+    // Verify read-only warning header
+    await waitFor(() => {
+      expect(screen.getByText("Read-only consultation")).toBeDefined();
+    });
+
+    // Check message list renders
+    await waitFor(() => {
+      expect(screen.getByText("Hello Manager")).toBeDefined();
+    });
+  });
+
+  it("advisor selected chat shows premium turn warning, and antigravity-only worker disables chat", async () => {
+    // 1. Advisor Chat
+    const { rerender } = render(
+      <AppStoreProvider>
+        <ConversationDock
+          projectId={VALID_PROJECT_ID}
+          selectedActorId="advisor"
+          activeRun={null}
+          roleProfiles={mockProfiles}
+          providerStatuses={mockProviders}
+          contextSnapshotId={VALID_SNAP_ID}
+          onDraftCreated={vi.fn()}
+        />
+      </AppStoreProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/premium token usage warning/u)).toBeDefined();
+    });
+
+    // 2. Antigravity-only Worker Chat (disables composer)
+    rerender(
+      <AppStoreProvider>
+        <ConversationDock
+          projectId={VALID_PROJECT_ID}
+          selectedActorId="worker-1"
+          activeRun={null}
+          roleProfiles={mockProfiles}
+          providerStatuses={mockProviders}
+          contextSnapshotId={VALID_SNAP_ID}
+          onDraftCreated={vi.fn()}
+        />
+      </AppStoreProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Worker lacks read-only capability/u)).toBeDefined();
+    });
+  });
+});
