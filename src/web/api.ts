@@ -6,12 +6,18 @@ import {
   MessageListResponseSchema,
   MessageRecordSchema,
   TaskDraftVersionSchema,
+  RunEvidenceSchema,
+  RunStorageSchema,
+  CleanupResultSchema,
   type BootstrapResponse,
   type WsClientMessage,
   type ConversationRecord,
   type MessageRecord,
+  type RunEvidence,
+  type RunStorage,
+  type CleanupResult,
 } from "../shared/api.js";
-import type { TaskDraftVersion } from "../shared/contracts.js";
+import { type TaskDraftVersion, type RunSnapshot, RunSnapshotSchema } from "../shared/contracts.js";
 
 const SESSION_KEY = "cozy-session";
 
@@ -92,6 +98,72 @@ export class ApiClient {
       body: JSON.stringify(body),
     });
     return TaskDraftVersionSchema.parse(res);
+  }
+
+  async startRun(draftId: string, expectedDraftVersion: number, concurrency: number): Promise<RunSnapshot> {
+    const res = await this.request(`/api/drafts/${draftId}/start`, {
+      method: "POST",
+      body: JSON.stringify({ expectedDraftVersion, concurrency }),
+    });
+    return RunSnapshotSchema.parse(res);
+  }
+
+  async pauseRun(run: RunSnapshot): Promise<RunSnapshot> {
+    const res = await this.request(`/api/runs/${run.id}/pause`, {
+      method: "POST",
+      body: JSON.stringify({ expectedUpdatedAt: run.updatedAt }),
+    });
+    return RunSnapshotSchema.parse(res);
+  }
+
+  async resumeRun(run: RunSnapshot): Promise<RunSnapshot> {
+    const res = await this.request(`/api/runs/${run.id}/resume`, {
+      method: "POST",
+      body: JSON.stringify({ expectedUpdatedAt: run.updatedAt }),
+    });
+    return RunSnapshotSchema.parse(res);
+  }
+
+  async cancelRun(run: RunSnapshot): Promise<RunSnapshot> {
+    const res = await this.request(`/api/runs/${run.id}/cancel`, {
+      method: "POST",
+      body: JSON.stringify({ expectedUpdatedAt: run.updatedAt }),
+    });
+    return RunSnapshotSchema.parse(res);
+  }
+
+  async retryTask(run: RunSnapshot, taskId: string): Promise<RunSnapshot> {
+    const res = await this.request(`/api/runs/${run.id}/retry-task`, {
+      method: "POST",
+      body: JSON.stringify({ expectedUpdatedAt: run.updatedAt, taskId }),
+    });
+    return RunSnapshotSchema.parse(res);
+  }
+
+  async applyRun(run: RunSnapshot): Promise<RunSnapshot> {
+    const res = await this.request(`/api/runs/${run.id}/apply`, {
+      method: "POST",
+      body: JSON.stringify({ expectedUpdatedAt: run.updatedAt }),
+    });
+    return RunSnapshotSchema.parse(res);
+  }
+
+  async getRunEvidence(runId: string): Promise<RunEvidence> {
+    const res = await this.request(`/api/runs/${runId}/evidence`);
+    return RunEvidenceSchema.parse(res);
+  }
+
+  async getRunStorage(runId: string): Promise<RunStorage> {
+    const res = await this.request(`/api/runs/${runId}/storage`);
+    return RunStorageSchema.parse(res);
+  }
+
+  async cleanupRun(runId: string, confirmation: string): Promise<CleanupResult> {
+    const res = await this.request(`/api/runs/${runId}/storage`, {
+      method: "DELETE",
+      body: JSON.stringify({ confirmation }),
+    });
+    return CleanupResultSchema.parse(res);
   }
 }
 

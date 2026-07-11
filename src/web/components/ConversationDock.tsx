@@ -10,6 +10,8 @@ import { ApiClient } from "../api.js";
 import type { ConversationRecord, MessageRecord } from "../../shared/api.js";
 import { useAppState, useAppDispatch } from "../store.js";
 import { DraftEditor } from "./DraftEditor.js";
+import { Timeline } from "./Timeline.js";
+import type { RunEvent } from "../../shared/contracts.js";
 
 type ConversationDockProps = {
   projectId: string;
@@ -19,6 +21,8 @@ type ConversationDockProps = {
   providerStatuses: ProviderStatus[];
   contextSnapshotId: string;
   onDraftCreated(draft: TaskDraftVersion): void;
+  onRequestStart(draft: TaskDraftVersion): void;
+  timelineEvents: RunEvent[];
 };
 
 export const ConversationDock: React.FC<ConversationDockProps> = ({
@@ -29,6 +33,8 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
   providerStatuses,
   contextSnapshotId,
   onDraftCreated,
+  onRequestStart,
+  timelineEvents,
 }) => {
   const state = useAppState();
   const dispatch = useAppDispatch();
@@ -421,9 +427,7 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
               return blocking;
             })()}
             onSaved={(updated) => dispatch({ type: "draft_loaded", value: updated })}
-            onRequestStart={(d) =>
-              alert("Start execution requested for draft version " + d.version)
-            }
+            onRequestStart={onRequestStart}
           />
         ) : (
           <div style={{ padding: "16px", textAlign: "center", color: "var(--parchment-300)" }}>
@@ -433,8 +437,8 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
         ))}
 
       {tab === "execution" && (
-        <div style={{ padding: "16px", textAlign: "center", color: "var(--parchment-300)" }}>
-          Execution console stubs. Start execution in Draft Task.
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          <Timeline events={timelineEvents} />
         </div>
       )}
     </div>

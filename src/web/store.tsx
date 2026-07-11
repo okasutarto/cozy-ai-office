@@ -66,11 +66,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
         phase: "office",
         selectedProjectId: action.projectId,
       };
-    case "run_snapshot":
+    case "run_snapshot": {
+      const resetEvents = action.run?.id !== state.run?.id;
       return {
         ...state,
         run: action.run,
+        events: resetEvents ? [] : state.events,
       };
+    }
     case "draft_loaded":
       return {
         ...state,

@@ -249,4 +249,88 @@ export function registerRunRoutes(
     const updated = await engine.apply(runId);
     return reply.send(updated);
   });
+
+  // 13. GET /api/runs/:runId/evidence
+  app.get("/api/runs/:runId/evidence", async (request, reply) => {
+    const { runId } = request.params as { runId: string };
+    const run = runs.getRun(runId);
+    if (!run) {
+      throw new AppError("run_not_found", `Run ${runId} not found`, 404);
+    }
+
+    const db = (conversations as any).db;
+
+    // Fetch attempts
+    const attempts = db
+      .prepare(
+        "SELECT id, task_id as taskId, role, profile_id as profileId, provider, model, stage, attempt_number as attemptNumber, status, exit_code as exitCode, error_code as errorCode, stdout_artifact_id as stdoutArtifactId, stderr_artifact_id as stderrArtifactId, started_at as startedAt, ended_at as finishedAt FROM attempts WHERE run_id = ?",
+      )
+      .all(runId) as any[];
+    const attemptsMapped = attempts.map((a) => ({
+      ...a,
+      durationMs: 0,
+    }));
+
+    // Fetch advisor reviews
+    const advisorReviews = db
+      .prepare(
+        "SELECT id, run_id as runId, gate, pass_number as passNumber, verdict, artifact_id as artifactId, created_at as createdAt FROM advisor_reviews WHERE run_id = ?",
+      )
+      .all(runId) as any[];
+
+    // Fetch diff
+    const diffArtifact = artifacts.getArtifactByKind(runId, "integration-diff");
+    let diff = null;
+    if (diffArtifact) {
+      const absPath = join(artifacts.root, diffArtifact.relativePath);
+      try {
+        const contentStr = await readFile(absPath, "utf8");
+        const parsed = JSON.parse(contentStr);
+        diff = {
+          artifactId: diffArtifact.id,
+          stat: parsed.stat,
+          patch: parsed.patch,
+        };
+      } catch {}
+    }
+
+    // Fetch QA report
+    const qaArtifact = artifacts.getArtifactByKind(runId, "qa-report");
+    let qa = null;
+    if (qaArtifact) {
+      const absPath = join(artifacts.root, qaArtifact.relativePath);
+      try {
+        const contentStr = await readFile(absPath, "utf8");
+        const parsed = JSON.parse(contentStr);
+        qa = {
+          status: parsed.passed ? "passed" : "failed",
+          repairAttempted: parsed.cycleCount > 1,
+          diagnosisArtifactId: parsed.diagnosisArtifactId,
+          commands: parsed.results.map((r: any) => ({
+            commandId: r.commandId,
+            label: r.commandId,
+            cycleNumber: parsed.cycleCount,
+            exitCode: r.exitCode,
+            durationMs: r.durationMs,
+            status: r.status,
+            stdoutArtifactId: r.stdoutArtifactId,
+            stderrArtifactId: r.stderrArtifactId,
+          })),
+        };
+      } catch {}
+    }
+
+    // Fetch synthesis artifact
+    const synthArtifact = artifacts.getArtifactByKind(runId, "delivery-synthesis");
+    const synthesisArtifactId = synthArtifact ? synthArtifact.id : null;
+
+    return reply.send({
+      run,
+      diff,
+      qa,
+      attempts: attemptsMapped,
+      advisorReviews,
+      synthesisArtifactId,
+    });
+  });
 }
