@@ -13,9 +13,9 @@ export class ProviderRegistry {
 
   constructor(
     adapters: ProviderAdapter[],
-    private readonly supervisor?: ProcessSupervisor,
-    private readonly projectStore?: { saveProviderStatus(status: ProviderStatus): void },
-    private readonly tempDir?: string,
+    public readonly supervisor?: ProcessSupervisor,
+    public readonly projectStore?: { saveProviderStatus(status: ProviderStatus): void },
+    public readonly tempDir?: string,
   ) {
     this.adapters = new Map(adapters.map((adapter) => [adapter.id, adapter]));
   }

@@ -14,6 +14,10 @@ import type { RealtimeHub } from "./realtime/hub.js";
 import { AppError } from "./errors.js";
 import { WsClientMessageSchema } from "../shared/api.js";
 import { registerBootstrapRoute } from "./routes/bootstrap.js";
+import { GitClient } from "./git/git.js";
+import { RepositoryService } from "./git/repository.js";
+import { ProjectService } from "./projects/service.js";
+import { registerProjectRoutes } from "./routes/projects.js";
 
 export type AppDependencies = {
   config: ServerConfig;
@@ -93,6 +97,21 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
 
   // Register bootstrap route
   registerBootstrapRoute(app, dependencies);
+
+  const supervisor = dependencies.providers.supervisor;
+  if (!supervisor) {
+    throw new Error("Supervisor not configured in ProviderRegistry");
+  }
+  const gitClient = new GitClient(supervisor);
+  const repositoryService = new RepositoryService(gitClient);
+  const projectService = new ProjectService(
+    dependencies.projects,
+    repositoryService,
+    dependencies.providers,
+  );
+
+  // Register project routes
+  registerProjectRoutes(app, projectService);
 
   // WebSocket Route
   app.get(
