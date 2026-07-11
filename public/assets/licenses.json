@@ -400,7 +400,7 @@
             "qa.error.0",
             "qa.error.1"
           ],
-          "sha256": "4b7599e6d99a5f77a6c0f1277d362dc4c8903024c2482f5413b1b21b85500ce5"
+          "sha256": "f6d4e44da8c89a6a4b86babb36eb96b9379facbbfda88b52fe32c6ac02961322"
         },
         {
           "path": "public/assets/characters/characters-atlas.json",

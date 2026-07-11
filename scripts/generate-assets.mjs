@@ -138,7 +138,7 @@ const characterAtlas = new PNG({ width: 1024, height: 256 });
 const characterFrames = {};
 const characterAnimations = {};
 const animationSourceMap = {
-  idle: { row: 0, columns: [0] },
+  idle: { row: 0, columns: [0, 1, 2, 3] },
   "walk.down": { row: 0, columns: [0, 1, 2, 3] },
   "walk.left": { row: 0, columns: [4, 5, 6, 7] },
   "walk.right": { row: 0, columns: [4, 5, 6, 7], flipX: true },
