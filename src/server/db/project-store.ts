@@ -6,6 +6,8 @@ import {
   ProviderStatusSchema,
   type RoleProfile,
   RoleProfileSchema,
+  type ContextSnapshot,
+  ContextSnapshotSchema,
 } from "../../shared/contracts.js";
 
 export type ProjectRecord = {
@@ -27,10 +29,12 @@ export interface ProjectStore {
   listRoleProfiles(projectId: string): RoleProfile[];
   saveProviderStatus(status: ProviderStatus): void;
   listProviderStatuses(): ProviderStatus[];
+  saveContextSnapshot(snapshot: ContextSnapshot, directoryPath: string): void;
+  getContextSnapshot(id: string): (ContextSnapshot & { directoryPath: string }) | null;
 }
 
 export class SqliteProjectStore implements ProjectStore {
-  constructor(private db: Database.Database) {}
+  constructor(public readonly db: Database.Database) {}
 
   listProjects(): ProjectRecord[] {
     const rows = this.db
@@ -184,5 +188,62 @@ export class SqliteProjectStore implements ProjectStore {
         checkedAt: row.checked_at,
       });
     });
+  }
+
+  saveContextSnapshot(snapshot: ContextSnapshot, directoryPath: string): void {
+    this.db.transaction(() => {
+      this.db
+        .prepare(
+          "INSERT INTO context_snapshots (id, project_id, source_branch, source_head, manifest_hash, directory_path, excluded_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .run(
+          snapshot.id,
+          snapshot.projectId,
+          snapshot.sourceBranch,
+          snapshot.sourceHead,
+          snapshot.manifestHash,
+          directoryPath,
+          JSON.stringify(snapshot.excluded),
+          snapshot.createdAt,
+        );
+
+      const insertEntry = this.db.prepare(
+        "INSERT INTO context_entries (snapshot_id, relative_path, size_bytes, sha256) VALUES (?, ?, ?, ?)",
+      );
+      for (const entry of snapshot.entries) {
+        insertEntry.run(snapshot.id, entry.path, entry.sizeBytes, entry.sha256);
+      }
+    })();
+  }
+
+  getContextSnapshot(id: string): (ContextSnapshot & { directoryPath: string }) | null {
+    const row = this.db
+      .prepare(
+        "SELECT id, project_id as projectId, source_branch as sourceBranch, source_head as sourceHead, manifest_hash as manifestHash, directory_path as directoryPath, excluded_json as excludedJson, created_at as createdAt FROM context_snapshots WHERE id = ?",
+      )
+      .get(id) as any;
+    if (!row) return null;
+
+    const entriesRows = this.db
+      .prepare(
+        "SELECT relative_path as path, size_bytes as sizeBytes, sha256 FROM context_entries WHERE snapshot_id = ? ORDER BY relative_path ASC",
+      )
+      .all(id) as any[];
+
+    return {
+      id: row.id,
+      projectId: row.projectId,
+      sourceBranch: row.sourceBranch,
+      sourceHead: row.sourceHead,
+      manifestHash: row.manifestHash,
+      directoryPath: row.directoryPath,
+      entries: entriesRows.map((entry) => ({
+        path: entry.path,
+        sizeBytes: entry.sizeBytes,
+        sha256: entry.sha256,
+      })),
+      excluded: JSON.parse(row.excludedJson),
+      createdAt: row.createdAt,
+    };
   }
 }

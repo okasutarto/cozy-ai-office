@@ -1,9 +1,17 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { SelectProjectRequestSchema, UpdateRoleProfilesRequestSchema } from "../../shared/api.js";
+import { lstat, open } from "node:fs/promises";
+import { join } from "node:path";
+import { constants } from "node:fs";
+import {
+  SelectProjectRequestSchema,
+  UpdateRoleProfilesRequestSchema,
+  CreateContextSnapshotRequestSchema,
+} from "../../shared/api.js";
 import { CommandSpecSchema, ProviderStatusSchema } from "../../shared/contracts.js";
 import type { ProjectService } from "../projects/service.js";
-import { AppError } from "../errors.js";
+import { ContextSnapshotService, MAX_CONTEXT_FILE_BYTES } from "../context/snapshots.js";
+import { AppError, errorMessage } from "../errors.js";
 
 const UpdateCommandsRequestSchema = z.object({
   commands: z.array(CommandSpecSchema),
@@ -14,7 +22,24 @@ const VerifyAntigravityLoginSchema = z.object({
   confirmation: z.literal("USE SUBSCRIPTION TURN"),
 });
 
-export function registerProjectRoutes(app: FastifyInstance, projectService: ProjectService): void {
+function isCredentialShaped(path: string): boolean {
+  const name = path.replaceAll("\\", "/").split("/").at(-1)?.toLowerCase() ?? "";
+  return (
+    name === ".env" ||
+    name.startsWith(".env.") ||
+    name === "id_rsa" ||
+    name === "id_ed25519" ||
+    name === "credentials.json" ||
+    /^service-account.*\.json$/u.test(name) ||
+    /\.(pem|p12|pfx|key)$/u.test(name)
+  );
+}
+
+export function registerProjectRoutes(
+  app: FastifyInstance,
+  projectService: ProjectService,
+  snapshotService: ContextSnapshotService,
+): void {
   // 1. POST /api/projects/select
   app.post("/api/projects/select", async (request, reply) => {
     const body = SelectProjectRequestSchema.parse(request.body);
@@ -134,5 +159,73 @@ export function registerProjectRoutes(app: FastifyInstance, projectService: Proj
 
     projectService.saveRoleProfiles(projectId, profiles);
     return reply.send({ ok: true });
+  });
+
+  // 7. GET /api/projects/:projectId/context-candidates
+  app.get("/api/projects/:projectId/context-candidates", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    const project = projectService.store.getProject(projectId);
+    if (!project) {
+      throw new AppError("project_not_found", "Project not found", 404);
+    }
+
+    const inspection = await projectService.repositories.inspect(project.rootPath, request.signal);
+
+    const candidates: string[] = [];
+    const excluded: { path: string; reason: string }[] = [];
+    const flags = constants.O_RDONLY | (constants.O_NOFOLLOW || 0);
+
+    for (const relPath of inspection.trackedPaths) {
+      if (isCredentialShaped(relPath)) {
+        excluded.push({ path: relPath, reason: "file contains credentials shape" });
+        continue;
+      }
+      const fullPath = join(project.rootPath, relPath);
+      try {
+        const stats = await lstat(fullPath);
+        if (!stats.isFile()) {
+          excluded.push({ path: relPath, reason: "not a regular file" });
+          continue;
+        }
+        if (stats.size > MAX_CONTEXT_FILE_BYTES) {
+          excluded.push({ path: relPath, reason: "exceeds 2 MiB file size limit" });
+          continue;
+        }
+        const handle = await open(fullPath, flags);
+        try {
+          const buf = Buffer.alloc(Math.min(8192, stats.size));
+          await handle.read(buf, 0, buf.length, 0);
+          if (buf.includes(0)) {
+            excluded.push({ path: relPath, reason: "contains a NUL byte (binary file)" });
+            continue;
+          }
+        } finally {
+          await handle.close();
+        }
+        candidates.push(relPath);
+      } catch (err) {
+        excluded.push({ path: relPath, reason: `failed to inspect: ${errorMessage(err)}` });
+      }
+    }
+
+    return reply.send({ candidates, excluded });
+  });
+
+  // 8. POST /api/projects/:projectId/context-snapshots
+  app.post("/api/projects/:projectId/context-snapshots", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    const body = CreateContextSnapshotRequestSchema.parse(request.body);
+    const snapshot = await snapshotService.create(projectId, body.paths, request.signal);
+    return reply.send(snapshot);
+  });
+
+  // 9. GET /api/context-snapshots/:snapshotId
+  app.get("/api/context-snapshots/:snapshotId", async (request, reply) => {
+    const { snapshotId } = request.params as { snapshotId: string };
+    const snapshot = snapshotService.get(snapshotId);
+    if (!snapshot) {
+      throw new AppError("snapshot_not_found", "Snapshot not found", 404);
+    }
+    return reply.send(snapshot);
   });
 }

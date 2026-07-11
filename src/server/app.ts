@@ -18,6 +18,7 @@ import { GitClient } from "./git/git.js";
 import { RepositoryService } from "./git/repository.js";
 import { ProjectService } from "./projects/service.js";
 import { registerProjectRoutes } from "./routes/projects.js";
+import { ContextSnapshotService } from "./context/snapshots.js";
 
 export type AppDependencies = {
   config: ServerConfig;
@@ -109,9 +110,16 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     repositoryService,
     dependencies.providers,
   );
+  const snapshotService = new ContextSnapshotService(
+    (dependencies.projects as any).db, // ponytail: SQLite db is accessed directly from SqliteProjectStore for context snapshots
+    dependencies.projects,
+    repositoryService,
+    dependencies.config.contextsDir,
+    dependencies.config.tempDir,
+  );
 
   // Register project routes
-  registerProjectRoutes(app, projectService);
+  registerProjectRoutes(app, projectService, snapshotService);
 
   // WebSocket Route
   app.get(
