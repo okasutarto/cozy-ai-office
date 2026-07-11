@@ -72,6 +72,150 @@ export const BootstrapResponseSchema = z.object({
   activeRun: RunSnapshotSchema.nullable(),
 });
 
+export const StartRunRequestSchema = z.object({
+  expectedDraftVersion: z.number().int().positive(),
+  concurrency: z.number().int().min(1).max(4).default(3),
+});
+export const RetryTaskRequestSchema = z.object({
+  taskId: z.string().min(1).max(64),
+  expectedUpdatedAt: z.string().datetime(),
+});
+export const CleanupRunRequestSchema = z.object({ confirmation: z.string().uuid() });
+
+import {
+  ProviderIdSchema,
+  TaskDraftVersionSchema,
+  normalizeRelativePath,
+  RelativePathWireSchema,
+} from "./contracts.js";
+
+export const ConversationRecordSchema = z.object({
+  id: z.string().uuid(),
+  projectId: z.string().uuid(),
+  role: RoleIdSchema,
+  profileId: ProfileIdSchema,
+  contextSnapshotId: z.string().uuid(),
+  runId: z.string().uuid().nullable(),
+  title: z.string().min(1).max(200),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+
+export const MessageRecordSchema = z.object({
+  id: z.string().uuid(),
+  conversationId: z.string().uuid(),
+  sender: z.enum(["owner", "manager", "worker", "advisor", "qa"]),
+  body: z.string().min(1).max(40_000),
+  sourceMessageIds: z.array(z.string().uuid()),
+  artifactIds: z.array(z.string().uuid()),
+  createdAt: z.string().datetime(),
+});
+
+export const ArtifactMetadataSchema = z.object({
+  id: z.string().uuid(),
+  runId: z.string().uuid().nullable(),
+  taskId: z.string().nullable(),
+  kind: z.string().min(1),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/u),
+  sizeBytes: z.number().int().nonnegative(),
+  createdAt: z.string().datetime(),
+});
+
+export const DiffViewSchema = z.object({
+  artifact: ArtifactMetadataSchema,
+  stat: z.string(),
+  patch: z.string(),
+  truncated: z.boolean(),
+});
+
+export const QaCommandResultViewSchema = z.object({
+  commandId: z.string(),
+  label: z.string(),
+  cycleNumber: z.number().int().min(1).max(2),
+  exitCode: z.number().int().nullable(),
+  durationMs: z.number().int().nonnegative(),
+  status: z.enum(["passed", "failed", "cancelled", "timed_out"]),
+  stdoutArtifactId: z.string().uuid().nullable(),
+  stderrArtifactId: z.string().uuid().nullable(),
+});
+
+export const QaReportViewSchema = z.object({
+  status: z.enum(["passed", "failed", "blocked"]),
+  repairAttempted: z.boolean(),
+  diagnosisArtifactId: z.string().uuid().nullable(),
+  commands: z.array(QaCommandResultViewSchema),
+});
+
+export const AttemptViewSchema = z.object({
+  id: z.string().uuid(),
+  taskId: z.string().nullable(),
+  role: RoleIdSchema,
+  profileId: ProfileIdSchema,
+  provider: ProviderIdSchema,
+  model: z.string().nullable(),
+  stage: z.string(),
+  attemptNumber: z.number().int().positive(),
+  status: z.enum(["running", "succeeded", "failed", "interrupted", "cancelled"]),
+  exitCode: z.number().int().nullable(),
+  errorCode: z.string().nullable(),
+  durationMs: z.number().int().nonnegative().nullable(),
+  stdoutArtifactId: z.string().uuid().nullable(),
+  stderrArtifactId: z.string().uuid().nullable(),
+  startedAt: z.string().datetime(),
+  finishedAt: z.string().datetime().nullable(),
+});
+
+export const AdvisorReviewViewSchema = z.object({
+  gate: z.enum(["preflight", "delivery"]),
+  pass: z.number().int().min(1).max(2),
+  review: z.object({
+    verdict: z.enum(["approve", "reject"]),
+    blockingFindings: z.array(z.string().min(1).max(2_000)).max(50),
+  }),
+  artifactId: z.string().uuid(),
+  createdAt: z.string().datetime(),
+});
+
+export const RunEvidenceSchema = z.object({
+  run: RunSnapshotSchema,
+  diff: DiffViewSchema.nullable(),
+  qa: QaReportViewSchema.nullable(),
+  attempts: z.array(AttemptViewSchema),
+  advisorReviews: z.array(AdvisorReviewViewSchema),
+  synthesisArtifactId: z.string().uuid().nullable(),
+});
+
+export const RunStorageSchema = z.object({
+  runId: z.string().uuid(),
+  artifactCount: z.number().int().nonnegative(),
+  artifactBytes: z.number().int().nonnegative(),
+  worktreeCount: z.number().int().nonnegative(),
+  worktreeBytes: z.number().int().nonnegative(),
+  cleanupEligible: z.boolean(),
+});
+
+export const CleanupResultSchema = z.object({
+  runId: z.string().uuid(),
+  deletedArtifacts: z.number().int().nonnegative(),
+  deletedWorktrees: z.number().int().nonnegative(),
+  freedBytes: z.number().int().nonnegative(),
+  auditPreserved: z.literal(true),
+});
+
+export const ConversationListResponseSchema = z.array(ConversationRecordSchema);
+export const MessageListResponseSchema = z.array(MessageRecordSchema);
+export const RunEventsResponseSchema = z.array(RunEventSchema);
+export { TaskDraftVersionSchema };
+
 export type BootstrapResponse = z.infer<typeof BootstrapResponseSchema>;
 export type WsClientMessage = z.infer<typeof WsClientMessageSchema>;
 export type WsServerMessage = z.infer<typeof WsServerMessageSchema>;
+export type ConversationRecord = z.infer<typeof ConversationRecordSchema>;
+export type MessageRecord = z.infer<typeof MessageRecordSchema>;
+export type DiffView = z.infer<typeof DiffViewSchema>;
+export type QaReportView = z.infer<typeof QaReportViewSchema>;
+export type AttemptView = z.infer<typeof AttemptViewSchema>;
+export type AdvisorReviewView = z.infer<typeof AdvisorReviewViewSchema>;
+export type RunEvidence = z.infer<typeof RunEvidenceSchema>;
+export type RunStorage = z.infer<typeof RunStorageSchema>;
+export type CleanupResult = z.infer<typeof CleanupResultSchema>;

@@ -123,7 +123,7 @@ export class SqliteRunStore implements RunStore {
   getRun(id: string): RunSnapshot | null {
     const run = this.db
       .prepare(
-        "SELECT id, project_id as projectId, state, dispatch_paused as dispatchPaused, base_branch as baseBranch, base_commit as baseCommit, draft_id as draftId, draft_version as draftVersion, block_reason as blockReason, created_at as createdAt, updated_at as updatedAt FROM runs WHERE id = ?",
+        "SELECT id, project_id as projectId, state, dispatch_paused as dispatchPaused, base_branch as baseBranch, base_commit as baseCommit, draft_id as draftId, draft_version as draftVersion, context_snapshot_id as contextSnapshotId, integration_branch as integrationBranch, integration_worktree as integrationWorktree, block_reason as blockReason, created_at as createdAt, updated_at as updatedAt FROM runs WHERE id = ?",
       )
       .get(id) as any;
     if (!run) return null;
@@ -158,6 +158,9 @@ export class SqliteRunStore implements RunStore {
       baseCommit: run.baseCommit,
       draftId: run.draftId,
       draftVersion: run.draftVersion,
+      contextSnapshotId: run.contextSnapshotId,
+      integrationBranch: run.integrationBranch,
+      integrationWorktree: run.integrationWorktree,
       tasks,
       latestEventSequence,
       blockReason: run.blockReason,

@@ -132,6 +132,23 @@ describe("OrchestratorEngine", () => {
     await deps.close();
   });
 
+  function makeEngine(deps: TestDependencies): OrchestratorEngine {
+    const fakeWorktree = {
+      applyToRoot: async () => "new-head",
+    } as any;
+    return new OrchestratorEngine(
+      deps.runs,
+      deps.realtime,
+      deps.projects,
+      deps.conversations,
+      fakeWorktree,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+    );
+  }
+
   it("transitions run state", () => {
     const projectId = randomUUID();
     const draftId = randomUUID();
@@ -140,7 +157,7 @@ describe("OrchestratorEngine", () => {
     seedRunParents(deps, projectId, draftId, snapshotId);
     createRun(deps, runId, projectId, draftId, snapshotId, "planned");
 
-    const engine = new OrchestratorEngine(deps.runs, deps.realtime);
+    const engine = makeEngine(deps);
     const result = engine.transitionRun(runId, "advisor_preflight");
     expect(result.state).toBe("advisor_preflight");
   });
@@ -153,7 +170,7 @@ describe("OrchestratorEngine", () => {
     seedRunParents(deps, projectId, draftId, snapshotId);
     createRun(deps, runId, projectId, draftId, snapshotId, "planned");
 
-    const engine = new OrchestratorEngine(deps.runs, deps.realtime);
+    const engine = makeEngine(deps);
     expect(() => engine.transitionRun(runId, "applied")).toThrow(/Cannot transition/);
   });
 
@@ -165,7 +182,7 @@ describe("OrchestratorEngine", () => {
     seedRunParents(deps, projectId, draftId, snapshotId);
     createRun(deps, runId, projectId, draftId, snapshotId, "working");
 
-    const engine = new OrchestratorEngine(deps.runs, deps.realtime);
+    const engine = makeEngine(deps);
     let run = engine.pause(runId);
     expect(run.dispatchPaused).toBe(true);
     run = engine.resume(runId);
@@ -180,7 +197,7 @@ describe("OrchestratorEngine", () => {
     seedRunParents(deps, projectId, draftId, snapshotId);
     createRun(deps, runId, projectId, draftId, snapshotId, "working");
 
-    const engine = new OrchestratorEngine(deps.runs, deps.realtime);
+    const engine = makeEngine(deps);
     const run = await engine.cancel(runId);
     expect(run.state).toBe("cancelled");
   });
@@ -193,7 +210,7 @@ describe("OrchestratorEngine", () => {
     seedRunParents(deps, projectId, draftId, snapshotId);
     createRun(deps, runId, projectId, draftId, snapshotId, "ready_to_apply");
 
-    const engine = new OrchestratorEngine(deps.runs, deps.realtime);
+    const engine = makeEngine(deps);
     const run = await engine.apply(runId);
     expect(run.state).toBe("applied");
   });
@@ -206,7 +223,7 @@ describe("OrchestratorEngine", () => {
     seedRunParents(deps, projectId, draftId, snapshotId);
     createRun(deps, runId, projectId, draftId, snapshotId, "working");
 
-    const engine = new OrchestratorEngine(deps.runs, deps.realtime);
+    const engine = makeEngine(deps);
     await expect(engine.apply(runId)).rejects.toThrow(/Cannot transition/);
   });
 });
