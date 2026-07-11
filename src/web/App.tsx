@@ -5,6 +5,7 @@ import { TopBar } from "./components/TopBar.js";
 import { Onboarding } from "./components/Onboarding.js";
 import { ConversationDock } from "./components/ConversationDock.js";
 import type { RoleProfile } from "../shared/contracts.js";
+import { OfficeCanvas } from "./office/OfficeCanvas.js";
 
 export const App: React.FC = () => {
   const state = useAppState();
@@ -202,12 +203,7 @@ export const App: React.FC = () => {
           minHeight: "480px",
         }}
       >
-        <div style={{ color: "var(--gold-400)", textAlign: "center" }}>
-          <h3>Pixel Office Scene Viewport</h3>
-          <p style={{ fontSize: "13px", color: "var(--parchment-300)" }}>
-            Interactive canvas loading in next tasks
-          </p>
-        </div>
+        <OfficeCanvas />
       </main>
 
       {/* Right inspector panel */}

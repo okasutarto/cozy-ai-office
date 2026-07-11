@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "frame": { "width": 16, "height": 24 },
+  "actors": [
+    { "id": "manager", "skin": "stone-light", "hair": "wood-light", "shirt": "paper-light", "accent": "moss", "accessory": "ledger" },
+    { "id": "worker-1", "skin": "wood-dark", "hair": "outline", "shirt": "blue", "accent": "gold", "accessory": "headset" },
+    { "id": "worker-2", "skin": "wood-light", "hair": "outline", "shirt": "rose", "accent": "teal", "accessory": "mug" },
+    { "id": "worker-3", "skin": "stone-light", "hair": "wood-mid", "shirt": "teal", "accent": "wood-dark", "accessory": "tool-pouch" },
+    { "id": "worker-4", "skin": "wood-mid", "hair": "outline", "shirt": "gold", "accent": "blue", "accessory": "scarf" },
+    { "id": "advisor", "skin": "stone-light", "hair": "stone-light", "shirt": "rose", "accent": "blue", "accessory": "book" },
+    { "id": "qa", "skin": "wood-dark", "hair": "outline", "shirt": "teal", "accent": "gold", "accessory": "goggles" }
+  ],
+  "animations": {
+    "idle": 4,
+    "walk.down": 4,
+    "walk.left": 4,
+    "walk.right": 4,
+    "walk.up": 4,
+    "work": 6,
+    "read": 4,
+    "talk": 4,
+    "test": 6,
+    "celebrate": 6,
+    "error": 2
+  }
+}

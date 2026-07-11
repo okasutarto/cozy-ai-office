@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "width": 352,
+  "height": 240,
+  "rooms": [
+    { "name": "manager-cabin", "x": 16, "y": 16, "w": 80, "h": 64, "floor": "wood-dark", "wall": "wood-mid" },
+    { "name": "meeting-area", "x": 112, "y": 16, "w": 112, "h": 64, "floor": "stone", "wall": "stone-light" },
+    { "name": "advisor-library", "x": 240, "y": 16, "w": 96, "h": 64, "floor": "wood-mid", "wall": "wood-light" },
+    { "name": "worker-floor", "x": 16, "y": 96, "w": 320, "h": 64, "floor": "wood-mid", "wall": "outline" },
+    { "name": "coffee-area", "x": 16, "y": 176, "w": 80, "h": 48, "floor": "stone-light", "wall": "stone" },
+    { "name": "integration-area", "x": 112, "y": 176, "w": 112, "h": 48, "floor": "stone", "wall": "stone-light" },
+    { "name": "qa-lab", "x": 240, "y": 176, "w": 96, "h": 48, "floor": "wood-dark", "wall": "wood-mid" }
+  ],
+  "props": [
+    { "name": "manager-desk", "x": 56, "y": 64, "w": 16, "h": 16, "sprite": "desk" },
+    { "name": "meeting-table", "x": 168, "y": 64, "w": 16, "h": 16, "sprite": "table" },
+    { "name": "bookshelf", "x": 288, "y": 64, "w": 16, "h": 16, "sprite": "shelf" },
+    { "name": "worker-1-desk", "x": 48, "y": 136, "w": 16, "h": 16, "sprite": "desk" },
+    { "name": "worker-2-desk", "x": 128, "y": 136, "w": 16, "h": 16, "sprite": "desk" },
+    { "name": "worker-3-desk", "x": 208, "y": 136, "w": 16, "h": 16, "sprite": "desk" },
+    { "name": "worker-4-desk", "x": 288, "y": 136, "w": 16, "h": 16, "sprite": "desk" },
+    { "name": "coffee-counter", "x": 48, "y": 208, "w": 16, "h": 16, "sprite": "counter" },
+    { "name": "integration-desk", "x": 168, "y": 208, "w": 16, "h": 16, "sprite": "desk" },
+    { "name": "qa-bench", "x": 288, "y": 208, "w": 16, "h": 16, "sprite": "bench" }
+  ]
+}

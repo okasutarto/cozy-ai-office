@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "colors": {
+    "outline": "#1F1B24FF",
+    "shadow": "#342A31FF",
+    "wood-dark": "#4A332DFF",
+    "wood-mid": "#6B4B3EFF",
+    "wood-light": "#A06B4FFF",
+    "paper": "#F2D6A2FF",
+    "paper-light": "#FFF1CFFF",
+    "moss": "#708457FF",
+    "moss-light": "#9BAD74FF",
+    "teal": "#4F746DFF",
+    "blue": "#6576A3FF",
+    "rose": "#B46061FF",
+    "gold": "#D8BF62FF",
+    "warning": "#CF5C55FF",
+    "stone": "#7C7470FF",
+    "stone-light": "#A59A91FF"
+  }
+}
