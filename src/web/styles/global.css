@@ -1,0 +1,46 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-width: 1280px;
+  min-height: 720px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.app-shell {
+  min-width: 1280px;
+  min-height: 720px;
+  width: 100vw;
+  height: 100dvh;
+  padding: var(--shell-padding);
+  gap: var(--shell-gap);
+  display: grid;
+  grid-template:
+    "top top top" var(--topbar-height)
+    "left office right" minmax(480px, 1fr)
+    "dock dock dock" var(--dock-height)
+    / var(--left-panel-width) minmax(704px, 1fr) var(--right-panel-width);
+  overflow: hidden;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -317,8 +317,20 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
   );
 
   // Register run and storage routes
-  registerRunRoutes(app, orchestratorEngine, dependencies.runs, dependencies.artifacts, dependencies.conversations);
-  registerStorageRoutes(app, dependencies.runs, dependencies.artifacts, worktreeService, dependencies.projects);
+  registerRunRoutes(
+    app,
+    orchestratorEngine,
+    dependencies.runs,
+    dependencies.artifacts,
+    dependencies.conversations,
+  );
+  registerStorageRoutes(
+    app,
+    dependencies.runs,
+    dependencies.artifacts,
+    worktreeService,
+    dependencies.projects,
+  );
 
   // WebSocket Route
   app.get(

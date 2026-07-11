@@ -1,7 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import { resolve, join } from "node:path";
 import { lstat, readdir, rm, unlink } from "node:fs/promises";
-import { CleanupRunRequestSchema, RunStorageSchema, CleanupResultSchema } from "../../shared/api.js";
+import {
+  CleanupRunRequestSchema,
+  RunStorageSchema,
+  CleanupResultSchema,
+} from "../../shared/api.js";
 import type { RunStore } from "../db/run-store.js";
 import type { ArtifactStore } from "../artifacts/store.js";
 import type { WorktreeService } from "../git/worktrees.js";
@@ -182,7 +186,11 @@ export function registerStorageRoutes(
         assertInside(wtPath);
         const size = await getDirSize(wtPath);
         // git worktree remove --force <path>
-        await git.run(project.rootPath, ["worktree", "remove", "--force", wtPath], new AbortController().signal);
+        await git.run(
+          project.rootPath,
+          ["worktree", "remove", "--force", wtPath],
+          new AbortController().signal,
+        );
         deletedWorktrees++;
         freedBytes += size;
       } catch (err: any) {

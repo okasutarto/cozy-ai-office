@@ -26,9 +26,8 @@ export function registerRunRoutes(
     const body = StartRunRequestSchema.parse(request.body);
 
     const db = (conversations as any).db;
-    const draftRow = db
-      .prepare("SELECT project_id FROM drafts WHERE id = ?")
-      .get(draftId) as { project_id: string } | undefined;
+    const draftRow = db.prepare("SELECT project_id FROM drafts WHERE id = ?").get(draftId) as
+      { project_id: string } | undefined;
 
     if (!draftRow) {
       throw new AppError("draft_not_found", `Draft ${draftId} not found`, 404);

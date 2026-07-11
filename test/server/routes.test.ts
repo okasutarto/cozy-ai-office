@@ -5,10 +5,17 @@ import { randomUUID } from "node:crypto";
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
-function seedRunParents(deps: TestDependencies, projectId: string, draftId: string, snapshotId: string): void {
+function seedRunParents(
+  deps: TestDependencies,
+  projectId: string,
+  draftId: string,
+  snapshotId: string,
+): void {
   const now = new Date().toISOString();
   deps.db
-    .prepare("INSERT INTO projects (id, name, root_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?)")
+    .prepare(
+      "INSERT INTO projects (id, name, root_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+    )
     .run(projectId, "test", "/tmp/test", now, now);
   deps.db
     .prepare(
@@ -16,7 +23,9 @@ function seedRunParents(deps: TestDependencies, projectId: string, draftId: stri
     )
     .run(snapshotId, projectId, "main", "a".repeat(40), "0".repeat(64), "/tmp/ctx", "[]", now);
   deps.db
-    .prepare("INSERT INTO drafts (id, project_id, current_version, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)")
+    .prepare(
+      "INSERT INTO drafts (id, project_id, current_version, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+    )
     .run(draftId, projectId, 1, "active", now, now);
   deps.db
     .prepare(

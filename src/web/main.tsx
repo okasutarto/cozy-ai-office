@@ -1,14 +1,16 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-
-function BootstrapScreen() {
-  return <main>Cozy Agent Office</main>;
-}
+import { App } from "./App.js";
+import { AppStoreProvider } from "./store.js";
+import "./styles/tokens.css";
+import "./styles/global.css";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("Missing #root element");
 createRoot(root).render(
   <StrictMode>
-    <BootstrapScreen />
+    <AppStoreProvider>
+      <App />
+    </AppStoreProvider>
   </StrictMode>,
 );
