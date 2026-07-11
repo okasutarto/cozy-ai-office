@@ -2,8 +2,7 @@
 
 Cozy Agent Office is a local-first, multi-model coding-agent orchestrator with a pixel-office UI.
 
-> [!NOTE]
-> This project is in early development. The server-side orchestration foundation is implemented, but the browser UI is currently a minimal shell.
+
 
 ## What it does
 
@@ -78,8 +77,33 @@ Runtime data is stored outside the repository in the platform application-data d
 
 ## Security model
 
-The server listens only on `127.0.0.1`, generates a fresh session token at startup, and validates browser origins. Context snapshots accept tracked regular files only, exclude credential-shaped and binary files, and enforce size limits. Write-capable workers run in isolated worktrees; their changed paths are checked before Cozy Agent Office creates commits.
+- **Authentication model**: ChatGPT/Claude/Google subscriptions authenticate their official CLIs; API credit is not used by this app. Subscription availability, quota, and model access remain provider-controlled.
+- **Antigravity eligibility**: Antigravity is eligible only for write Workers after current `--help` capability probing and explicit login verification; v0.1 does not claim a proven per-invocation read-only mode.
+- **CLI prompt exposure**: Antigravity's documented print mode receives the prompt as a process argument in v0.1, so the prompt may be visible to other local processes/users that can inspect process command lines; Codex and Claude prompts use stdin.
+- **Git isolation**: Worktrees protect Git changes but are not an OS sandbox. The root working tree changes only after Apply and verified fast-forward conditions.
+- **Intended codebase**: The app is intended for local repositories and CLI accounts trusted by the Owner.
+
+## Manual Smoke Commands
+
+To test your local command-line client provider status:
+
+```bash
+# Verify Codex CLI
+codex --version
+codex login status
+
+# Verify Claude CLI
+claude --version
+claude auth status
+
+# Verify Antigravity CLI
+agy --version
+
+# Launch the production orchestrator build
+npm start
+```
 
 ## License
 
 Apache-2.0
+

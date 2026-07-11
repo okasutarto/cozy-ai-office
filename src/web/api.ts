@@ -54,7 +54,7 @@ export class ApiClient {
   }
 
   async createConversation(projectId: string, body: unknown): Promise<ConversationRecord> {
-    const res = await this.request("/api/conversations", {
+    const res = await this.request(`/api/projects/${projectId}/conversations`, {
       method: "POST",
       body: JSON.stringify(body),
     });
@@ -62,7 +62,7 @@ export class ApiClient {
   }
 
   async listConversations(projectId: string): Promise<ConversationRecord[]> {
-    const res = await this.request(`/api/conversations?projectId=${projectId}`);
+    const res = await this.request(`/api/projects/${projectId}/conversations`);
     return ConversationListResponseSchema.parse(res);
   }
 
@@ -80,7 +80,7 @@ export class ApiClient {
   }
 
   async forwardToManager(conversationId: string, messageIds: string[]): Promise<TaskDraftVersion> {
-    const res = await this.request(`/api/conversations/${conversationId}/forward`, {
+    const res = await this.request(`/api/conversations/${conversationId}/forward-to-manager`, {
       method: "POST",
       body: JSON.stringify({ messageIds }),
     });

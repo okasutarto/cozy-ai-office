@@ -40,16 +40,18 @@ export function registerProjectRoutes(
   projectService: ProjectService,
   snapshotService: ContextSnapshotService,
 ): void {
-  // 1. POST /api/projects/select
-  app.post("/api/projects/select", async (request, reply) => {
+  // 1. POST /api/projects/select & POST /api/projects
+  const selectHandler = async (request: any, reply: any) => {
     const body = SelectProjectRequestSchema.parse(request.body);
-    const result = await projectService.selectProject(body.rootPath, request.signal);
+    const result = await projectService.selectProject(body.rootPath, new AbortController().signal);
     return reply.send(result);
-  });
+  };
+  app.post("/api/projects/select", selectHandler);
+  app.post("/api/projects", selectHandler);
 
   // 2. POST /api/projects/:projectId/providers/probe
   app.post("/api/projects/:projectId/providers/probe", async (request, reply) => {
-    const result = await projectService.probeProviders(request.signal);
+    const result = await projectService.probeProviders(new AbortController().signal);
     return reply.send(result);
   });
 
@@ -58,7 +60,7 @@ export function registerProjectRoutes(
     "/api/projects/:projectId/providers/antigravity/verify-login",
     async (request, reply) => {
       const body = VerifyAntigravityLoginSchema.parse(request.body);
-      const result = await projectService.verifyAntigravityLogin(body.model, request.signal);
+      const result = await projectService.verifyAntigravityLogin(body.model, new AbortController().signal);
       return reply.send(result);
     },
   );
@@ -169,7 +171,7 @@ export function registerProjectRoutes(
       throw new AppError("project_not_found", "Project not found", 404);
     }
 
-    const inspection = await projectService.repositories.inspect(project.rootPath, request.signal);
+    const inspection = await projectService.repositories.inspect(project.rootPath, new AbortController().signal);
 
     const candidates: string[] = [];
     const excluded: { path: string; reason: string }[] = [];
@@ -215,7 +217,7 @@ export function registerProjectRoutes(
   app.post("/api/projects/:projectId/context-snapshots", async (request, reply) => {
     const { projectId } = request.params as { projectId: string };
     const body = CreateContextSnapshotRequestSchema.parse(request.body);
-    const snapshot = await snapshotService.create(projectId, body.paths, request.signal);
+    const snapshot = await snapshotService.create(projectId, body.paths, new AbortController().signal);
     return reply.send(snapshot);
   });
 

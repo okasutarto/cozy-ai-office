@@ -9,6 +9,7 @@ export class OfficeScene {
   public worldContainer: Container;
   public backgroundSprite: Sprite | null = null;
   public disposed = false;
+  public initialized = false;
 
   // Characters registry
   private characters: Map<ProfileId, CharacterSprite> = new Map();
@@ -127,6 +128,7 @@ export class OfficeScene {
       const deltaSeconds = ticker.deltaTime / 60;
       this.characters.forEach((char) => char.update(deltaSeconds));
     });
+    this.initialized = true;
   }
 
   setState(input: {
@@ -160,7 +162,7 @@ export class OfficeScene {
   }
 
   resize(containerWidth: number, containerHeight: number): void {
-    if (this.disposed || !this.app.canvas) return;
+    if (!this.initialized || this.disposed || !this.app.canvas) return;
 
     const scale = Math.max(
       1,

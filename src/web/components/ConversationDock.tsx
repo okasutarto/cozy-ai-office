@@ -63,6 +63,7 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
 
   // 1. Fetch conversations for the project
   useEffect(() => {
+    if (!projectId || !contextSnapshotId) return;
     let active = true;
     api
       .listConversations(projectId)
@@ -344,9 +345,15 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
               <textarea
                 aria-label="Composer input"
                 value={inputText}
-                disabled={isAntigravityOnly}
+                disabled={isAntigravityOnly || !activeConv}
                 onChange={(e) => setInputText(e.target.value.substring(0, 40000))}
-                placeholder={isAntigravityOnly ? "Chat disabled" : "Type a message..."}
+                placeholder={
+                  isAntigravityOnly
+                    ? "Chat disabled"
+                    : !activeConv
+                      ? "Initializing chat..."
+                      : "Type a message..."
+                }
                 style={{
                   flex: 1,
                   background: "var(--ink-950)",
@@ -361,7 +368,7 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 <button
                   type="button"
-                  disabled={isAntigravityOnly || !inputText}
+                  disabled={isAntigravityOnly || !inputText || !activeConv}
                   onClick={handleSend}
                   style={{
                     background: "var(--teal-600)",
@@ -376,7 +383,7 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
                 </button>
                 <button
                   type="button"
-                  disabled={selectedMessageIds.length === 0}
+                  disabled={selectedMessageIds.length === 0 || !activeConv}
                   onClick={handleForwardToManager}
                   style={{
                     background: "var(--gold-400)",

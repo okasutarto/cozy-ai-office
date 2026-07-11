@@ -384,13 +384,11 @@ export class OrchestratorEngine {
 
     let plan = validatePlan(managerOutcome.execution.structuredOutput, draftVersion, commands);
 
-    await this.attempts["runs"].transaction(async () => {
-      await this.attempts["runtime"].artifacts.writeText({
-        runId,
-        taskId: null,
-        kind: "manager-plan",
-        text: JSON.stringify(plan),
-      });
+    await this.attempts["runtime"].artifacts.writeText({
+      runId,
+      taskId: null,
+      kind: "manager-plan",
+      text: JSON.stringify(plan),
     });
 
     // ── 7. Advisor Preflight Pass 1 ──

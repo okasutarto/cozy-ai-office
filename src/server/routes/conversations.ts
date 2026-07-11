@@ -55,7 +55,7 @@ export function registerConversationRoutes(
         selectedArtifactIds: body.selectedArtifactIds,
         additionalUsageConfirmed: body.additionalUsageConfirmed,
       },
-      request.signal,
+      new AbortController().signal,
     );
     return reply.send(result);
   });
@@ -64,7 +64,7 @@ export function registerConversationRoutes(
   app.post("/api/conversations/:conversationId/forward-to-manager", async (request, reply) => {
     const { conversationId } = request.params as { conversationId: string };
     const body = ForwardToManagerRequestSchema.parse(request.body);
-    const result = await service.forwardToManager(conversationId, body.messageIds, request.signal);
+    const result = await service.forwardToManager(conversationId, body.messageIds, new AbortController().signal);
     return reply.send(result);
   });
 }
