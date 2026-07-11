@@ -62,6 +62,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
   // Error Handler
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof AppError) {
+      app.log.warn(`AppError [${error.code}]: ${error.message}`);
       reply.status(error.statusCode || 400).send({
         error: {
           code: error.code,
@@ -315,6 +316,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     workerScheduler,
     qaRunner,
   );
+  orchestratorEngine.recoverInterruptedRuns();
 
   // Register run and storage routes
   registerRunRoutes(

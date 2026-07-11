@@ -181,7 +181,15 @@ export class ConversationService {
         signal,
       );
 
-      const chatResponse = ChatResponseSchema.parse(response);
+      if (response.errorCode) {
+        throw new AppError(
+          "provider_execution_failed",
+          `Provider execution failed with error code: ${response.errorCode}`,
+          500,
+        );
+      }
+
+      const chatResponse = ChatResponseSchema.parse(response.structuredOutput);
 
       await disposable.verifyUnchanged();
 
@@ -288,7 +296,15 @@ export class ConversationService {
         signal,
       );
 
-      const draftSuggestion = DraftSuggestionSchema.parse(response);
+      if (response.errorCode) {
+        throw new AppError(
+          "provider_execution_failed",
+          `Provider execution failed with error code: ${response.errorCode}`,
+          500,
+        );
+      }
+
+      const draftSuggestion = DraftSuggestionSchema.parse(response.structuredOutput);
       await disposable.verifyUnchanged();
 
       const draftPayload = {

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { createTestDependencies, type TestDependencies } from "../helpers/test-dependencies.js";
 import { OrchestratorEngine } from "../../src/server/orchestrator/engine.js";
 import { assertTransition } from "../../src/server/orchestrator/state-machine.js";
@@ -132,9 +132,12 @@ describe("OrchestratorEngine", () => {
     await deps.close();
   });
 
-  function makeEngine(deps: TestDependencies): OrchestratorEngine {
+  function makeEngine(
+    deps: TestDependencies,
+    applyToRoot: () => Promise<string> = async () => "new-head",
+  ): OrchestratorEngine {
     const fakeWorktree = {
-      applyToRoot: async () => "new-head",
+      applyToRoot,
     } as any;
     return new OrchestratorEngine(
       deps.runs,
@@ -202,6 +205,21 @@ describe("OrchestratorEngine", () => {
     expect(run.state).toBe("cancelled");
   });
 
+  it("does not overwrite cancellation with a background failure", () => {
+    const projectId = randomUUID();
+    const draftId = randomUUID();
+    const snapshotId = randomUUID();
+    const runId = randomUUID();
+    seedRunParents(deps, projectId, draftId, snapshotId);
+    createRun(deps, runId, projectId, draftId, snapshotId, "cancelled");
+
+    const engine = makeEngine(deps);
+    expect(() =>
+      (engine as any).handleBackgroundFailure(runId, new Error("aborted")),
+    ).not.toThrow();
+    expect(deps.runs.getRun(runId)?.state).toBe("cancelled");
+  });
+
   it("applies from ready_to_apply", async () => {
     const projectId = randomUUID();
     const draftId = randomUUID();
@@ -223,7 +241,9 @@ describe("OrchestratorEngine", () => {
     seedRunParents(deps, projectId, draftId, snapshotId);
     createRun(deps, runId, projectId, draftId, snapshotId, "working");
 
-    const engine = makeEngine(deps);
+    const applyToRoot = vi.fn(async () => "new-head");
+    const engine = makeEngine(deps, applyToRoot);
     await expect(engine.apply(runId)).rejects.toThrow(/Cannot transition/);
+    expect(applyToRoot).not.toHaveBeenCalled();
   });
 });

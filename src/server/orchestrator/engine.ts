@@ -155,6 +155,7 @@ export class OrchestratorEngine {
   async apply(runId: string): Promise<RunSnapshot> {
     const run = this.runs.getRun(runId);
     if (!run) throw new AppError("run_not_found", `Run ${runId} not found`, 404);
+    assertTransition(run.state, "applied");
 
     const project = this.projects.getProject(run.projectId);
     if (!project) throw new AppError("project_not_found", "Project not found", 404);
@@ -321,9 +322,9 @@ export class OrchestratorEngine {
       prepared.integrationWorktree,
       snapshot.sourceHead,
       runController.signal,
-    ).catch((err) => {
-      this.transitionRun(runId, "failed", err?.message || String(err));
-    });
+    )
+      .catch((err) => this.handleBackgroundFailure(runId, err))
+      .finally(() => this.removeController(runId));
 
     return runSnapshot;
   }
@@ -334,6 +335,13 @@ export class OrchestratorEngine {
 
   removeController(runId: string): void {
     this.controllers.delete(runId);
+  }
+
+  private handleBackgroundFailure(runId: string, error: unknown): void {
+    const run = this.runs.getRun(runId);
+    if (!run || ["applied", "failed", "blocked", "cancelled"].includes(run.state)) return;
+    const message = error instanceof Error ? error.message : String(error);
+    this.transitionRun(runId, "failed", message);
   }
 
   // ── Background Workflow ──────────────────────────────────────────────
@@ -384,13 +392,11 @@ export class OrchestratorEngine {
 
     let plan = validatePlan(managerOutcome.execution.structuredOutput, draftVersion, commands);
 
-    await this.attempts["runs"].transaction(async () => {
-      await this.attempts["runtime"].artifacts.writeText({
-        runId,
-        taskId: null,
-        kind: "manager-plan",
-        text: JSON.stringify(plan),
-      });
+    await this.attempts["runtime"].artifacts.writeText({
+      runId,
+      taskId: null,
+      kind: "manager-plan",
+      text: JSON.stringify(plan),
     });
 
     // ── 7. Advisor Preflight Pass 1 ──
@@ -491,6 +497,7 @@ export class OrchestratorEngine {
       this.runs.insertTasks(runId, plan.tasks);
     });
     this.transitionRun(runId, "dispatching");
+    this.transitionRun(runId, "working");
 
     // Call WorkerScheduler
     const schedulerResult = await this.scheduler.run(

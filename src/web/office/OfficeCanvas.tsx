@@ -20,6 +20,7 @@ export const OfficeCanvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<OfficeScene | null>(null);
   const [motionState, setMotionState] = useState<"moving" | "settled">("settled");
+  const [initialized, setInitialized] = useState(false);
 
   // 1. Initialize Scene & ResizeObserver
   useEffect(() => {
@@ -47,6 +48,7 @@ export const OfficeCanvas: React.FC = () => {
       }
       // Trigger initial resize
       scene.resize(container.clientWidth || 352, container.clientHeight || 240);
+      setInitialized(true);
     });
 
     const observer = new ResizeObserver((entries) => {
@@ -63,6 +65,7 @@ export const OfficeCanvas: React.FC = () => {
         sceneRef.current.destroy();
         sceneRef.current = null;
       }
+      setInitialized(false);
       // Remove data attributes
       container.removeAttribute("data-pixi-ready");
       container.removeAttribute("data-pixi-antialias");
@@ -73,7 +76,7 @@ export const OfficeCanvas: React.FC = () => {
 
   // 2. Hydrate states
   useEffect(() => {
-    if (sceneRef.current && sceneRef.current.app.canvas) {
+    if (sceneRef.current && initialized) {
       sceneRef.current.setState({
         run: state.run,
         events: state.events,
@@ -81,7 +84,7 @@ export const OfficeCanvas: React.FC = () => {
         reduceMotion: state.reduceMotion,
       });
     }
-  }, [state.run, state.events, state.selectedActorId, state.reduceMotion]);
+  }, [state.run, state.events, state.selectedActorId, state.reduceMotion, initialized]);
 
   return (
     <div

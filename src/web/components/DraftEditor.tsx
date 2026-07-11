@@ -59,12 +59,7 @@ export const DraftEditor: React.FC<DraftEditorProps> = ({
   };
 
   const handleReviewExecution = () => {
-    const confirmPhrase = confirm(
-      `Ready to start execution for version ${draft.version}?\nObjective: ${objective}`,
-    );
-    if (confirmPhrase) {
-      onRequestStart(draft);
-    }
+    onRequestStart(draft);
   };
 
   return (

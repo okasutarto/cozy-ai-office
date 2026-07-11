@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export type ServerConfig = {
   dev: boolean;
@@ -46,7 +47,7 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): Server
     worktreesDir: join(dataDir, "worktrees"),
     contextsDir: join(dataDir, "contexts"),
     tempDir: join(dataDir, "tmp"),
-    webRoot: resolve("dist/web"),
+    webRoot: fileURLToPath(new URL("../web", import.meta.url)),
     websocketAuthTimeoutMs: 2_000,
   };
 }

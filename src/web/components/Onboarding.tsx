@@ -89,11 +89,24 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api }) => {
         body: JSON.stringify({ rootPath: repoPath }),
       });
       setProjectId(result.id);
+      if (Array.isArray(result.commandCandidates)) {
+        setCommands(
+          result.commandCandidates.map(
+            (command: { id: string; executable: string; args: string[]; required: boolean }) => ({
+              id: command.id,
+              executable: command.executable,
+              args: command.args,
+              required: command.required,
+            }),
+          ),
+        );
+      }
       setProjectStatus(
         `Clean root. Branch: ${result.branch ?? "main"}, HEAD: ${result.head ?? "n/a"}`,
       );
     } catch (err: any) {
-      setProjectStatus(`Error: ${err.message || "Failed to verify repository"}`);
+      const msg = err.error?.message || err.message || "Failed to verify repository";
+      setProjectStatus(`Error: ${msg}`);
     }
   };
 
@@ -110,7 +123,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api }) => {
       const updatedBootstrap = await api.bootstrap();
       setProviderStatuses(updatedBootstrap.providers);
     } catch (err: any) {
-      setVerificationStatus(`Verification Failed: ${err.message || err}`);
+      const msg = err.error?.message || err.message || String(err);
+      setVerificationStatus(`Verification Failed: ${msg}`);
     }
   };
 
@@ -140,7 +154,17 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api }) => {
       // 1. Save commands
       await api.request(`/api/projects/${projectId}/commands`, {
         method: "PUT",
-        body: JSON.stringify({ commands }),
+        body: JSON.stringify({
+          commands: commands.map((c) => ({
+            id: c.id,
+            label: c.id,
+            executable: c.executable,
+            args: c.args,
+            cwd: "." as const,
+            required: c.required,
+            timeoutMs: 300_000,
+          })),
+        }),
       });
 
       // 2. Save role profiles
@@ -163,7 +187,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api }) => {
       // 4. Onboarding complete -> transition back to office phase
       dispatch({ type: "project_selected", projectId });
     } catch (err: any) {
-      alert(`Failed to save configuration: ${err.message || err}`);
+      const msg = err.error?.message || err.message || String(err);
+      alert(`Failed to save configuration: ${msg}`);
     }
   };
 

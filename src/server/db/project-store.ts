@@ -31,6 +31,7 @@ export interface ProjectStore {
   listProviderStatuses(): ProviderStatus[];
   saveContextSnapshot(snapshot: ContextSnapshot, directoryPath: string): void;
   getContextSnapshot(id: string): (ContextSnapshot & { directoryPath: string }) | null;
+  getLatestContextSnapshot(projectId: string): (ContextSnapshot & { directoryPath: string }) | null;
 }
 
 export class SqliteProjectStore implements ProjectStore {
@@ -245,5 +246,16 @@ export class SqliteProjectStore implements ProjectStore {
       excluded: JSON.parse(row.excludedJson),
       createdAt: row.createdAt,
     };
+  }
+
+  getLatestContextSnapshot(
+    projectId: string,
+  ): (ContextSnapshot & { directoryPath: string }) | null {
+    const row = this.db
+      .prepare(
+        "SELECT id FROM context_snapshots WHERE project_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1",
+      )
+      .get(projectId) as { id: string } | undefined;
+    return row ? this.getContextSnapshot(row.id) : null;
   }
 }

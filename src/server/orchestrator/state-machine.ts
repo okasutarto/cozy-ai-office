@@ -4,7 +4,7 @@ import { AppError } from "../errors.js";
 const LEGAL: Record<RunState, readonly RunState[]> = {
   planned: ["advisor_preflight", "cancelled", "failed", "blocked"],
   advisor_preflight: ["dispatching", "cancelled", "failed", "blocked"],
-  dispatching: ["working", "integrating", "cancelled", "failed", "blocked"],
+  dispatching: ["working", "integrating", "testing", "cancelled", "failed", "blocked"],
   working: ["working", "integrating", "testing", "cancelled", "failed", "blocked"],
   integrating: ["working", "integration_conflict", "testing", "cancelled", "failed", "blocked"],
   integration_conflict: ["integrating", "cancelled", "failed", "blocked"],

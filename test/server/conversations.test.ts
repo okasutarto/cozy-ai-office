@@ -246,14 +246,21 @@ describe("Conversation Service direct role chats", () => {
 
         // 4. Codex conversation send runs successfully (mocks execution)
         executeSpy.mockResolvedValueOnce({
-          message: "Yes manager, here is a draft idea",
-          citedArtifactIds: [],
-          draftSuggestion: {
-            objective: "Build test setup",
-            scope: ["readme.md"],
-            constraints: ["TypeScript only"],
-            acceptanceCriteria: ["All test pass"],
+          exitCode: 0,
+          durationMs: 1,
+          structuredOutput: {
+            message: "Yes manager, here is a draft idea",
+            citedArtifactIds: [],
+            draftSuggestion: {
+              objective: "Build test setup",
+              scope: ["readme.md"],
+              constraints: ["TypeScript only"],
+              acceptanceCriteria: ["All test pass"],
+            },
           },
+          stdout: null,
+          stderr: null,
+          errorCode: null,
         });
 
         const replyMsg = await conversationService.send(
@@ -272,10 +279,17 @@ describe("Conversation Service direct role chats", () => {
 
         // 5. Send to Manager preserves source details & creates draft version 1
         executeSpy.mockResolvedValueOnce({
-          objective: "Define office scope",
-          scope: ["readme.md"],
-          constraints: ["no compound shell"],
-          acceptanceCriteria: ["passes typecheck"],
+          exitCode: 0,
+          durationMs: 1,
+          structuredOutput: {
+            objective: "Define office scope",
+            scope: ["readme.md"],
+            constraints: ["no compound shell"],
+            acceptanceCriteria: ["passes typecheck"],
+          },
+          stdout: null,
+          stderr: null,
+          errorCode: null,
         });
 
         const draftVersion = await conversationService.forwardToManager(

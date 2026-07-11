@@ -106,6 +106,52 @@ function makePlan(tasks: TaskBrief[]): ValidatedPlan {
   };
 }
 
+function seedSchedulerRun(deps: TestDependencies, tasks: TaskBrief[]) {
+  const runId = randomUUID();
+  const projectId = randomUUID();
+  const draftId = randomUUID();
+  const snapshotId = randomUUID();
+  const now = new Date().toISOString();
+
+  deps.db
+    .prepare(
+      "INSERT INTO projects (id, name, root_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+    )
+    .run(projectId, "test", "/tmp/test", now, now);
+  deps.db
+    .prepare(
+      "INSERT INTO context_snapshots (id, project_id, source_branch, source_head, manifest_hash, directory_path, excluded_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    )
+    .run(snapshotId, projectId, "main", "a".repeat(40), "0".repeat(64), "/tmp/ctx", "[]", now);
+  deps.db
+    .prepare(
+      "INSERT INTO drafts (id, project_id, current_version, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+    )
+    .run(draftId, projectId, 1, "active", now, now);
+
+  deps.runs.createRun({
+    id: runId,
+    projectId,
+    draftId,
+    draftVersion: 1,
+    draftHash: "0".repeat(64),
+    contextSnapshotId: snapshotId,
+    contextHash: "0".repeat(64),
+    baseBranch: "main",
+    baseCommit: "a".repeat(40),
+    integrationBranch: "cozy/test/integration",
+    integrationWorktree: "/tmp/integration",
+    state: "working",
+    dispatchPaused: false,
+    blockReason: null,
+    createdAt: now,
+    updatedAt: now,
+  });
+  deps.runs.insertTasks(runId, tasks);
+
+  return { runId, projectId, snapshotId };
+}
+
 // ── Tests ───────────────────────────────────────────────────────────
 
 describe("WorkerScheduler", () => {
@@ -224,5 +270,72 @@ describe("WorkerScheduler", () => {
     await expect(scheduler.run(input, new AbortController().signal)).rejects.toThrow(
       /Concurrency must be an integer 1\.\.4/,
     );
+  });
+
+  it("serializes commits into a shared integration worktree", async () => {
+    let activeIntegrations = 0;
+    let maxActiveIntegrations = 0;
+    const worktrees = makeFakeWorktreeService() as any;
+    worktrees.validateAndCommit = async ({ task }: { task: TaskBrief }) => ({
+      commitSha: task.id,
+      changedFiles: task.allowedPaths,
+    });
+    worktrees.integrateCommit = async () => {
+      activeIntegrations++;
+      maxActiveIntegrations = Math.max(maxActiveIntegrations, activeIntegrations);
+      await new Promise<void>((resolve) => setTimeout(resolve, 10));
+      activeIntegrations--;
+      return { conflictFiles: [] };
+    };
+
+    const tasks = [
+      makeTaskBrief({
+        id: "task-a",
+        title: "Task A",
+        mode: "write",
+        allowedPaths: ["src/a.ts"],
+      }),
+      makeTaskBrief({
+        id: "task-b",
+        title: "Task B",
+        mode: "write",
+        allowedPaths: ["src/b.ts"],
+      }),
+      makeTaskBrief({
+        id: "task-c",
+        title: "Task C",
+        mode: "write",
+        allowedPaths: ["src/c.ts"],
+      }),
+    ];
+    const plan = makePlan(tasks);
+    const seeded = seedSchedulerRun(deps, tasks);
+    const scheduler = new WorkerScheduler(
+      deps.runs,
+      worktrees,
+      makeFakeSnapshotService(),
+      makeFakeExecutor([]),
+      deps.realtime,
+    );
+
+    const result = await scheduler.run(
+      {
+        runId: seeded.runId,
+        projectId: seeded.projectId,
+        plan,
+        contextSnapshotId: seeded.snapshotId,
+        workerProfiles: [
+          makeWorkerProfile("worker-1"),
+          makeWorkerProfile("worker-2"),
+          makeWorkerProfile("worker-3"),
+        ],
+        integrationWorktree: "/tmp/integration",
+        concurrency: 3,
+      },
+      new AbortController().signal,
+    );
+
+    expect(result.completedTaskIds).toHaveLength(3);
+    expect(maxActiveIntegrations).toBe(1);
   });
 });

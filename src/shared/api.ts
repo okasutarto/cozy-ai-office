@@ -104,7 +104,7 @@ export const ConversationRecordSchema = z.object({
 export const MessageRecordSchema = z.object({
   id: z.string().uuid(),
   conversationId: z.string().uuid(),
-  sender: z.enum(["owner", "manager", "worker", "advisor", "qa"]),
+  sender: z.enum(["owner", "manager", "worker", "advisor", "qa", "agent"]),
   body: z.string().min(1).max(40_000),
   sourceMessageIds: z.array(z.string().uuid()),
   artifactIds: z.array(z.string().uuid()),

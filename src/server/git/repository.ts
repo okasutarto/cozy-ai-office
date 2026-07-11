@@ -66,6 +66,7 @@ export class RepositoryService {
 
     // Command Candidates
     const commandCandidates: CommandSpec[] = [];
+    const npmExecutable = process.platform === "win32" ? process.env.ComSpec || "cmd.exe" : "npm";
     // ponytail: package.json is assumed to be at the repository root. For monorepos, we would need to recursively search subdirectories.
     if (trackedPaths.includes("package.json")) {
       try {
@@ -78,8 +79,11 @@ export class RepositoryService {
             commandCandidates.push({
               id: randomUUID(),
               label: key,
-              executable: "npm",
-              args: ["run", key],
+              executable: npmExecutable,
+              args:
+                process.platform === "win32"
+                  ? ["/d", "/s", "/c", `npm.cmd run ${key}`]
+                  : ["run", key],
               cwd: ".",
               required: false,
               timeoutMs: 300_000,

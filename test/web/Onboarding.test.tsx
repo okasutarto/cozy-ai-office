@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { Onboarding } from "../../src/web/components/Onboarding.js";
 import { ApiClient } from "../../src/web/api.js";
 import { AppStoreProvider } from "../../src/web/store.js";
@@ -98,5 +98,44 @@ describe("Onboarding Wizard Component", () => {
         expect.any(Object),
       );
     });
+  });
+
+  afterEach(cleanup);
+
+  it("uses verification commands discovered by the repository inspection", async () => {
+    vi.spyOn(api, "request").mockResolvedValue({
+      id: "proj-123",
+      name: "my-repo",
+      branch: "main",
+      head: "abcdef",
+      commandCandidates: [
+        {
+          id: "discovered-test",
+          label: "test",
+          executable: "cmd.exe",
+          args: ["/d", "/s", "/c", "npm.cmd run test"],
+          cwd: ".",
+          required: false,
+          timeoutMs: 300_000,
+        },
+      ],
+    });
+
+    render(
+      <AppStoreProvider>
+        <Onboarding bootstrap={mockBootstrap} api={api} />
+      </AppStoreProvider>,
+    );
+
+    fireEvent.change(screen.getByLabelText(/Repository Absolute Path/u), {
+      target: { value: "C:/my-repo" },
+    });
+    fireEvent.click(screen.getByText(/Verify Repository Path/u));
+    await screen.findByText(/Clean root/u);
+    fireEvent.click(screen.getByText("Next"));
+    fireEvent.click(screen.getByText("Next"));
+
+    expect(screen.getByText(/discovered-test: cmd\.exe.*npm\.cmd run test/u)).toBeDefined();
+    expect(screen.queryByText(/^typecheck: npm run typecheck$/u)).toBeNull();
   });
 });
