@@ -22,6 +22,16 @@ import { ContextSnapshotService } from "./context/snapshots.js";
 import { ConversationService } from "./conversations/service.js";
 import { registerConversationRoutes } from "./routes/conversations.js";
 import { registerDraftRoutes } from "./routes/drafts.js";
+import { join } from "node:path";
+import { mkdir, readFile } from "node:fs/promises";
+import { WorktreeService } from "./git/worktrees.js";
+import { AttemptRunner } from "./orchestrator/attempts.js";
+import { WorkerScheduler } from "./orchestrator/scheduler.js";
+import { QaRunner } from "./orchestrator/qa.js";
+import { OrchestratorEngine } from "./orchestrator/engine.js";
+import { registerRunRoutes } from "./routes/runs.js";
+import { registerStorageRoutes } from "./routes/storage.js";
+import { buildWorkerPrompt, buildConflictPrompt } from "./prompts/worker.js";
 
 export type AppDependencies = {
   config: ServerConfig;
@@ -138,6 +148,177 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
 
   // Register draft routes
   registerDraftRoutes(app, conversationService);
+
+  // ── Worktree and Orchestration Setup ──
+  const emptyHooksDir = join(dependencies.config.dataDir, "empty-hooks").replaceAll("\\", "/");
+  await mkdir(emptyHooksDir, { recursive: true }).catch(() => undefined);
+
+  const worktreeService = new WorktreeService(
+    gitClient,
+    repositoryService,
+    dependencies.config.worktreesDir,
+    emptyHooksDir,
+  );
+
+  const attemptRunner = new AttemptRunner(dependencies.providers, dependencies.runs, {
+    supervisor,
+    artifacts: dependencies.artifacts,
+    tempDir: dependencies.config.tempDir,
+    statusFor: (p) => dependencies.providers.statusFor(p),
+  });
+
+  const schedulerWorkerPort = {
+    async execute(input: any) {
+      const outcome = await attemptRunner.execute(
+        {
+          profile: input.profile,
+          requiredCapability: input.task.mode === "write" ? "worktreeWrite" : "readOnly",
+          request: {
+            runId: input.task.runId ?? null,
+            taskId: input.task.id,
+            conversationId: null,
+            contextSnapshotId: null,
+            role: "worker",
+            prompt: buildWorkerPrompt({
+              brief: input.task,
+              dependencySummaries: [],
+              projectRules: [],
+            }),
+            cwd: input.cwd,
+            timeoutMs: input.profile.timeoutMs,
+            readOnly: input.task.mode === "read_only",
+            outputContract: "worker_result",
+          },
+          repairPrompt: (err) => `Repair: ${err}`,
+        },
+        input.signal,
+      );
+      return outcome.execution.structuredOutput as any;
+    },
+    async resolveConflict(input: any) {
+      const outcome = await attemptRunner.execute(
+        {
+          profile: input.profile,
+          requiredCapability: "worktreeWrite",
+          request: {
+            runId: null,
+            taskId: null,
+            conversationId: null,
+            contextSnapshotId: null,
+            role: "worker",
+            prompt: buildConflictPrompt(input.conflictFiles),
+            cwd: input.cwd,
+            timeoutMs: input.profile.timeoutMs,
+            readOnly: false,
+            outputContract: "worker_result",
+          },
+          repairPrompt: (err) => `Repair: ${err}`,
+        },
+        input.signal,
+      );
+      return outcome.execution.structuredOutput as any;
+    },
+  };
+
+  const workerScheduler = new WorkerScheduler(
+    dependencies.runs,
+    worktreeService,
+    snapshotService,
+    schedulerWorkerPort,
+    dependencies.realtime,
+  );
+
+  const qaRunner = new QaRunner(
+    supervisor,
+    dependencies.artifacts,
+    attemptRunner,
+    dependencies.runs,
+    {
+      async requestRepair(input: any) {
+        const diagArtifact = dependencies.artifacts.getArtifact(input.diagnosisArtifactId);
+        if (!diagArtifact) throw new Error("Diagnosis artifact not found");
+        const diagPath = join(dependencies.artifacts.root, diagArtifact.relativePath);
+        const diagText = await readFile(diagPath, "utf8");
+
+        const workerProfile: any = {
+          id: "worker-1",
+          role: "worker",
+          label: "worker-1",
+          providerChain: [{ provider: "codex", model: null }],
+          timeoutMs: 60_000,
+          promptVersion: "v1",
+        };
+
+        const repairBrief = {
+          id: "repair-task",
+          title: "QA Repair",
+          objective: diagText,
+          mode: "write",
+          dependsOn: [],
+          contextArtifacts: [],
+          allowedPaths: input.allowedRepairPaths,
+          forbiddenPaths: [],
+          acceptanceCriteria: ["QA checks pass"],
+          verificationCommands: [],
+        };
+
+        const runRow = (dependencies.runs as any).db
+          .prepare("SELECT integration_worktree FROM runs LIMIT 1")
+          .get() as { integration_worktree: string } | undefined;
+        const cwd = runRow?.integration_worktree ?? "";
+
+        const outcome = await attemptRunner.execute(
+          {
+            profile: workerProfile,
+            requiredCapability: "worktreeWrite",
+            request: {
+              runId: null,
+              taskId: null,
+              conversationId: null,
+              contextSnapshotId: null,
+              role: "worker",
+              prompt: buildWorkerPrompt({
+                brief: repairBrief as any,
+                dependencySummaries: [],
+                projectRules: [],
+              }),
+              cwd,
+              timeoutMs: workerProfile.timeoutMs,
+              readOnly: false,
+              outputContract: "worker_result",
+            },
+            repairPrompt: (err) => `Repair: ${err}`,
+          },
+          new AbortController().signal,
+        );
+
+        const resultArtifact = await dependencies.artifacts.writeJson({
+          runId: null,
+          taskId: null,
+          kind: "worker-result",
+          value: outcome.execution.structuredOutput,
+        });
+
+        return { resultArtifactId: resultArtifact.id };
+      },
+    },
+  );
+
+  const orchestratorEngine = new OrchestratorEngine(
+    dependencies.runs,
+    dependencies.realtime,
+    dependencies.projects,
+    dependencies.conversations,
+    worktreeService,
+    snapshotService,
+    attemptRunner,
+    workerScheduler,
+    qaRunner,
+  );
+
+  // Register run and storage routes
+  registerRunRoutes(app, orchestratorEngine, dependencies.runs, dependencies.artifacts, dependencies.conversations);
+  registerStorageRoutes(app, dependencies.runs, dependencies.artifacts, worktreeService, dependencies.projects);
 
   // WebSocket Route
   app.get(

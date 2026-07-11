@@ -163,4 +163,30 @@ export class ArtifactStore {
       );
     return record;
   }
+
+  getArtifact(id: string): ArtifactRecord | null {
+    const row = this.db
+      .prepare(
+        "SELECT id, run_id as runId, task_id as taskId, kind, relative_path as relativePath, sha256, size_bytes as sizeBytes, created_at as createdAt FROM artifacts WHERE id = ?",
+      )
+      .get(id) as any;
+    return row ?? null;
+  }
+
+  getArtifactByKind(runId: string, kind: string): ArtifactRecord | null {
+    const row = this.db
+      .prepare(
+        "SELECT id, run_id as runId, task_id as taskId, kind, relative_path as relativePath, sha256, size_bytes as sizeBytes, created_at as createdAt FROM artifacts WHERE run_id = ? AND kind = ? LIMIT 1",
+      )
+      .get(runId, kind) as any;
+    return row ?? null;
+  }
+
+  listArtifacts(runId: string): ArtifactRecord[] {
+    return this.db
+      .prepare(
+        "SELECT id, run_id as runId, task_id as taskId, kind, relative_path as relativePath, sha256, size_bytes as sizeBytes, created_at as createdAt FROM artifacts WHERE run_id = ?",
+      )
+      .all(runId) as any[];
+  }
 }

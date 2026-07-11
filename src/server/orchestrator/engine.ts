@@ -549,6 +549,13 @@ export class OrchestratorEngine {
       signal,
     );
 
+    await this.attempts["runtime"].artifacts.writeJson({
+      runId,
+      taskId: null,
+      kind: "qa-report",
+      value: qaReport,
+    });
+
     if (!qaReport.passed) {
       this.transitionRun(runId, "blocked", "qa_failed");
       return;
