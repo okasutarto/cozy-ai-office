@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { completeSetup } from "./helpers/setup";
 
 async function resetTestServer(baseURL: string) {
   const res = await fetch(`${baseURL}/__test/reset`, { method: "POST" });
@@ -33,13 +34,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     // 1. Initial State: Onboard to main office dashboard
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
-    await page.fill('input[type="text"]', projectPath);
-    await page.click('button:has-text("Verify Repository Path")');
-    await expect(page.locator("text=Clean root")).toBeVisible();
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Complete Onboarding")');
+    await completeSetup(page, projectPath);
 
     const wrapper = page.locator(".office-scene-wrapper");
     await expect(wrapper).toBeVisible();
@@ -53,7 +48,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
 
     // 2. Planning State
     await page.fill(
-      'textarea[placeholder*="Type a message..."]',
+      'textarea[aria-label="Composer input"]',
       "Implement greeting, farewell, and punctuation constants",
     );
     await page.click('button:has-text("Send")');
@@ -111,7 +106,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
 
     // 6. Ready State
     await releaseBarrier(baseURL!, "reviewing-delivery");
-    await expect(page.getByText("READY_TO_APPLY", { exact: true })).toBeVisible();
+    await expect(page.getByText(/ready to apply/i).first()).toBeVisible();
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({
@@ -136,16 +131,10 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
 
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
-    await page.fill('input[type="text"]', projectPath);
-    await page.click('button:has-text("Verify Repository Path")');
-    await expect(page.locator("text=Clean root")).toBeVisible();
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Complete Onboarding")');
+    await completeSetup(page, projectPath);
 
     await page.fill(
-      'textarea[placeholder*="Type a message..."]',
+      'textarea[aria-label="Composer input"]',
       "Implement greeting, farewell, and punctuation constants",
     );
     await page.click('button:has-text("Send")');
@@ -185,16 +174,10 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
 
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
-    await page.fill('input[type="text"]', projectPath);
-    await page.click('button:has-text("Verify Repository Path")');
-    await expect(page.locator("text=Clean root")).toBeVisible();
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Complete Onboarding")');
+    await completeSetup(page, projectPath);
 
     await page.fill(
-      'textarea[placeholder*="Type a message..."]',
+      'textarea[aria-label="Composer input"]',
       "Implement greeting, farewell, and punctuation constants",
     );
     await page.click('button:has-text("Send")');
@@ -226,13 +209,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
   test("runs without snapshots in reduced motion mode", async ({ page, baseURL }) => {
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
-    await page.fill('input[type="text"]', projectPath);
-    await page.click('button:has-text("Verify Repository Path")');
-    await expect(page.locator("text=Clean root")).toBeVisible();
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Complete Onboarding")');
+    await completeSetup(page, projectPath);
 
     // Toggle reduce-motion locally or verify state transitions instantly
     const wrapper = page.locator(".office-scene-wrapper");

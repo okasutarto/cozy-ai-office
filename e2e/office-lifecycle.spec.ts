@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { completeSetup } from "./helpers/setup";
 
 async function resetTestServer(baseURL: string) {
   const res = await fetch(`${baseURL}/__test/reset`, { method: "POST" });
@@ -31,13 +32,7 @@ test.describe("Cozy Agent Office Canvas Lifecycle & PixiJS 8 Integrity", () => {
     // Navigate and complete onboarding to enter the office stage where canvas resides
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
-    await page.fill('input[type="text"]', projectPath);
-    await page.click('button:has-text("Verify Repository Path")');
-    await expect(page.locator("text=Clean root")).toBeVisible();
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Complete Onboarding")');
+    await completeSetup(page, projectPath);
 
     // Wait for the office canvas container to be ready
     const container = page.locator(".office-canvas-container");
@@ -61,13 +56,7 @@ test.describe("Cozy Agent Office Canvas Lifecycle & PixiJS 8 Integrity", () => {
     // Navigate and complete onboarding
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
-    await page.fill('input[type="text"]', projectPath);
-    await page.click('button:has-text("Verify Repository Path")');
-    await expect(page.locator("text=Clean root")).toBeVisible();
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Complete Onboarding")');
+    await completeSetup(page, projectPath);
 
     // Wait for canvas
     const container = page.locator(".office-canvas-container");
@@ -98,13 +87,7 @@ test.describe("Cozy Agent Office Canvas Lifecycle & PixiJS 8 Integrity", () => {
 
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
-    await page.fill('input[type="text"]', projectPath);
-    await page.click('button:has-text("Verify Repository Path")');
-    await expect(page.locator("text=Clean root")).toBeVisible();
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Complete Onboarding")');
+    await completeSetup(page, projectPath);
 
     // Immediately trigger reload (unmount) before assets delay completes
     await page.reload();

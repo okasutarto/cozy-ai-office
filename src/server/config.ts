@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -35,6 +36,11 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): Server
   if (!Number.isInteger(port) || port < 0 || port > 65_535) throw new Error("Invalid COZY_PORT");
   const dataDir = resolve(environment.COZY_DATA_DIR ?? defaultDataDir());
   const publicOrigin = environment.COZY_PUBLIC_ORIGIN ?? "";
+  // TypeScript emits the server below dist/server/server while Vite emits the
+  // browser bundle below dist/web. During source development the UI lives in
+  // src/web, so resolve both layouts without requiring a post-build copy.
+  const compiledWebRoot = fileURLToPath(new URL("../../web", import.meta.url));
+  const sourceWebRoot = fileURLToPath(new URL("../web", import.meta.url));
   return {
     dev,
     host: "127.0.0.1",
@@ -47,7 +53,7 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): Server
     worktreesDir: join(dataDir, "worktrees"),
     contextsDir: join(dataDir, "contexts"),
     tempDir: join(dataDir, "tmp"),
-    webRoot: fileURLToPath(new URL("../web", import.meta.url)),
+    webRoot: existsSync(compiledWebRoot) ? compiledWebRoot : sourceWebRoot,
     websocketAuthTimeoutMs: 2_000,
   };
 }

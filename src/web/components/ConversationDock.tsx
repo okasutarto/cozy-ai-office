@@ -1,17 +1,20 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import type { AttemptView, ConversationRecord, MessageRecord } from "../../shared/api.js";
 import type {
-  RunSnapshot,
-  RoleProfile,
   ProviderStatus,
+  RoleProfile,
+  RunEvent,
+  RunSnapshot,
   ProfileId,
   TaskDraftVersion,
 } from "../../shared/contracts.js";
 import { ApiClient } from "../api.js";
-import type { ConversationRecord, MessageRecord } from "../../shared/api.js";
-import { useAppState, useAppDispatch } from "../store.js";
+import { useAppDispatch, useAppState } from "../store.js";
 import { DraftEditor } from "./DraftEditor.js";
+import { RoleSettings } from "./RoleSettings.js";
 import { Timeline } from "./Timeline.js";
-import type { RunEvent } from "../../shared/contracts.js";
+
+type DockTab = "discussion" | "draft" | "metrics" | "roles" | "execution" | "warnings";
 
 type ConversationDockProps = {
   projectId: string;
@@ -21,9 +24,29 @@ type ConversationDockProps = {
   providerStatuses: ProviderStatus[];
   contextSnapshotId: string;
   onDraftCreated(draft: TaskDraftVersion): void;
-  onRequestStart(draft: TaskDraftVersion): void;
+  onRequestStart?(draft: TaskDraftVersion): void;
   timelineEvents: RunEvent[];
+  attempts?: AttemptView[];
 };
+
+const TAB_LABELS: Array<{ id: DockTab; label: string }> = [
+  { id: "discussion", label: "Discussion" },
+  { id: "draft", label: "Draft Task" },
+  { id: "metrics", label: "Run Metrics" },
+  { id: "roles", label: "Swarm Roles Manager" },
+  { id: "execution", label: "Execution" },
+  { id: "warnings", label: "Warnings & Logs" },
+];
+
+function eventIsWarning(event: RunEvent): boolean {
+  return /fail|block|conflict|error|warn|reject|cancel/i.test(event.kind);
+}
+
+function formatDuration(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  if (value < 1000) return `${Math.round(value)} ms`;
+  return `${(value / 1000).toFixed(1)} s`;
+}
 
 export const ConversationDock: React.FC<ConversationDockProps> = ({
   projectId,
@@ -33,35 +56,36 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
   providerStatuses,
   contextSnapshotId,
   onDraftCreated,
-  onRequestStart,
-  timelineEvents,
+  onRequestStart = () => {},
+  timelineEvents = [],
+  attempts = [],
 }) => {
   const state = useAppState();
   const dispatch = useAppDispatch();
-  const api = new ApiClient(sessionStorage.getItem("cozy-session") || "");
-  const [tab, setTab] = useState<"discussion" | "draft" | "execution">("discussion");
-
+  const api = useMemo(() => new ApiClient(sessionStorage.getItem("cozy-session") || ""), []);
+  const [tab, setTab] = useState<DockTab>("discussion");
   const [conversations, setConversations] = useState<ConversationRecord[]>([]);
-  const [activeConv, setActiveConv] = useState<ConversationRecord | null>(null);
+  const [activeConversation, setActiveConversation] = useState<ConversationRecord | null>(null);
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [inputText, setInputText] = useState("");
   const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
   const [advisorConfirmed, setAdvisorConfirmed] = useState(false);
-  const [commands, setCommands] = useState<any[]>([]);
+  const [commands, setCommands] = useState<unknown[]>([]);
+  const [editableProfiles, setEditableProfiles] = useState(roleProfiles);
+  const [rolesSaving, setRolesSaving] = useState(false);
+  const [rolesNotice, setRolesNotice] = useState<string | null>(null);
+  const messageLogRef = useRef<HTMLOListElement>(null);
+
+  useEffect(() => setEditableProfiles(roleProfiles), [roleProfiles]);
 
   useEffect(() => {
     if (!projectId) return;
     api
       .request<any>(`/api/projects/${projectId}/onboarding`)
-      .then((data) => {
-        setCommands(data.commands || []);
-      })
-      .catch(() => {});
-  }, [projectId]);
+      .then((data) => setCommands(data.commands || []))
+      .catch(() => setCommands([]));
+  }, [api, projectId]);
 
-  const olRef = useRef<HTMLOListElement>(null);
-
-  // 1. Fetch conversations for the project
   useEffect(() => {
     if (!projectId || !contextSnapshotId) return;
     let active = true;
@@ -70,384 +94,349 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
       .then((data) => {
         if (!active) return;
         setConversations(data);
-
-        // Find conversation with selectedActorId
-        const found = data.find((c) => c.profileId === selectedActorId);
+        const found = data.find((conversation) => conversation.profileId === selectedActorId);
         if (found) {
-          setActiveConv(found);
-        } else {
-          // Create new conversation
-          api
-            .createConversation(projectId, {
-              role:
-                selectedActorId === "manager"
-                  ? "manager"
-                  : selectedActorId === "advisor"
-                    ? "advisor"
-                    : "worker",
-              profileId: selectedActorId,
-              contextSnapshotId,
-              runId: activeRun?.id || null,
-            })
-            .then((newC) => {
-              if (active) {
-                setConversations((prev) => [...prev, newC]);
-                setActiveConv(newC);
-              }
-            });
+          setActiveConversation(found);
+          return;
         }
+        const role =
+          selectedActorId === "manager" || selectedActorId === "advisor" || selectedActorId === "qa"
+            ? selectedActorId
+            : "worker";
+        return api
+          .createConversation(projectId, {
+            role,
+            profileId: selectedActorId,
+            contextSnapshotId,
+            runId: activeRun?.id || null,
+          })
+          .then((conversation) => {
+            if (!active) return;
+            setConversations((current) => [...current, conversation]);
+            setActiveConversation(conversation);
+          });
       })
-      .catch(() => {});
-
+      .catch(() => undefined);
     return () => {
       active = false;
     };
-  }, [projectId, selectedActorId, contextSnapshotId, activeRun?.id]);
+  }, [activeRun?.id, api, contextSnapshotId, projectId, selectedActorId]);
 
-  // 2. Fetch messages when active conversation changes
   useEffect(() => {
-    if (!activeConv) return;
+    if (!activeConversation) return;
     let active = true;
     api
-      .listMessages(activeConv.id)
+      .listMessages(activeConversation.id)
       .then((data) => {
         if (active) setMessages(data);
       })
-      .catch(() => {});
-
+      .catch(() => setMessages([]));
     return () => {
       active = false;
     };
-  }, [activeConv?.id]);
+  }, [activeConversation?.id, api]);
 
-  // Scroll to bottom of message list
   useEffect(() => {
-    if (olRef.current) {
-      olRef.current.scrollTop = olRef.current.scrollHeight;
-    }
+    if (messageLogRef.current) messageLogRef.current.scrollTop = messageLogRef.current.scrollHeight;
   }, [messages]);
 
-  const activeProfile = roleProfiles.find((p) => p.id === selectedActorId);
-  const providerStatus = providerStatuses.find(
-    (p) => p.provider === activeProfile?.providerChain[0]?.provider,
+  const activeProfile = roleProfiles.find((profile) => profile.id === selectedActorId);
+  const primaryProvider = providerStatuses.find(
+    (provider) => provider.provider === activeProfile?.providerChain[0]?.provider,
   );
-
-  const isAntigravityOnly =
+  const antigravityOnly =
     activeProfile?.providerChain[0]?.provider === "antigravity" &&
-    providerStatus?.capabilities.readOnly === false;
-
+    primaryProvider?.capabilities.readOnly === false;
   const isAdvisor = selectedActorId === "advisor";
+  const warningEvents = timelineEvents.filter(eventIsWarning);
+  const completedAttempts = attempts.filter((attempt) => attempt.status === "succeeded");
+  const totalDuration = attempts.reduce((sum, attempt) => sum + (attempt.durationMs ?? 0), 0);
 
-  const handleSend = async () => {
-    if (!activeConv || !inputText) return;
-    if (isAdvisor && !advisorConfirmed) {
-      alert("Please confirm the premium turn usage warning before sending.");
-      return;
-    }
-
+  const sendMessage = async () => {
+    if (!activeConversation || !inputText.trim() || antigravityOnly) return;
+    if (isAdvisor && !advisorConfirmed) return;
     try {
-      const msg = await api.sendMessage(activeConv.id, {
-        body: inputText,
+      const message = await api.sendMessage(activeConversation.id, {
+        body: inputText.trim(),
         selectedMessageIds: [],
         selectedArtifactIds: [],
+        additionalUsageConfirmed: advisorConfirmed,
       });
-      setMessages((prev) => [...prev, msg]);
+      setMessages((current) => [...current, message]);
       setInputText("");
-    } catch (err: any) {
-      alert(`Error sending message: ${err.message || err}`);
+    } catch {
+      // The server response is surfaced by the next timeline event; keep the draft text intact.
     }
   };
 
-  const handleForwardToManager = async () => {
-    if (selectedMessageIds.length === 0) return;
+  const forwardToManager = async () => {
+    if (!activeConversation || selectedMessageIds.length === 0) return;
     try {
-      const draft = await api.forwardToManager(activeConv!.id, selectedMessageIds);
+      const draft = await api.forwardToManager(activeConversation.id, selectedMessageIds);
       onDraftCreated(draft);
       setTab("draft");
-    } catch (err: any) {
-      alert(`Forward failed: ${err.message || err}`);
+    } catch {
+      // Keep selected context available so the owner can retry.
     }
   };
 
-  const toggleSelectMessage = (id: string) => {
-    setSelectedMessageIds((prev) =>
-      prev.includes(id) ? prev.filter((mid) => mid !== id) : [...prev, id],
+  const saveRoles = async () => {
+    if (!projectId || editableProfiles.length !== 7) return;
+    setRolesSaving(true);
+    setRolesNotice(null);
+    try {
+      await api.request(`/api/projects/${projectId}/roles`, {
+        method: "PUT",
+        body: JSON.stringify({ profiles: editableProfiles }),
+      });
+      setRolesNotice("Role mapping saved. It applies to the next run.");
+      dispatch({ type: "bootstrapped", value: await api.bootstrap() });
+    } catch (error) {
+      setRolesNotice(error instanceof Error ? error.message : "Role mapping could not be saved.");
+    } finally {
+      setRolesSaving(false);
+    }
+  };
+
+  const renderDiscussion = () => (
+    <div className="dock-content discussion-panel">
+      <div className="dock-subheader">
+        <div>
+          <strong>{activeProfile?.label ?? selectedActorId}</strong>
+          <span> · {activeProfile?.providerChain[0]?.provider ?? "no provider"}</span>
+        </div>
+        <span className="status-chip success">Read-only consultation</span>
+      </div>
+      <ol ref={messageLogRef} className="message-log" aria-label="Message log">
+        {messages.length === 0 ? (
+          <li className="empty-state">
+            No messages yet. Start a consultation or select a different role.
+          </li>
+        ) : (
+          messages.map((message) => {
+            const selected = selectedMessageIds.includes(message.id);
+            return (
+              <li className={`message-card ${selected ? "selected" : ""}`} key={message.id}>
+                <input
+                  aria-label={`Select message from ${message.sender}`}
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() =>
+                    setSelectedMessageIds((current) =>
+                      selected
+                        ? current.filter((id) => id !== message.id)
+                        : [...current, message.id],
+                    )
+                  }
+                />
+                <div>
+                  <span className="eyebrow">{message.sender}</span>
+                  <p>{message.body}</p>
+                </div>
+              </li>
+            );
+          })
+        )}
+      </ol>
+      {isAdvisor && (
+        <label className="dock-warning-check">
+          <input
+            type="checkbox"
+            checked={advisorConfirmed}
+            onChange={(event) => setAdvisorConfirmed(event.target.checked)}
+          />
+          Confirm premium token usage warning for Advisor turn.
+        </label>
+      )}
+      {antigravityOnly && (
+        <p className="inline-message error">
+          Worker lacks read-only capability. Select a provider fallback chain supporting readOnly to
+          enable chat.
+        </p>
+      )}
+      <div className="composer">
+        <textarea
+          aria-label="Composer input"
+          value={inputText}
+          disabled={antigravityOnly || !activeConversation}
+          onChange={(event) => setInputText(event.target.value.slice(0, 40_000))}
+          placeholder={antigravityOnly ? "Chat disabled" : "Type a message…"}
+        />
+        <div className="composer-actions">
+          <button
+            type="button"
+            className="cozy-button"
+            disabled={!inputText.trim() || !activeConversation || antigravityOnly}
+            onClick={() => void sendMessage()}
+          >
+            Send
+          </button>
+          <button
+            type="button"
+            className="cozy-button primary"
+            disabled={!activeConversation || selectedMessageIds.length === 0}
+            onClick={() => void forwardToManager()}
+          >
+            Send to Manager
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMetrics = () => (
+    <div className="dock-content metrics-panel">
+      <div className="metrics-grid">
+        <div className="metric-card">
+          <span className="eyebrow">Tasks</span>
+          <strong>{activeRun?.tasks.length ?? 0}</strong>
+          <small>current run</small>
+        </div>
+        <div className="metric-card">
+          <span className="eyebrow">Attempts</span>
+          <strong>{attempts.length}</strong>
+          <small>{completedAttempts.length} completed</small>
+        </div>
+        <div className="metric-card">
+          <span className="eyebrow">Duration</span>
+          <strong>{formatDuration(totalDuration)}</strong>
+          <small>persisted attempts</small>
+        </div>
+        <div className="metric-card">
+          <span className="eyebrow">Events</span>
+          <strong>{timelineEvents.length}</strong>
+          <small>{warningEvents.length} warnings</small>
+        </div>
+      </div>
+      <div className="metrics-table">
+        {attempts.length === 0 ? (
+          <div className="empty-state">
+            No provider attempts recorded yet. Token and cost metrics are not exposed by the current
+            provider contracts.
+          </div>
+        ) : (
+          attempts.map((attempt) => (
+            <div className="metrics-row" key={attempt.id}>
+              <span>{attempt.profileId}</span>
+              <span>
+                {attempt.provider}/{attempt.model ?? "default"}
+              </span>
+              <span>{attempt.status}</span>
+              <span>{formatDuration(attempt.durationMs ?? NaN)}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
+  const renderRoles = () => (
+    <div className="dock-content roles-panel">
+      {rolesNotice && (
+        <p className={`inline-message ${rolesNotice.includes("saved") ? "success" : "error"}`}>
+          {rolesNotice}
+        </p>
+      )}
+      <RoleSettings
+        profiles={editableProfiles}
+        providers={providerStatuses}
+        onChange={setEditableProfiles}
+      />
+      <div className="dock-panel-actions">
+        <button
+          type="button"
+          className="cozy-button primary"
+          disabled={rolesSaving || editableProfiles.length !== 7}
+          onClick={() => void saveRoles()}
+        >
+          {rolesSaving ? "Saving…" : "Save Role Mapping"}
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderWarnings = () => (
+    <div className="dock-content warnings-panel">
+      <div className="dock-subheader">
+        <span>Warnings & Logs</span>
+        <span className="micro-chip danger">{warningEvents.length} attention</span>
+      </div>
+      {warningEvents.length === 0 ? (
+        <div className="empty-state">No failed, blocked, conflict, or warning events.</div>
+      ) : (
+        warningEvents.map((event) => (
+          <article className="log-row warning" key={event.sequence}>
+            <span className="eyebrow">
+              #{event.sequence} · {event.createdAt}
+            </span>
+            <strong>{event.kind}</strong>
+            <code>{JSON.stringify(event.payload)}</code>
+          </article>
+        ))
+      )}
+    </div>
+  );
+
+  const renderPanel = () => {
+    if (tab === "discussion") return renderDiscussion();
+    if (tab === "metrics") return renderMetrics();
+    if (tab === "roles") return renderRoles();
+    if (tab === "warnings") return renderWarnings();
+    if (tab === "execution")
+      return (
+        <div className="dock-content">
+          <Timeline events={timelineEvents} />
+        </div>
+      );
+    return state.draft ? (
+      <div className="dock-content">
+        <DraftEditor
+          draft={state.draft}
+          activeRun={activeRun}
+          canStart={
+            !activeRun &&
+            Boolean(
+              projectId &&
+              contextSnapshotId &&
+              commands.length &&
+              providerStatuses.some((provider) => provider.authenticated),
+            )
+          }
+          blockingReasons={[]}
+          onSaved={(draft) => dispatch({ type: "draft_loaded", value: draft })}
+          onRequestStart={onRequestStart}
+        />
+      </div>
+    ) : (
+      <div className="empty-state">
+        No draft loaded. Select messages in Discussion and send them to Manager.
+      </div>
     );
   };
 
   return (
-    <div
-      className="conversation-dock"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        color: "var(--parchment-100)",
-      }}
-    >
-      {/* Tabs */}
-      <div
-        style={{
-          display: "flex",
-          background: "var(--ink-950)",
-          borderBottom: "var(--pixel-border)",
-        }}
-      >
-        {(["discussion", "draft", "execution"] as const).map((t) => (
+    <section className="conversation-dock" aria-label="Control room dock">
+      <div className="dock-tabbar" role="tablist" aria-label="Workspace dock tabs">
+        {TAB_LABELS.map((item) => (
           <button
-            key={t}
+            key={item.id}
             type="button"
-            onClick={() => setTab(t)}
-            style={{
-              padding: "8px 16px",
-              background: tab === t ? "var(--ink-800)" : "transparent",
-              color: tab === t ? "var(--focus)" : "var(--parchment-300)",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: "bold",
-              textTransform: "capitalize",
-            }}
+            role="tab"
+            aria-selected={tab === item.id}
+            className={`dock-tab ${tab === item.id ? "active" : ""}`}
+            onClick={() => setTab(item.id)}
           >
-            {t === "discussion" ? "Discussion" : t === "draft" ? "Draft Task" : "Execution"}
+            {item.label}
+            {item.id === "warnings" && warningEvents.length > 0 && (
+              <span className="tab-badge">{warningEvents.length}</span>
+            )}
+            {item.id === "roles" && <span className="tab-badge">{editableProfiles.length}</span>}
           </button>
         ))}
       </div>
-
-      {tab === "discussion" && (
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
-          {/* Header */}
-          <div
-            style={{
-              padding: "8px 12px",
-              background: "var(--ink-800)",
-              borderBottom: "var(--pixel-border)",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <div>
-              <strong>{activeProfile?.label || selectedActorId}</strong>{" "}
-              <span style={{ fontSize: "11px", color: "var(--parchment-300)" }}>
-                ({activeProfile?.providerChain[0]?.provider || "no provider"})
-              </span>
-            </div>
-            <div style={{ color: "var(--gold-400)", fontSize: "12px", fontWeight: "bold" }}>
-              Read-only consultation
-            </div>
-          </div>
-
-          {/* Messages */}
-          <ol
-            ref={olRef}
-            aria-label="Message log"
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "12px",
-              margin: 0,
-              listStyle: "none",
-              display: "grid",
-              gap: "8px",
-            }}
-          >
-            {messages.map((msg) => {
-              const isSelected = selectedMessageIds.includes(msg.id);
-              return (
-                <li
-                  key={msg.id}
-                  style={{
-                    background: "var(--ink-950)",
-                    border: isSelected ? "1px solid var(--focus)" : "1px solid transparent",
-                    padding: "8px",
-                    borderRadius: "2px",
-                    display: "flex",
-                    gap: "10px",
-                  }}
-                >
-                  <input
-                    aria-label={`Select message from ${msg.sender}`}
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleSelectMessage(msg.id)}
-                  />
-                  <div>
-                    <div style={{ fontSize: "11px", color: "var(--gold-400)" }}>
-                      <strong>{msg.sender}</strong>
-                    </div>
-                    <div style={{ fontSize: "13px", marginTop: "4px" }}>{msg.body}</div>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-
-          {/* Context chips */}
-          {selectedMessageIds.length > 0 && (
-            <div
-              style={{
-                padding: "6px 12px",
-                background: "var(--ink-950)",
-                borderTop: "var(--pixel-border)",
-                display: "flex",
-                gap: "6px",
-                flexWrap: "wrap",
-              }}
-            >
-              {selectedMessageIds.map((id) => (
-                <span
-                  key={id}
-                  style={{
-                    background: "var(--ink-800)",
-                    border: "1px solid var(--parchment-300)",
-                    fontSize: "11px",
-                    padding: "2px 6px",
-                  }}
-                >
-                  Msg: {id.substring(0, 8)}...
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Composer */}
-          <div
-            style={{
-              padding: "8px 12px",
-              background: "var(--ink-800)",
-              borderTop: "var(--pixel-border)",
-              display: "grid",
-              gap: "8px",
-            }}
-          >
-            {isAdvisor && (
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px" }}>
-                <input
-                  id="advisor-confirm"
-                  type="checkbox"
-                  checked={advisorConfirmed}
-                  onChange={(e) => setAdvisorConfirmed(e.target.checked)}
-                />
-                <label htmlFor="advisor-confirm" style={{ color: "var(--danger-500)" }}>
-                  Confirm premium token usage warning for Advisor turn.
-                </label>
-              </div>
-            )}
-
-            {isAntigravityOnly && (
-              <div style={{ color: "var(--danger-500)", fontSize: "12px" }}>
-                Worker lacks read-only capability. Select a provider fallback chain supporting
-                readOnly to enable chat.
-              </div>
-            )}
-
-            <div style={{ display: "flex", gap: "10px" }}>
-              <textarea
-                aria-label="Composer input"
-                value={inputText}
-                disabled={isAntigravityOnly || !activeConv}
-                onChange={(e) => setInputText(e.target.value.substring(0, 40000))}
-                placeholder={
-                  isAntigravityOnly
-                    ? "Chat disabled"
-                    : !activeConv
-                      ? "Initializing chat..."
-                      : "Type a message..."
-                }
-                style={{
-                  flex: 1,
-                  background: "var(--ink-950)",
-                  color: "white",
-                  border: "1px solid var(--parchment-300)",
-                  padding: "8px",
-                  resize: "none",
-                  height: "54px",
-                }}
-              />
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <button
-                  type="button"
-                  disabled={isAntigravityOnly || !inputText || !activeConv}
-                  onClick={handleSend}
-                  style={{
-                    background: "var(--teal-600)",
-                    color: "white",
-                    border: "none",
-                    padding: "8px 16px",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                  }}
-                >
-                  Send
-                </button>
-                <button
-                  type="button"
-                  disabled={selectedMessageIds.length === 0 || !activeConv}
-                  onClick={handleForwardToManager}
-                  style={{
-                    background: "var(--gold-400)",
-                    color: "var(--ink-950)",
-                    border: "none",
-                    padding: "8px 12px",
-                    cursor: "pointer",
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Send to Manager
-                </button>
-              </div>
-            </div>
-            <div style={{ fontSize: "11px", color: "var(--parchment-300)", textAlign: "right" }}>
-              {inputText.length} / 40,000 characters
-            </div>
-          </div>
-        </div>
-      )}
-
-      {tab === "draft" &&
-        (state.draft ? (
-          <DraftEditor
-            draft={state.draft}
-            activeRun={activeRun}
-            canStart={(() => {
-              const blocking: string[] = [];
-              if (!projectId) blocking.push("Project must be selected");
-              if (!contextSnapshotId) blocking.push("Context snapshot must be valid");
-              const hasAuth = providerStatuses.some((p) => p.authenticated);
-              if (!hasAuth) blocking.push("At least one provider must be authenticated");
-              if (commands.length === 0) {
-                blocking.push("Verification commands must be configured");
-              }
-              return blocking.length === 0 && !activeRun;
-            })()}
-            blockingReasons={(() => {
-              const blocking: string[] = [];
-              if (!projectId) blocking.push("Project must be selected");
-              if (!contextSnapshotId) blocking.push("Context snapshot must be valid");
-              const hasAuth = providerStatuses.some((p) => p.authenticated);
-              if (!hasAuth) blocking.push("At least one provider must be authenticated");
-              if (commands.length === 0) {
-                blocking.push("Verification commands must be configured");
-              }
-              return blocking;
-            })()}
-            onSaved={(updated) => dispatch({ type: "draft_loaded", value: updated })}
-            onRequestStart={onRequestStart}
-          />
-        ) : (
-          <div style={{ padding: "16px", textAlign: "center", color: "var(--parchment-300)" }}>
-            No draft loaded. Select messages in Discussion and click "Send to Manager" to draft a
-            task.
-          </div>
-        ))}
-
-      {tab === "execution" && (
-        <div style={{ flex: 1, overflowY: "auto" }}>
-          <Timeline events={timelineEvents} />
-        </div>
-      )}
-    </div>
+      <div className="dock-tabpanel" role="tabpanel">
+        {renderPanel()}
+      </div>
+    </section>
   );
 };

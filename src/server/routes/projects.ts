@@ -1,26 +1,24 @@
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
 import { lstat, open } from "node:fs/promises";
 import { join } from "node:path";
 import { constants } from "node:fs";
 import {
   SelectProjectRequestSchema,
+  SelectProjectResponseSchema,
+  ProviderStatusListResponseSchema,
+  VerifyAntigravityLoginRequestSchema,
+  UpdateCommandsRequestSchema,
   UpdateRoleProfilesRequestSchema,
   CreateContextSnapshotRequestSchema,
+  ContextCandidatesResponseSchema,
+  ProjectOnboardingResponseSchema,
+  CompleteProjectSetupRequestSchema,
+  CompleteProjectSetupResponseSchema,
 } from "../../shared/api.js";
-import { CommandSpecSchema, ProviderStatusSchema } from "../../shared/contracts.js";
+import { ProviderStatusSchema } from "../../shared/contracts.js";
 import type { ProjectService } from "../projects/service.js";
 import { ContextSnapshotService, MAX_CONTEXT_FILE_BYTES } from "../context/snapshots.js";
 import { AppError, errorMessage } from "../errors.js";
-
-const UpdateCommandsRequestSchema = z.object({
-  commands: z.array(CommandSpecSchema),
-});
-
-const VerifyAntigravityLoginSchema = z.object({
-  model: z.string().nullable(),
-  confirmation: z.literal("USE SUBSCRIPTION TURN"),
-});
 
 function isCredentialShaped(path: string): boolean {
   const name = path.replaceAll("\\", "/").split("/").at(-1)?.toLowerCase() ?? "";
@@ -44,27 +42,35 @@ export function registerProjectRoutes(
   const selectHandler = async (request: any, reply: any) => {
     const body = SelectProjectRequestSchema.parse(request.body);
     const result = await projectService.selectProject(body.rootPath, new AbortController().signal);
-    return reply.send(result);
+    return reply.send(SelectProjectResponseSchema.parse(result));
   };
   app.post("/api/projects/select", selectHandler);
   app.post("/api/projects", selectHandler);
 
   // 2. POST /api/projects/:projectId/providers/probe
   app.post("/api/projects/:projectId/providers/probe", async (request, reply) => {
-    const result = await projectService.probeProviders(new AbortController().signal);
-    return reply.send(result);
+    const { projectId } = request.params as { projectId: string };
+    if (!projectService.store.getProject(projectId)) {
+      throw new AppError("project_not_found", "Project not found", 404);
+    }
+    const result = await projectService.probeProviders(projectId, new AbortController().signal);
+    return reply.send(ProviderStatusListResponseSchema.parse(result));
   });
 
   // 3. POST /api/projects/:projectId/providers/antigravity/verify-login
   app.post(
     "/api/projects/:projectId/providers/antigravity/verify-login",
     async (request, reply) => {
-      const body = VerifyAntigravityLoginSchema.parse(request.body);
+      const { projectId } = request.params as { projectId: string };
+      if (!projectService.store.getProject(projectId)) {
+        throw new AppError("project_not_found", "Project not found", 404);
+      }
+      const body = VerifyAntigravityLoginRequestSchema.parse(request.body);
       const result = await projectService.verifyAntigravityLogin(
         body.model,
         new AbortController().signal,
       );
-      return reply.send(result);
+      return reply.send(ProviderStatusSchema.parse(result));
     },
   );
 
@@ -78,12 +84,14 @@ export function registerProjectRoutes(
     const commands = projectService.store.listCommands(projectId);
     const roles = projectService.store.listRoleProfiles(projectId);
     const contextSnapshotId = projectService.store.getLatestContextSnapshot(projectId)?.id ?? null;
-    return reply.send({
-      project,
-      commands,
-      roles,
-      contextSnapshotId,
-    });
+    return reply.send(
+      ProjectOnboardingResponseSchema.parse({
+        project,
+        commands,
+        roles,
+        contextSnapshotId,
+      }),
+    );
   });
 
   // 5. PUT /api/projects/:projectId/commands
@@ -218,7 +226,7 @@ export function registerProjectRoutes(
       }
     }
 
-    return reply.send({ candidates, excluded });
+    return reply.send(ContextCandidatesResponseSchema.parse({ candidates, excluded }));
   });
 
   // 8. POST /api/projects/:projectId/context-snapshots
@@ -233,7 +241,15 @@ export function registerProjectRoutes(
     return reply.send(snapshot);
   });
 
-  // 9. GET /api/context-snapshots/:snapshotId
+  // 9. POST /api/projects/:projectId/setup/complete
+  app.post("/api/projects/:projectId/setup/complete", async (request, reply) => {
+    const { projectId } = request.params as { projectId: string };
+    CompleteProjectSetupRequestSchema.parse(request.body);
+    const result = await projectService.completeSetup(projectId, new AbortController().signal);
+    return reply.send(CompleteProjectSetupResponseSchema.parse(result));
+  });
+
+  // 10. GET /api/context-snapshots/:snapshotId
   app.get("/api/context-snapshots/:snapshotId", async (request, reply) => {
     const { snapshotId } = request.params as { snapshotId: string };
     const snapshot = snapshotService.get(snapshotId);

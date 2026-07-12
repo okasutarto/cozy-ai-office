@@ -14,15 +14,24 @@ export type ProjectRecord = {
   id: string;
   name: string;
   rootPath: string;
+  setupComplete: boolean;
   createdAt: string;
   updatedAt: string;
 };
+
+type ProjectRow = Omit<ProjectRecord, "setupComplete"> & { setupComplete: number };
+
+function mapProject(row: ProjectRow | undefined): ProjectRecord | null {
+  if (!row) return null;
+  return { ...row, setupComplete: row.setupComplete === 1 };
+}
 
 export interface ProjectStore {
   listProjects(): ProjectRecord[];
   getProject(id: string): ProjectRecord | null;
   getProjectByPath(rootPath: string): ProjectRecord | null;
   upsertProject(record: ProjectRecord): ProjectRecord;
+  markSetupComplete(id: string): ProjectRecord;
   replaceCommands(projectId: string, commands: CommandSpec[]): void;
   listCommands(projectId: string): CommandSpec[];
   replaceRoleProfiles(projectId: string, profiles: RoleProfile[]): void;
@@ -40,41 +49,59 @@ export class SqliteProjectStore implements ProjectStore {
   listProjects(): ProjectRecord[] {
     const rows = this.db
       .prepare(
-        "SELECT id, name, root_path as rootPath, created_at as createdAt, updated_at as updatedAt FROM projects ORDER BY updated_at DESC",
+        "SELECT id, name, root_path as rootPath, setup_complete as setupComplete, created_at as createdAt, updated_at as updatedAt FROM projects ORDER BY updated_at DESC",
       )
-      .all() as ProjectRecord[];
-    return rows;
+      .all() as ProjectRow[];
+    return rows.map((row) => mapProject(row)!);
   }
 
   getProject(id: string): ProjectRecord | null {
     const row = this.db
       .prepare(
-        "SELECT id, name, root_path as rootPath, created_at as createdAt, updated_at as updatedAt FROM projects WHERE id = ?",
+        "SELECT id, name, root_path as rootPath, setup_complete as setupComplete, created_at as createdAt, updated_at as updatedAt FROM projects WHERE id = ?",
       )
-      .get(id) as ProjectRecord | undefined;
-    return row ?? null;
+      .get(id) as ProjectRow | undefined;
+    return mapProject(row);
   }
 
   getProjectByPath(rootPath: string): ProjectRecord | null {
     const row = this.db
       .prepare(
-        "SELECT id, name, root_path as rootPath, created_at as createdAt, updated_at as updatedAt FROM projects WHERE root_path = ?",
+        "SELECT id, name, root_path as rootPath, setup_complete as setupComplete, created_at as createdAt, updated_at as updatedAt FROM projects WHERE root_path = ?",
       )
-      .get(rootPath) as ProjectRecord | undefined;
-    return row ?? null;
+      .get(rootPath) as ProjectRow | undefined;
+    return mapProject(row);
   }
 
   upsertProject(record: ProjectRecord): ProjectRecord {
     this.db
       .prepare(
-        "INSERT INTO projects (id, name, root_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name = excluded.name, root_path = excluded.root_path, updated_at = excluded.updated_at",
+        "INSERT INTO projects (id, name, root_path, setup_complete, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name = excluded.name, root_path = excluded.root_path, setup_complete = excluded.setup_complete, updated_at = excluded.updated_at",
       )
-      .run(record.id, record.name, record.rootPath, record.createdAt, record.updatedAt);
+      .run(
+        record.id,
+        record.name,
+        record.rootPath,
+        record.setupComplete ? 1 : 0,
+        record.createdAt,
+        record.updatedAt,
+      );
     return record;
+  }
+
+  markSetupComplete(id: string): ProjectRecord {
+    const result = this.db
+      .prepare("UPDATE projects SET setup_complete = 1, updated_at = ? WHERE id = ?")
+      .run(new Date().toISOString(), id);
+    if (result.changes !== 1) throw new Error(`Project ${id} not found`);
+    return this.getProject(id)!;
   }
 
   replaceCommands(projectId: string, commands: CommandSpec[]): void {
     this.db.transaction(() => {
+      this.db
+        .prepare("UPDATE projects SET setup_complete = 0, updated_at = ? WHERE id = ?")
+        .run(new Date().toISOString(), projectId);
       this.db.prepare("DELETE FROM command_specs WHERE project_id = ?").run(projectId);
       const insert = this.db.prepare(
         "INSERT INTO command_specs (id, project_id, label, executable, args_json, required, timeout_ms, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -116,6 +143,9 @@ export class SqliteProjectStore implements ProjectStore {
 
   replaceRoleProfiles(projectId: string, profiles: RoleProfile[]): void {
     this.db.transaction(() => {
+      this.db
+        .prepare("UPDATE projects SET setup_complete = 0, updated_at = ? WHERE id = ?")
+        .run(new Date().toISOString(), projectId);
       this.db.prepare("DELETE FROM role_profiles WHERE project_id = ?").run(projectId);
       const insert = this.db.prepare(
         "INSERT INTO role_profiles (project_id, profile_id, role, label, provider_chain_json, timeout_ms, prompt_version) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -193,6 +223,9 @@ export class SqliteProjectStore implements ProjectStore {
 
   saveContextSnapshot(snapshot: ContextSnapshot, directoryPath: string): void {
     this.db.transaction(() => {
+      this.db
+        .prepare("UPDATE projects SET setup_complete = 0, updated_at = ? WHERE id = ?")
+        .run(new Date().toISOString(), snapshot.projectId);
       this.db
         .prepare(
           "INSERT INTO context_snapshots (id, project_id, source_branch, source_head, manifest_hash, directory_path, excluded_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

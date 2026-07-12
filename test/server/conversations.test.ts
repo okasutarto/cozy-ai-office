@@ -115,6 +115,7 @@ describe("Conversation Service direct role chats", () => {
           id: "00000000-0000-4000-8000-000000000301",
           name: "test-project",
           rootPath: repoPath,
+          setupComplete: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });
@@ -195,10 +196,12 @@ describe("Conversation Service direct role chats", () => {
           role: null, // default
           profileId: null, // default
           contextSnapshotId: snapshot.id,
+          runId: "00000000-0000-4000-8000-000000000302",
           title: "Initial consultation",
         });
         expect(conv.role).toBe("manager");
         expect(conv.profileId).toBe("manager");
+        expect(conv.runId).toBe("00000000-0000-4000-8000-000000000302");
 
         // 2. Direct Advisor chat rejects unless additionalUsageConfirmed=true
         const advisorConv = conversationService.create({
@@ -206,6 +209,7 @@ describe("Conversation Service direct role chats", () => {
           role: "advisor",
           profileId: "advisor",
           contextSnapshotId: snapshot.id,
+          runId: null,
           title: "Advisor chat",
         });
 
@@ -228,6 +232,7 @@ describe("Conversation Service direct role chats", () => {
           role: "worker",
           profileId: "worker-1", // Antigravity-only
           contextSnapshotId: snapshot.id,
+          runId: null,
           title: "Worker 1 chat",
         });
 
@@ -314,6 +319,20 @@ describe("Conversation Service direct role chats", () => {
         // Earlier version 1 is unchanged
         const original = conversationStore.getDraftVersion(draftVersion.draftId, 1);
         expect(original?.objective).toBe("Define office scope");
+
+        registry.loadStatuses(projectStore.listProviderStatuses());
+        await expect(
+          conversationService.send(
+            conv.id,
+            {
+              body: "Do not use stale status",
+              selectedMessageIds: [],
+              selectedArtifactIds: [],
+              additionalUsageConfirmed: false,
+            },
+            new AbortController().signal,
+          ),
+        ).rejects.toThrow(/No compatible read-only provider/);
       } finally {
         db.close();
         executeSpy.mockRestore();

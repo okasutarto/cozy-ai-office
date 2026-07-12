@@ -24,6 +24,7 @@ export type CreateConversationInput = {
   role: string | null;
   profileId: string | null;
   contextSnapshotId: string;
+  runId: string | null;
   title: string;
 };
 
@@ -61,7 +62,7 @@ export class ConversationService {
       role,
       profileId,
       contextSnapshotId: input.contextSnapshotId,
-      runId: null,
+      runId: input.runId,
       title: input.title,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -103,6 +104,7 @@ export class ConversationService {
 
     let chosenCandidate = null;
     for (const candidate of profile.providerChain) {
+      if (!this.registry.isProbed(candidate.provider)) continue;
       const status = this.registry.statusFor(candidate.provider);
       if (status && status.installed && status.authenticated && status.capabilities.readOnly) {
         chosenCandidate = candidate;
@@ -236,6 +238,7 @@ export class ConversationService {
 
     let chosenCandidate = null;
     for (const candidate of managerProfile.providerChain) {
+      if (!this.registry.isProbed(candidate.provider)) continue;
       const status = this.registry.statusFor(candidate.provider);
       if (status && status.installed && status.authenticated && status.capabilities.readOnly) {
         chosenCandidate = candidate;

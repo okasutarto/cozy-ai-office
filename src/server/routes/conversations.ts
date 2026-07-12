@@ -20,6 +20,7 @@ export function registerConversationRoutes(
       role: body.role,
       profileId: body.profileId,
       contextSnapshotId: body.contextSnapshotId,
+      runId: body.runId,
       title: "New Conversation", // ponytail: title defaults to New Conversation. Upgrade path: make title customizable in request body.
     });
     return reply.send(result);

@@ -32,6 +32,7 @@ export class ProviderRegistry {
 
   setStatus(status: ProviderStatus): void {
     this.statuses.set(status.provider, status);
+    this.probed.add(status.provider);
   }
 
   statusFor(id: ProviderId): ProviderStatus {
@@ -47,7 +48,7 @@ export class ProviderRegistry {
   loadStatuses(statuses: ProviderStatus[]): void {
     statuses.forEach((status) => {
       this.setStatus(status);
-      // marked as not probed (execution disabled) on startup load
+      // Persisted status is informational only until this process probes the CLI.
       this.probed.delete(status.provider);
     });
   }

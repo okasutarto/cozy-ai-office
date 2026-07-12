@@ -296,7 +296,7 @@ export async function probeCli(
     signal,
   );
 
-  if (versionResult.spawnErrorCode === "ENOENT") {
+  if (versionResult.spawnErrorCode) {
     return {
       provider: spec.id,
       installed: false,
@@ -304,7 +304,10 @@ export async function probeCli(
       version: null,
       models: spec.models,
       capabilities: { nonInteractive: false, readOnly: false, worktreeWrite: false },
-      diagnostic: `Executable not found: ${spec.executable}`,
+      diagnostic:
+        versionResult.spawnErrorCode === "ENOENT"
+          ? `Executable not found: ${spec.executable}`
+          : `Unable to launch ${spec.executable}: ${versionResult.spawnErrorCode}`,
       checkedAt,
     };
   }

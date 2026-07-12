@@ -8,6 +8,7 @@ export function registerBootstrapRoute(app: FastifyInstance, dependencies: AppDe
       id: p.id,
       name: p.name,
       rootPath: p.rootPath,
+      setupComplete: p.setupComplete,
       updatedAt: p.updatedAt,
     }));
     const providers = dependencies.projects.listProviderStatuses();
