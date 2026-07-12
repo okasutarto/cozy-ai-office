@@ -21,7 +21,10 @@ export async function completeSetup(page: Page, projectPath: string) {
     await page.locator("label.context-row input[type=checkbox]").first().check();
   }
 
-  await page.getByRole("button", { name: /Agent Roles/ }).click();
-  await page.getByRole("button", { name: /Activate Swarm Office/ }).click();
+  const rolesStep = page.getByRole("button", { name: /Agent Roles/ });
+  if (await rolesStep.isEnabled()) await rolesStep.click();
+  const activate = page.getByRole("button", { name: /Activate Swarm Office/ });
+  await expect(activate).toBeEnabled();
+  await activate.click();
   await expect(page.locator(".office-canvas-container")).toBeVisible();
 }

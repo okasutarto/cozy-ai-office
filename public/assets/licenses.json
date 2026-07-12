@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "assets": [
     {
       "id": "pixel-office-2dpig",
@@ -29,44 +29,810 @@
         {
           "path": "public/assets/office/office-atlas.png",
           "frames": [
-            "office.background"
+            "office.background",
+            "office.floor",
+            "office.wall",
+            "office.wallBase"
           ],
-          "sha256": "47a6d777c1d1886c29d1cbb4d44944c8c7b1eb8be72ae7d87e865bb8ea63959d"
+          "sha256": "2289d78da3d50cd22496722feab639c9d79fa57a7f3835429e5cf912acc71960"
         },
         {
           "path": "public/assets/office/office-atlas.json",
           "frames": [
-            "office.background"
+            "office.background",
+            "office.floor",
+            "office.wall",
+            "office.wallBase"
           ],
-          "sha256": "396ddfcc98cea84fd6f8d21292b2e0bd33688125695960859dce67035dd8aea2"
+          "sha256": "2b1a2e2810ce9530a7870c1842371065c02a5323be29ea5a2fe290e7d20885a8"
         }
       ],
-      "modifications": "PixelOffice.png was cropped and nearest-neighbor scaled into the existing 352x240 office frame. No renderer code or source pixels were synthesized."
+      "modifications": "Cropped and nearest-neighbor scaled into the 768x288 public fallback frame."
     },
     {
-      "id": "metrocity-characters-jik-a-4",
-      "author": "JIK-A-4",
-      "sourceUrl": "https://jik-a-4.itch.io/metrocity-free-topdown-character-pack",
+      "id": "ordinary-bumblebee-customizable-characters",
+      "author": "Ordinary Bumblebee",
+      "sourceUrl": "https://ordinary-bumblebee.itch.io/customizable-character-pack",
       "license": "CC0-1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceFiles": [
         {
-          "path": "art/vendor/metrocity/CharacterModel/Character Model.png",
-          "sha256": "8abcddb8265ec5effc02ee4b3c7dbd455a02dd33378e02c664a729b885eec6a2"
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Character/Character_Hurt_Back-Sheet.png",
+          "sha256": "df0abb188c8d59d8488a481a1cdb5b44cc435dedd5ff87cda4e8c04e69acb89d"
         },
         {
-          "path": "art/vendor/metrocity/LICENSE.txt",
-          "sha256": "15991b6a875da578b016d31e9ad55c0483a67252d432f77512ca61993650cb72"
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Character/Character_Hurt_Front-Sheet.png",
+          "sha256": "92ce6fe3d8114a2cd6b794deff374279269889a9088684525e18388b29b4c290"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Character/Character_Hurt_Left-Sheet.png",
+          "sha256": "84ba1d7dd5120ee16a9b8c7333955f2ea50713202b413560489422dec7c4b656"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Character/Character_Hurt_Right-Sheet.png",
+          "sha256": "a8ed5c44ce787bd1d625f50907b48b3875fed219cc7cfac1286858dc6b6ae6f6"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Bottoms_Hurt_Back-Sheet.png",
+          "sha256": "6e4442b48b6d1147ee4b66ca0a74f6d88aecced50cf752bc4fb3adccceb4468e"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Bottoms_Hurt_Front-Sheet.png",
+          "sha256": "6e4442b48b6d1147ee4b66ca0a74f6d88aecced50cf752bc4fb3adccceb4468e"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Bottoms_Hurt_Left-Sheet.png",
+          "sha256": "ad10fe6b6ad12b5613e20403e712ecf0e2d5f752cdd25c9e0d65e6eb4b436312"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Bottoms_Hurt_Right-Sheet.png",
+          "sha256": "8075731e84b2cb746071b7ae0b2e1d4c374d678abc899a1aae70212ab52f4817"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Shoes_Hurt_Back-Sheet.png",
+          "sha256": "95efe662312e487e18ccb14842d8c229c8fcbfe4b8f82c0d75fd94a4a25dc51b"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Shoes_Hurt_Front-Sheet.png",
+          "sha256": "95efe662312e487e18ccb14842d8c229c8fcbfe4b8f82c0d75fd94a4a25dc51b"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Shoes_Hurt_Left-Sheet.png",
+          "sha256": "36d1b2c5e4ccad211f0ac1bedf3854aefaa50327094a6ea773ecfee7b9011f2a"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Shoes_Hurt_Right-Sheet.png",
+          "sha256": "ff276b27b904337e6be03baed08faf40619982d7b2e8acf370811f68f7e8064b"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Tops_Hurt_Back-Sheet.png",
+          "sha256": "32215d5395fc16a074a8268239e55f36e44647bbdb2b1506b1f360d77cd3ad79"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Tops_Hurt_Front-Sheet.png",
+          "sha256": "209080d803699ecadbe85132352485f8aef1989584c33ac7ecd9f926ad69bff2"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Tops_Hurt_Left-Sheet.png",
+          "sha256": "a417d14817d4d2207df253f37eb47f6eb79a6e0a930d1a1aa25d5581ae164f4b"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Clothing/Clothing_Tops_Hurt_Right-Sheet.png",
+          "sha256": "b7b44f3eceec34575069c279a2ac5b14f6b36cb11a7dfac3a187a74dde0938cb"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Eyes/Eyes_Hurt_Front-Sheet.png",
+          "sha256": "76a9483d9a79671022e9cbb99ef6cc529b2fc5c32058708568254690c5a8aeb0"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Eyes/Eyes_Hurt_Left-Sheet.png",
+          "sha256": "00cb66f20d753aa098e8d69dc82b88f5ce949104ea5837f32dc0be85a706b5f6"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Eyes/Eyes_Hurt_Right-Sheet.png",
+          "sha256": "1c083ae79c8df9001e1e311684fb19a6b466a1ae40815b32af2049c14b010f37"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Hair/Hair_Hurt_Back-Sheet.png",
+          "sha256": "db26977849c6d08344c09bf2664c6d97b72aa20d773394330503839954962a67"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Hair/Hair_Hurt_Front-Sheet.png",
+          "sha256": "69310d542550913237562e1265faefb22ae383b90f0320206bb86bb84844c43f"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Hair/Hair_Hurt_Left-Sheet.png",
+          "sha256": "621b2121ac7d3e3b0f217e7b0f4d626dce4dfc8c8a244995139f2a605b2ab923"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Hurt/Hair/Hair_Hurt_Right-Sheet.png",
+          "sha256": "f09f98633f767771e1444dff312d8d53fd8c5314000fefec3899124958f3cef1"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Character/Character_Idle_Back-Sheet.png",
+          "sha256": "70a454357c8b16d884ef403702e510bb7580954e3fc1401d9255049fcd621e74"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Character/Character_Idle_Front-Sheet.png",
+          "sha256": "b452dd7a04c3593136de5e546cdf4098d16ca752f10498c05eb2ff7e0800f7d2"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Character/Character_Idle_Left-Sheet.png",
+          "sha256": "56c632067106e87632b223528ea2c01a4b8a6aa59f8f72903ce49b69006aab5e"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Character/Character_Idle_Right-Sheet.png",
+          "sha256": "03d70d23331f126b4a87fb23a1884c1d99f93fc22d943ffec8181ab0a7ebc8ac"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Bottoms_Idle_Back-Sheet.png",
+          "sha256": "f60c39a465eb86fd372d55d793a93889e83115922f519d6ac44d69c1e5e54fb3"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Bottoms_Idle_Front-Sheet.png",
+          "sha256": "f60c39a465eb86fd372d55d793a93889e83115922f519d6ac44d69c1e5e54fb3"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Bottoms_Idle_Left-Sheet.png",
+          "sha256": "6a37732f00893a2c0a615282f9d2c1fac4d157b70006f860b0196bf7379e191f"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Bottoms_Idle_Right-Sheet.png",
+          "sha256": "e85d82353f5bed6c777be3ab7b6ad016360e39ddd4505e7682832c4616da1d57"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Shoes_Idle_Back-Sheet.png",
+          "sha256": "ceca3bcd9cf54a6ec09269072e916447777d9939643b17ccbe4b3a3d86bb3791"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Shoes_Idle_Front-Sheet.png",
+          "sha256": "7165ba3bef157d0d9cb81a49613e642ed072e2247662e803ebf2cb8e3dfebd42"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Shoes_Idle_Left-Sheet.png",
+          "sha256": "4b90c8238ed6b6c1890b0985eecc7df43503d91ae1d5ebd226443d581037ddbb"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Shoes_Idle_Right-Sheet.png",
+          "sha256": "0c934d3a34edafa8b9528c98f1ba9ede8c6d97a01a9750bc32ccb265148e8028"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Top_Idle_Back-Sheet.png",
+          "sha256": "dcaef6d2f0632729b5138ef7d6096f12e3cb764664bc059f84bee2334ab50b32"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Tops_Idle_Front-Sheet.png",
+          "sha256": "d66384de28084796c4e3938ed248ea8190a81311384c5fdfe814ea44c31f96bf"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Tops_Idle_Left-Sheet.png",
+          "sha256": "da36a29de5b0bf1ad4d5ff58779e270c09656051b61982883a7a169c5b99ae0b"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Clothing/Clothing_Tops_Idle_Right-Sheet.png",
+          "sha256": "7808154e779877015785004f8cea1261218037ddbbd9569e47161df838ac4c41"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Eyes/Eyes_Idle_Front-Sheet.png",
+          "sha256": "bd03e0b3e82618d04e6455b8099c7fe2194f94b8483a83a0c6baec8afaa2287f"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Eyes/Eyes_Idle_Left-Sheet.png",
+          "sha256": "de9142d033fc302e3e2179021b17b509f1d25f7361cc2873c9c6d6c896ed0bb3"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Eyes/Eyes_Idle_Right-Sheet.png",
+          "sha256": "b0514b76d8d006c6d14acc91b4cefe4fe4d69b5ee558a226a8bb5aa88482dc6c"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Hair/Hair_Idle_Back-Sheet.png",
+          "sha256": "a17dcffcb1b800630f6e43a7a00f9befb5ef4c0ef994a1505456c4c3286b020d"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Hair/Hair_Idle_Front-Sheet.png",
+          "sha256": "db72c89c46ded8fcbd3eba3ba63da4f78b88d1418e0084ae3715b07fce118951"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Hair/Hair_Idle_Left-Sheet.png",
+          "sha256": "9d73e6243b0750add2cdb09865777f1ecd98159bb4caf3960113cacbb8f516d9"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Idle/Hair/Hair_Idle_Right-Sheet.png",
+          "sha256": "29f27f3557395fd61247851b6a58a0f4fbcbff1a1e9bb16fb3dc509eac927139"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Character/Character_Interact_Back-Sheet.png",
+          "sha256": "f0c76b960aa9c24eb6f08c3b57b0ce554da50c33fc57012f952edf50218ab7f8"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Character/Character_Interact_Front-Sheet.png",
+          "sha256": "72c1703e2fea7357f23d234764ed17112a522da0723e118b855f239afa39c441"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Character/Character_Interact_Left-Sheet.png",
+          "sha256": "2087c01a8776a85fd2692581af4e3db3588f93657bdcee5ecb05f8581e0ec6a3"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Character/Character_Interact_Right-Sheet.png",
+          "sha256": "281cb75764681d88581bea57c64836b57efb662d3e68822eb494548a1bf77ad8"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Bottoms_Interact_Back-Sheet.png",
+          "sha256": "5e147ac518f19b46b7e7ba6d7ba4ccb832e2d897807bcf357db9c1a7ae389343"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Bottoms_Interact_Front-Sheet.png",
+          "sha256": "5e147ac518f19b46b7e7ba6d7ba4ccb832e2d897807bcf357db9c1a7ae389343"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Bottoms_Interact_Left-Sheet.png",
+          "sha256": "200f8f176adc30e1905ffc3a9a490956f7f685174a6700c84962741fddf8f48e"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Bottoms_Interact_Right-Sheet.png",
+          "sha256": "8854e1af52371711c2263675d6878c046ecfead7e8604775bc9aa7eb21165fde"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Shoes_Interact_Back-Sheet.png",
+          "sha256": "83b330d00290144def7c126d9bc69596981bf9f774cdf8e4f1da2b8d27664ac9"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Shoes_Interact_Front-Sheet.png",
+          "sha256": "83b330d00290144def7c126d9bc69596981bf9f774cdf8e4f1da2b8d27664ac9"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Shoes_Interact_Left-Sheet.png",
+          "sha256": "6e13742a9e29ed377b41050ff6798c6b2639ab32c02ecac663daeff34a720266"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Shoes_Interact_Right-Sheet.png",
+          "sha256": "f35992f34d4dd53d724b8b0a57802195ef6fb42c523097e5db0dc5f0cb5c926c"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Tops_Interact_Back-Sheet.png",
+          "sha256": "20d901baee02fac8f9826b201f3a266476ee45a78aa873943dec02729ca88499"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Tops_Interact_Front-Sheet.png",
+          "sha256": "2b48f8112b91139cf826e32daf04a1e83c83ec2b3cef0008fbc671d0d29e4ef6"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Tops_Interact_Left-Sheet.png",
+          "sha256": "b597177f2d4f44ae33faf6f154f5d94be559d2289c4fe0b7d603e2c9d90bf787"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Clothing/Clothing_Tops_Interact_Right-Sheet.png",
+          "sha256": "04f056c47948b8f14d3010a6ae06a6bb82977bc43937b27147a9c6129355f8ac"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Eyes/Eyes_Interact_Front-Sheet.png",
+          "sha256": "1f5fec5d63ef74d5600395c2ee83c134bb71dc55345e0e0d42314942bea085c4"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Eyes/Eyes_Interact_Left-Sheet.png",
+          "sha256": "511a259ee2fd9f29f10568ccb88abe847fd1cc44bceba4a670bf37c2fbc4ec80"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Eyes/Eyes_Interact_Right-Sheet.png",
+          "sha256": "35cfac4be1ba0a1283b72c87e2b8bd0b4482ec40c9d82f5267dffef30f87ed89"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Hair/Hair_Interact_Back-Sheet.png",
+          "sha256": "19c138adbe96add8dfe7252d72d5bcd5c41ba04c959a493b2a188ef0175169f1"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Hair/Hair_Interact_Front-Sheet.png",
+          "sha256": "7867b6b9af67eb9dbdebf4e7154be9189ee5c5ddd74fcf2ab1e280d74edb4705"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Hair/Hair_Interact_Left-Sheet.png",
+          "sha256": "4b486ca30915e9ffd391ec4bad9afbc459cc4bd4a1e75c4ef0a7d0e2b971d2dd"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Interact/Hair/Hair_Interact_Right-Sheet.png",
+          "sha256": "fe0e1030a44e2900e8d9ea79d06eaf300071523e52725dec0608f8a9e3de3f65"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Character/Character_Jump_Back-Sheet.png",
+          "sha256": "3537f1f8225bb3722feb50713f189d506b32d7f1275b09dc7208a3c16a1b6c1e"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Character/Character_Jump_Front-Sheet.png",
+          "sha256": "27e6a7452a72b3333b52c1a56d9fd6f435da26903bac8cc10cac206e2968c81f"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Character/Character_Jump_Left-Sheet.png",
+          "sha256": "dc8380d3fb756286180a15998c80e125d6ccbd17d924ca1575edd2f53dcebed2"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Character/Character_Jump_Right-Sheet.png",
+          "sha256": "41afdf904e9351246be55fdfe0b4fc5ce557a9aefb399513cf32b96212281de2"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Bottoms_Jump_Back-Sheet.png",
+          "sha256": "12d3afcb0d3998c8ecb4fadc05b6dd27fd870857fc061da5d0cc6b33e93ab74d"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Bottoms_Jump_Front-Sheet.png",
+          "sha256": "34d14e6b82ccdb9534ac52c69b7339bfc60105c41b9bbdbe17d93f51377ded88"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Bottoms_Jump_Left-Sheet.png",
+          "sha256": "56859d1ac611d043b733a5de55ef2fbe33d8f8b05e23a0e79d9d04b98994c92a"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Bottoms_Jump_Right-Sheet.png",
+          "sha256": "2039816d5ae01c0f4e2d7c93f76f49472d7f2a008e077c2718aa8bc2ecb22b5c"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Shoes_Jump_Back-Sheet.png",
+          "sha256": "446a48df63d826189de4b37d4bdaecf5259be95199e3d869a530b7825dc4530f"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Shoes_Jump_Front-Sheet.png",
+          "sha256": "033ad40f466c598dc5772a7ab561a8f7d3779b0434d836dced53c0c29c0b58a8"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Shoes_Jump_Left-Sheet.png",
+          "sha256": "eea58f42ec3a96a0b3385fdbd5f4243a7b553f7b3a3d233cb42bf7e8c4314115"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Shoes_Jump_Right-Sheet.png",
+          "sha256": "bf5a931d0d57ae6be3eaee0245f9aabb47f87e622f117e0ec3ada487331aa381"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Tops_Jump_Back-Sheet.png",
+          "sha256": "9c204dafd8e684ae5ac2b9d9eb9130087e38f1587f17df80fd57f73fa7ac473e"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Tops_Jump_Front-Sheet.png",
+          "sha256": "1c248d9e067a49ce23b53ab745ee5cc65381581f9c31844450a3b87516109b89"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Tops_Jump_Left-Sheet.png",
+          "sha256": "7fbfee022b0c9126af8f197919693a6c71a25ef5517fb786f89848bf923fa6ed"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Clothing/Clothing_Tops_Jump_Right-Sheet.png",
+          "sha256": "3b452b2ba48a39e46ffac6131bb6f8a2e5d3fa44bae5da2baf17bec2e25f705e"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Eyes/Eyes_Jump_Front-Sheet.png",
+          "sha256": "522070b4d01f791e6bbaefd9014e697b3e4712fbd4a329e807d982a5d43f8d80"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Eyes/Eyes_Jump_Left-Sheet.png",
+          "sha256": "5336d2939e32689254be60b2540de0bdd32aef9e629984f40fd16643b69ccaac"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Eyes/Eyes_Jump_Right-Sheet.png",
+          "sha256": "ea2c5123c9080917ef458baa1394c0927836719a13cccf3e8267e0f22f4d33e5"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Hair/Hair_Jump_Back-Sheet.png",
+          "sha256": "85cead5487931c6040823a976cbbe3f2e6955a697d8cd3f7ae3318188113a423"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Hair/Hair_Jump_Front-Sheet.png",
+          "sha256": "f7fa6405000904ec6e4469e291afecfb716adac34d0f0fbaffedd51b8c658d03"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Hair/Hair_Jump_Left-Sheet.png",
+          "sha256": "a1a5a6c8ac4974b01072dadf0e7e7aa2c64853a2978a7cd7b7e867637d9892df"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Jump/Hair/Hair_Jump_Right-Sheet.png",
+          "sha256": "c002f68729f68a18144cbf1f7a23d2c2e4a820e6b4e81798d56f454a791f8331"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/License_CC0.txt",
+          "sha256": "15bfc2ef438dd2d7665ff1fcc71a42505ee3ee6a952f50f7ddd51a16ba8e0a0f"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Character/Character_Punch_Back-Sheet.png",
+          "sha256": "063edf54cac1ddee3f2ae138da1b9197b56c054da5b989ba5704bbc7300b5d61"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Character/Character_Punch_Front-Sheet.png",
+          "sha256": "7c30168b778b4a67ab7ac54711291fca94ed7fb39cf5fc4edcbed31a49e2f8a3"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Character/Character_Punch_Left-Sheet.png",
+          "sha256": "2338983f981e6007cd0e2973ac8e3ed7c2a40c216c733efe28227d5dc84cd206"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Character/Character_Punch_Right-Sheet.png",
+          "sha256": "a5fdbee22941f165e1257c33251d1d7dd1bcfde4ac46ac9ba6f74c637bf7ab7b"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Bottoms_Punch_Back-Sheet.png",
+          "sha256": "ed3d4ae7e69ac4f2c76a6c2e7518360fe1db85b6cf2d1b04dd47f231139f6e11"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Bottoms_Punch_Front-Sheet.png",
+          "sha256": "07c30246d726baa176ab1378f91940e7cef2554f4eecfd08bfd6515fbcd624a7"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Bottoms_Punch_Left-Sheet.png",
+          "sha256": "79a1a052173fd80525c763cfa491c118e0680e0001302b8a5785bd4e856fe46f"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Bottoms_Punch_Right-Sheet.png",
+          "sha256": "59c041fbc081529d785250931824c5813cd06e158435968cda08371e29ac1ad9"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Shoes_Punch_Back-Sheet.png",
+          "sha256": "567e1e9da48e5b9ef5f3999cf62567b39e5c353043819c62898a81b8951abd61"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Shoes_Punch_Front-Sheet.png",
+          "sha256": "ea4ae0e135ef5c15927034b075694ba22cf0785464b734536c4fee7f63ef12df"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Shoes_Punch_Left-Sheet.png",
+          "sha256": "9dc74b5f0d5854fbe695e869c22946027a5c09f425766d14f1e3c7fca91d3f7a"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Shoes_Punch_Right-Sheet.png",
+          "sha256": "07b7e83b41ad77651cba692d8924dab9221afa28598953f66a06496cd156b1a6"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Tops_Punch_Back-Sheet.png",
+          "sha256": "a9750b49026ea2bef665217152c607243798bc5d07ea0d3be6083fbd020098bc"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Tops_Punch_Front-Sheet.png",
+          "sha256": "c0e3d843796ddb82c5b1f38dc0f7b5952e5df68f677f1c4c318e309dc4233aa5"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Tops_Punch_Left-Sheet.png",
+          "sha256": "c7ee1697f151f36ec8b16976054a60d6be9d0c46588fbcb7664bbe0ed35c54e9"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Clothing/Clothing_Tops_Punch_Right-Sheet.png",
+          "sha256": "243ec7543fc8591597089edb20d9379286a89da9c607543aa2181962b357eff3"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Eyes/Eyes_Punch_Front-Sheet.png",
+          "sha256": "3b62cdffbfc02328e6ebb2ed533cecc71a393f5c9db5f72d45b54c81157c75de"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Eyes/Eyes_Punch_Left-Sheet.png",
+          "sha256": "36ecafcc59a8c53df0579bae1af369792d7232dfdba3ddd2890b8f63569bd78b"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Eyes/Eyes_Punch_Right-Sheet.png",
+          "sha256": "8bf531084874b92859a51b63799badd8f8f086a20116fcea46d8a4c00325f650"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Hair/Hair_Punch_Back-Sheet.png",
+          "sha256": "696642d4b3b6c60b83d24cfc51beac4d42343ece7ad02a15944c26d04007731c"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Hair/Hair_Punch_Front-Sheet.png",
+          "sha256": "414dc45d8969d627022b0b93dc20082fd852e9a4a48321335212f6813a115910"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Hair/Hair_Punch_Left-Sheet.png",
+          "sha256": "091e92ccf1affc16a295bf6bba12dec6272f572778898c90e41ecf599cd3ac4a"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Punch/Hair/Hair_Punch_Right-Sheet.png",
+          "sha256": "9ab20f2952244d8fb7901200231e6357b9c70de72f6b3d00374f4ad4a3a95886"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Character/Character_Run_Back-Sheet.png",
+          "sha256": "ce8aeb574fef439f225ed95714efd764dd2aea35329a4ddf0961ae0925e6d73b"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Character/Character_Run_Front-Sheet.png",
+          "sha256": "906695fde714518a27f719a86e6f06062ade5450da12a79cefcdee28d19afd21"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Character/Character_Run_Left-Sheet.png",
+          "sha256": "878cd3d4377d08db2c86ade3cf1d3ec9238759c5fff84241914bb45b4ffb9a5a"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Character/Character_Run_Right-Sheet.png",
+          "sha256": "5ca31a2a2781ce9c8b31b53ca4339d627bcfbd1ff030f540f01ed32e4ef75f9e"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Bottoms_Run_Left-Sheet.png",
+          "sha256": "ae65c40816ecd293861dfc89c30d490bf23d7ca6f80fb88a074808e3964e0210"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Bottoms_Walk_Back-Sheet.png",
+          "sha256": "30a474e692b92b3b4097ec2a3654eb73fbfc81d6ddfb5f04b8cd9904e8d97fb6"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Bottoms_Walk_Front-Sheet.png",
+          "sha256": "3735bba28fb36cb8c5028707c78086f00ba5b1ae15e925ef9d3cef4e85ee33ae"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Bottoms_Walk_Right-Sheet.png",
+          "sha256": "c1c23637de902066ec226a2d1b782983a6d36ef37cf7eff8c5e0d7d4e883bf29"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Shoes_Run_Front-Sheet.png",
+          "sha256": "83c32a82f0da7b9235d4cbea91cc25978853fadfa2a9caca626b2652ec17ff08"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Shoes_Run_Left-Sheet.png",
+          "sha256": "114091432848091173350c5d7c55d32f0a90b17d441d69d9580dd764f901249c"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Shoes_Run_Right-Sheet.png",
+          "sha256": "d67e9a6920a67c06c2ec71005d5ad1e9d88d5def958dc7db21321a5f45f5fe56"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Shoes_Walk_Back-Sheet.png",
+          "sha256": "2aa917333a9d293d99b982f56c12b58e3c5cabd1bcf12c7e2e559bf071938002"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Tops_Run_Back-Sheet.png",
+          "sha256": "48e3eea55e4fd6f632f0f1a45c925ebe9a9fbcbe7441006c793f15d9cce23f6c"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Tops_Run_Left-Sheet.png",
+          "sha256": "9ffeb5170157747d6a5c483ee62945630dee13ccd012cd2c0a0d666716439a11"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Tops_Walk_Front-Sheet.png",
+          "sha256": "cda946cfe1c450c1f8af759b950f01a826d2a85f247f7cff8e6dba7daf0caf0a"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Clothing/Clothing_Tops_Walk_Right-Sheet.png",
+          "sha256": "8b9ed0583c964518ef124c901c67f594587f1ef3ccb8687c3cc8f3cd526fdb49"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Eyes/Eyes_Run_Front-Sheet.png",
+          "sha256": "b1c69bdc58940ebf62e2b87814f773b50bb7d8e7d278c445134d1764272b7ac5"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Eyes/Eyes_Run_Left-Sheet.png",
+          "sha256": "fd3f0ce04fa0c3dc6fc066ed6ebcdba53816e255d705a1f4f1042f8527123e36"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Eyes/Eyes_Run_Right-Sheet.png",
+          "sha256": "a0a60bf507cd8ae0c6e1cb5991b4f665ac95330c8d9480c0bac08bb655f5862e"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Hair/Hair_Run_Back-Sheet.png",
+          "sha256": "e1410535dba4b2a11ba32e11ee7860425de17f91b7c53ddf92ceaf26ca3330a9"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Hair/Hair_Run_Front-Sheet.png",
+          "sha256": "7e3d5cb224b49a8ddcab43801c7d9627a9cf26f5b2045d25bc90ef4e002035e8"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Hair/Hair_Run_Left-Sheet.png",
+          "sha256": "8b4a24e6779ac2badd7ddd0b699fff9b3f755a50b8b31f1aaebd20bb91000d11"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Run/Hair/Hair_Run_Right-Sheet.png",
+          "sha256": "bb19fb6ad5cb9e53f31d50d8e8db0139bcbf4cdb84f9cc7201eac7b17f4e70bc"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Character/Character_Sword_Back-Sheet.png",
+          "sha256": "bc598e6d61e208bdbc17ae7d924eb7d98d773ec92d445806b9cb029d966f0f7e"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Character/Character_Sword_Front-Sheet.png",
+          "sha256": "9e082612c2b99a1bbe119f9a365a1d66e26299421ae548ffb200d9a395dfebc7"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Character/Character_Sword_Left-Sheet.png",
+          "sha256": "21a117878e00408d4db4b86c113282bf6f51698318a4964385230ed03b360f9d"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Character/Character_Sword_Right-Sheet.png",
+          "sha256": "c6bef537f0c3c8e8af5b766246707a471519f402fd662df54c41714ebbf2fe15"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Bottoms_Sword_Back-Sheet.png",
+          "sha256": "ed3d4ae7e69ac4f2c76a6c2e7518360fe1db85b6cf2d1b04dd47f231139f6e11"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Bottoms_Sword_Front-Sheet.png",
+          "sha256": "fd518d92c4ef7c5aa39f1d62d43400fa58be859427da4a694ad130c8649b9005"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Bottoms_Sword_Left-Sheet.png",
+          "sha256": "79a1a052173fd80525c763cfa491c118e0680e0001302b8a5785bd4e856fe46f"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Bottoms_Sword_Right-Sheet.png",
+          "sha256": "d2f8c0dc06d43215deacbf5fcfa497305756ecd55022f86b10c67d3e9f9973c4"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Shoes_Sword_Back-Sheet.png",
+          "sha256": "567e1e9da48e5b9ef5f3999cf62567b39e5c353043819c62898a81b8951abd61"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Shoes_Sword_Left-Sheet.png",
+          "sha256": "9dc74b5f0d5854fbe695e869c22946027a5c09f425766d14f1e3c7fca91d3f7a"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Shoes_Sword_Right-Sheet.png",
+          "sha256": "07b7e83b41ad77651cba692d8924dab9221afa28598953f66a06496cd156b1a6"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Short_Sword_Front-Sheet.png",
+          "sha256": "fe3c7b326fbce72298bd6140f8a8f34c165532f2238f0556a31ab1d615bdba87"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Tops_Sword_Back-Sheet.png",
+          "sha256": "6134f700f47af7d5a697b8a658188d9e3c159a45b61c65db9913bfcfcbd538e2"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Tops_Sword_Front-Sheet.png",
+          "sha256": "c337e686bfde6fd64340444a7b4c7c0ec02134cbd512fb779655c59b548474f7"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Tops_Sword_Left-Sheet.png",
+          "sha256": "c7ee1697f151f36ec8b16976054a60d6be9d0c46588fbcb7664bbe0ed35c54e9"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Clothing/Clothing_Tops_Sword_Right-Sheet.png",
+          "sha256": "7e3eff0d5caebe70d4d86ee32fa7b7527e7949182e9aea1f1d132e2cb4a7c67d"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Eyes/Eyes_Sword_Front-Sheet.png",
+          "sha256": "3b62cdffbfc02328e6ebb2ed533cecc71a393f5c9db5f72d45b54c81157c75de"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Eyes/Eyes_Sword_Left-Sheet.png",
+          "sha256": "36ecafcc59a8c53df0579bae1af369792d7232dfdba3ddd2890b8f63569bd78b"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Eyes/Eyes_Sword_Right-Sheet.png",
+          "sha256": "8bf531084874b92859a51b63799badd8f8f086a20116fcea46d8a4c00325f650"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Hair/Hair_Sword_Back-Sheet.png",
+          "sha256": "5336d8f7bb71688ae9c86840708e78b3430587405931521afe6f24aa80cdf53d"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Hair/Hair_Sword_Front-Sheet.png",
+          "sha256": "7de66af1f0e7dde75b0c0383f82b678daaaec1552603e848092ed3d1afda6d02"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Hair/Hair_Sword_Left-Sheet.png",
+          "sha256": "9cc855880595835ef4ffe4265a2a5a5f2bf4feb3401d61ad397c1ea53e94ee75"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Hair/Hair_Sword_Right-Sheet.png",
+          "sha256": "f4c53d605d429f426a456ba00edfe69c02071f8ea48f7d0ce3a6f425cbc724b1"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Swords/Sword_Back-Sheet.png",
+          "sha256": "89b2c3d73c4783906b79f9175718f6a27410f4912ce409c9c21a86f140e330a5"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Swords/Sword_Front-Sheet.png",
+          "sha256": "c25e2c7f831bc4239072220b40f6ea28c31a7b681a1d890ce357acb34d7d4e42"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Swords/Sword_Left-Sheet.png",
+          "sha256": "84037529b1d5e26194fefad9c5df9e4669075d3759a07ba993b7ae31173e1587"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Sword/Swords/Sword_Right-Sheet.png",
+          "sha256": "0e98deb6673b31bf5588ef659412afbf1d77862e887a6351c191e68e8d9b151b"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Character/Character_Walk_Back-Sheet.png",
+          "sha256": "caf38d10e4bc14fc1c29cfdf7f16dba80e66065d655fedd932619861e7cc375c"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Character/Character_Walk_Front-Sheet.png",
+          "sha256": "bfaf0c13f2965feca0aaa67c57591e64160434fbd4e1964c97fe3245cc746000"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Character/Character_Walk_Left-Sheet.png",
+          "sha256": "1e0df8dfbcceeaa0b9375fe28b417be8fdca7a8d0cae79796dd995b29537585c"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Character/Character_Walk_Right-Sheet.png",
+          "sha256": "2f1193ee3b5c950cc68b0c4512f85fcf047f773520fed9846a2f46546115a4ae"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Bottoms_Walk_Back-Sheet.png",
+          "sha256": "30a474e692b92b3b4097ec2a3654eb73fbfc81d6ddfb5f04b8cd9904e8d97fb6"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Bottoms_Walk_Front-Sheet.png",
+          "sha256": "3735bba28fb36cb8c5028707c78086f00ba5b1ae15e925ef9d3cef4e85ee33ae"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Bottoms_Walk_Left-Sheet.png",
+          "sha256": "076904e481ed443f9a7ea7c05d0f22905e078b38dc2545befb3747c40662316c"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Bottoms_Walk_Right-Sheet.png",
+          "sha256": "c1c23637de902066ec226a2d1b782983a6d36ef37cf7eff8c5e0d7d4e883bf29"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Shoes_Walk_Back-Sheet.png",
+          "sha256": "2aa917333a9d293d99b982f56c12b58e3c5cabd1bcf12c7e2e559bf071938002"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Shoes_Walk_Front-Sheet.png",
+          "sha256": "e5faddf5317a73c6ea8fd8889115c87ee887983361371c037294a223b30b3bab"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Shoes_Walk_Left-Sheet.png",
+          "sha256": "055d6052b933276261841af2c503b802c214999ec9ca5861a151d6d796ff9049"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Shoes_Walk_Right-Sheet.png",
+          "sha256": "f9415bb5df6bbdda7672a265d5e1cb3fa0463c5e762e2d338f285489dc10a698"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Tops_Walk_Back-Sheet.png",
+          "sha256": "af56be302b590372aa1c36e9e5276b210717250c8a9e28adcefce863cbd240bb"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Tops_Walk_Front-Sheet.png",
+          "sha256": "cda946cfe1c450c1f8af759b950f01a826d2a85f247f7cff8e6dba7daf0caf0a"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Tops_Walk_Left-Sheet.png",
+          "sha256": "0c5ad1cccc2efbdddbd4a9bfa83befdc6a4e87c9f03e7fee621c5ce8d8f95345"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Clothing/Clothing_Tops_Walk_Right-Sheet.png",
+          "sha256": "8b9ed0583c964518ef124c901c67f594587f1ef3ccb8687c3cc8f3cd526fdb49"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Eyes/Eyes_Walk_Front-Sheet.png",
+          "sha256": "bd03e0b3e82618d04e6455b8099c7fe2194f94b8483a83a0c6baec8afaa2287f"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Eyes/Eyes_Walk_Left-Sheet.png",
+          "sha256": "de9142d033fc302e3e2179021b17b509f1d25f7361cc2873c9c6d6c896ed0bb3"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Eyes/Eyes_Walk_Right-Sheet.png",
+          "sha256": "b0514b76d8d006c6d14acc91b4cefe4fe4d69b5ee558a226a8bb5aa88482dc6c"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Hair/Hair_Walk_Back-Sheet.png",
+          "sha256": "5c68a4bda1ce07c5da49152e484315c79371a46b6b294277fb559465dc596429"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Hair/Hair_Walk_Front-Sheet.png",
+          "sha256": "7f60d18eae4fa02bf75ba5a1be7f8a858312549e8c270031ea5190b150037539"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Hair/Hair_Walk_Left-Sheet.png",
+          "sha256": "607d166603725fa1e314cb30d5bb30153ca1e963a137016994850f640dc92ac1"
+        },
+        {
+          "path": "art/vendor/ordinary-bumblebee/32x32 Customizable Character Pack/Walk/Hair/Hair_Walk_Right-Sheet.png",
+          "sha256": "8bcd9787f8c2b64e4fb9a0012a2ff35597b82bcfdc773b7f6f90e0e6a42b94f9"
         }
       ],
       "outputs": [
         {
           "path": "public/assets/characters/characters-atlas.png",
           "frames": [
-            "manager.idle.0",
-            "manager.idle.1",
-            "manager.idle.2",
-            "manager.idle.3",
+            "manager.idle.down.0",
+            "manager.idle.down.1",
+            "manager.idle.down.2",
+            "manager.idle.down.3",
+            "manager.idle.left.0",
+            "manager.idle.left.1",
+            "manager.idle.left.2",
+            "manager.idle.left.3",
+            "manager.idle.right.0",
+            "manager.idle.right.1",
+            "manager.idle.right.2",
+            "manager.idle.right.3",
+            "manager.idle.up.0",
+            "manager.idle.up.1",
+            "manager.idle.up.2",
+            "manager.idle.up.3",
             "manager.walk.down.0",
             "manager.walk.down.1",
             "manager.walk.down.2",
@@ -83,38 +849,41 @@
             "manager.walk.up.1",
             "manager.walk.up.2",
             "manager.walk.up.3",
-            "manager.work.0",
-            "manager.work.1",
-            "manager.work.2",
-            "manager.work.3",
-            "manager.work.4",
-            "manager.work.5",
-            "manager.read.0",
-            "manager.read.1",
-            "manager.read.2",
-            "manager.read.3",
-            "manager.talk.0",
-            "manager.talk.1",
-            "manager.talk.2",
-            "manager.talk.3",
-            "manager.test.0",
-            "manager.test.1",
-            "manager.test.2",
-            "manager.test.3",
-            "manager.test.4",
-            "manager.test.5",
-            "manager.celebrate.0",
-            "manager.celebrate.1",
-            "manager.celebrate.2",
-            "manager.celebrate.3",
-            "manager.celebrate.4",
-            "manager.celebrate.5",
-            "manager.error.0",
-            "manager.error.1",
-            "worker-1.idle.0",
-            "worker-1.idle.1",
-            "worker-1.idle.2",
-            "worker-1.idle.3",
+            "manager.work.up.0",
+            "manager.work.up.1",
+            "manager.work.up.2",
+            "manager.read.down.0",
+            "manager.read.down.1",
+            "manager.read.down.2",
+            "manager.read.down.3",
+            "manager.talk.down.0",
+            "manager.talk.down.1",
+            "manager.talk.down.2",
+            "manager.test.up.0",
+            "manager.test.up.1",
+            "manager.test.up.2",
+            "manager.celebrate.down.0",
+            "manager.celebrate.down.1",
+            "manager.celebrate.down.2",
+            "manager.error.down.0",
+            "manager.error.down.1",
+            "manager.error.down.2",
+            "worker-1.idle.down.0",
+            "worker-1.idle.down.1",
+            "worker-1.idle.down.2",
+            "worker-1.idle.down.3",
+            "worker-1.idle.left.0",
+            "worker-1.idle.left.1",
+            "worker-1.idle.left.2",
+            "worker-1.idle.left.3",
+            "worker-1.idle.right.0",
+            "worker-1.idle.right.1",
+            "worker-1.idle.right.2",
+            "worker-1.idle.right.3",
+            "worker-1.idle.up.0",
+            "worker-1.idle.up.1",
+            "worker-1.idle.up.2",
+            "worker-1.idle.up.3",
             "worker-1.walk.down.0",
             "worker-1.walk.down.1",
             "worker-1.walk.down.2",
@@ -131,38 +900,41 @@
             "worker-1.walk.up.1",
             "worker-1.walk.up.2",
             "worker-1.walk.up.3",
-            "worker-1.work.0",
-            "worker-1.work.1",
-            "worker-1.work.2",
-            "worker-1.work.3",
-            "worker-1.work.4",
-            "worker-1.work.5",
-            "worker-1.read.0",
-            "worker-1.read.1",
-            "worker-1.read.2",
-            "worker-1.read.3",
-            "worker-1.talk.0",
-            "worker-1.talk.1",
-            "worker-1.talk.2",
-            "worker-1.talk.3",
-            "worker-1.test.0",
-            "worker-1.test.1",
-            "worker-1.test.2",
-            "worker-1.test.3",
-            "worker-1.test.4",
-            "worker-1.test.5",
-            "worker-1.celebrate.0",
-            "worker-1.celebrate.1",
-            "worker-1.celebrate.2",
-            "worker-1.celebrate.3",
-            "worker-1.celebrate.4",
-            "worker-1.celebrate.5",
-            "worker-1.error.0",
-            "worker-1.error.1",
-            "worker-2.idle.0",
-            "worker-2.idle.1",
-            "worker-2.idle.2",
-            "worker-2.idle.3",
+            "worker-1.work.up.0",
+            "worker-1.work.up.1",
+            "worker-1.work.up.2",
+            "worker-1.read.down.0",
+            "worker-1.read.down.1",
+            "worker-1.read.down.2",
+            "worker-1.read.down.3",
+            "worker-1.talk.down.0",
+            "worker-1.talk.down.1",
+            "worker-1.talk.down.2",
+            "worker-1.test.up.0",
+            "worker-1.test.up.1",
+            "worker-1.test.up.2",
+            "worker-1.celebrate.down.0",
+            "worker-1.celebrate.down.1",
+            "worker-1.celebrate.down.2",
+            "worker-1.error.down.0",
+            "worker-1.error.down.1",
+            "worker-1.error.down.2",
+            "worker-2.idle.down.0",
+            "worker-2.idle.down.1",
+            "worker-2.idle.down.2",
+            "worker-2.idle.down.3",
+            "worker-2.idle.left.0",
+            "worker-2.idle.left.1",
+            "worker-2.idle.left.2",
+            "worker-2.idle.left.3",
+            "worker-2.idle.right.0",
+            "worker-2.idle.right.1",
+            "worker-2.idle.right.2",
+            "worker-2.idle.right.3",
+            "worker-2.idle.up.0",
+            "worker-2.idle.up.1",
+            "worker-2.idle.up.2",
+            "worker-2.idle.up.3",
             "worker-2.walk.down.0",
             "worker-2.walk.down.1",
             "worker-2.walk.down.2",
@@ -179,38 +951,41 @@
             "worker-2.walk.up.1",
             "worker-2.walk.up.2",
             "worker-2.walk.up.3",
-            "worker-2.work.0",
-            "worker-2.work.1",
-            "worker-2.work.2",
-            "worker-2.work.3",
-            "worker-2.work.4",
-            "worker-2.work.5",
-            "worker-2.read.0",
-            "worker-2.read.1",
-            "worker-2.read.2",
-            "worker-2.read.3",
-            "worker-2.talk.0",
-            "worker-2.talk.1",
-            "worker-2.talk.2",
-            "worker-2.talk.3",
-            "worker-2.test.0",
-            "worker-2.test.1",
-            "worker-2.test.2",
-            "worker-2.test.3",
-            "worker-2.test.4",
-            "worker-2.test.5",
-            "worker-2.celebrate.0",
-            "worker-2.celebrate.1",
-            "worker-2.celebrate.2",
-            "worker-2.celebrate.3",
-            "worker-2.celebrate.4",
-            "worker-2.celebrate.5",
-            "worker-2.error.0",
-            "worker-2.error.1",
-            "worker-3.idle.0",
-            "worker-3.idle.1",
-            "worker-3.idle.2",
-            "worker-3.idle.3",
+            "worker-2.work.up.0",
+            "worker-2.work.up.1",
+            "worker-2.work.up.2",
+            "worker-2.read.down.0",
+            "worker-2.read.down.1",
+            "worker-2.read.down.2",
+            "worker-2.read.down.3",
+            "worker-2.talk.down.0",
+            "worker-2.talk.down.1",
+            "worker-2.talk.down.2",
+            "worker-2.test.up.0",
+            "worker-2.test.up.1",
+            "worker-2.test.up.2",
+            "worker-2.celebrate.down.0",
+            "worker-2.celebrate.down.1",
+            "worker-2.celebrate.down.2",
+            "worker-2.error.down.0",
+            "worker-2.error.down.1",
+            "worker-2.error.down.2",
+            "worker-3.idle.down.0",
+            "worker-3.idle.down.1",
+            "worker-3.idle.down.2",
+            "worker-3.idle.down.3",
+            "worker-3.idle.left.0",
+            "worker-3.idle.left.1",
+            "worker-3.idle.left.2",
+            "worker-3.idle.left.3",
+            "worker-3.idle.right.0",
+            "worker-3.idle.right.1",
+            "worker-3.idle.right.2",
+            "worker-3.idle.right.3",
+            "worker-3.idle.up.0",
+            "worker-3.idle.up.1",
+            "worker-3.idle.up.2",
+            "worker-3.idle.up.3",
             "worker-3.walk.down.0",
             "worker-3.walk.down.1",
             "worker-3.walk.down.2",
@@ -227,38 +1002,41 @@
             "worker-3.walk.up.1",
             "worker-3.walk.up.2",
             "worker-3.walk.up.3",
-            "worker-3.work.0",
-            "worker-3.work.1",
-            "worker-3.work.2",
-            "worker-3.work.3",
-            "worker-3.work.4",
-            "worker-3.work.5",
-            "worker-3.read.0",
-            "worker-3.read.1",
-            "worker-3.read.2",
-            "worker-3.read.3",
-            "worker-3.talk.0",
-            "worker-3.talk.1",
-            "worker-3.talk.2",
-            "worker-3.talk.3",
-            "worker-3.test.0",
-            "worker-3.test.1",
-            "worker-3.test.2",
-            "worker-3.test.3",
-            "worker-3.test.4",
-            "worker-3.test.5",
-            "worker-3.celebrate.0",
-            "worker-3.celebrate.1",
-            "worker-3.celebrate.2",
-            "worker-3.celebrate.3",
-            "worker-3.celebrate.4",
-            "worker-3.celebrate.5",
-            "worker-3.error.0",
-            "worker-3.error.1",
-            "worker-4.idle.0",
-            "worker-4.idle.1",
-            "worker-4.idle.2",
-            "worker-4.idle.3",
+            "worker-3.work.up.0",
+            "worker-3.work.up.1",
+            "worker-3.work.up.2",
+            "worker-3.read.down.0",
+            "worker-3.read.down.1",
+            "worker-3.read.down.2",
+            "worker-3.read.down.3",
+            "worker-3.talk.down.0",
+            "worker-3.talk.down.1",
+            "worker-3.talk.down.2",
+            "worker-3.test.up.0",
+            "worker-3.test.up.1",
+            "worker-3.test.up.2",
+            "worker-3.celebrate.down.0",
+            "worker-3.celebrate.down.1",
+            "worker-3.celebrate.down.2",
+            "worker-3.error.down.0",
+            "worker-3.error.down.1",
+            "worker-3.error.down.2",
+            "worker-4.idle.down.0",
+            "worker-4.idle.down.1",
+            "worker-4.idle.down.2",
+            "worker-4.idle.down.3",
+            "worker-4.idle.left.0",
+            "worker-4.idle.left.1",
+            "worker-4.idle.left.2",
+            "worker-4.idle.left.3",
+            "worker-4.idle.right.0",
+            "worker-4.idle.right.1",
+            "worker-4.idle.right.2",
+            "worker-4.idle.right.3",
+            "worker-4.idle.up.0",
+            "worker-4.idle.up.1",
+            "worker-4.idle.up.2",
+            "worker-4.idle.up.3",
             "worker-4.walk.down.0",
             "worker-4.walk.down.1",
             "worker-4.walk.down.2",
@@ -275,38 +1053,41 @@
             "worker-4.walk.up.1",
             "worker-4.walk.up.2",
             "worker-4.walk.up.3",
-            "worker-4.work.0",
-            "worker-4.work.1",
-            "worker-4.work.2",
-            "worker-4.work.3",
-            "worker-4.work.4",
-            "worker-4.work.5",
-            "worker-4.read.0",
-            "worker-4.read.1",
-            "worker-4.read.2",
-            "worker-4.read.3",
-            "worker-4.talk.0",
-            "worker-4.talk.1",
-            "worker-4.talk.2",
-            "worker-4.talk.3",
-            "worker-4.test.0",
-            "worker-4.test.1",
-            "worker-4.test.2",
-            "worker-4.test.3",
-            "worker-4.test.4",
-            "worker-4.test.5",
-            "worker-4.celebrate.0",
-            "worker-4.celebrate.1",
-            "worker-4.celebrate.2",
-            "worker-4.celebrate.3",
-            "worker-4.celebrate.4",
-            "worker-4.celebrate.5",
-            "worker-4.error.0",
-            "worker-4.error.1",
-            "advisor.idle.0",
-            "advisor.idle.1",
-            "advisor.idle.2",
-            "advisor.idle.3",
+            "worker-4.work.up.0",
+            "worker-4.work.up.1",
+            "worker-4.work.up.2",
+            "worker-4.read.down.0",
+            "worker-4.read.down.1",
+            "worker-4.read.down.2",
+            "worker-4.read.down.3",
+            "worker-4.talk.down.0",
+            "worker-4.talk.down.1",
+            "worker-4.talk.down.2",
+            "worker-4.test.up.0",
+            "worker-4.test.up.1",
+            "worker-4.test.up.2",
+            "worker-4.celebrate.down.0",
+            "worker-4.celebrate.down.1",
+            "worker-4.celebrate.down.2",
+            "worker-4.error.down.0",
+            "worker-4.error.down.1",
+            "worker-4.error.down.2",
+            "advisor.idle.down.0",
+            "advisor.idle.down.1",
+            "advisor.idle.down.2",
+            "advisor.idle.down.3",
+            "advisor.idle.left.0",
+            "advisor.idle.left.1",
+            "advisor.idle.left.2",
+            "advisor.idle.left.3",
+            "advisor.idle.right.0",
+            "advisor.idle.right.1",
+            "advisor.idle.right.2",
+            "advisor.idle.right.3",
+            "advisor.idle.up.0",
+            "advisor.idle.up.1",
+            "advisor.idle.up.2",
+            "advisor.idle.up.3",
             "advisor.walk.down.0",
             "advisor.walk.down.1",
             "advisor.walk.down.2",
@@ -323,38 +1104,41 @@
             "advisor.walk.up.1",
             "advisor.walk.up.2",
             "advisor.walk.up.3",
-            "advisor.work.0",
-            "advisor.work.1",
-            "advisor.work.2",
-            "advisor.work.3",
-            "advisor.work.4",
-            "advisor.work.5",
-            "advisor.read.0",
-            "advisor.read.1",
-            "advisor.read.2",
-            "advisor.read.3",
-            "advisor.talk.0",
-            "advisor.talk.1",
-            "advisor.talk.2",
-            "advisor.talk.3",
-            "advisor.test.0",
-            "advisor.test.1",
-            "advisor.test.2",
-            "advisor.test.3",
-            "advisor.test.4",
-            "advisor.test.5",
-            "advisor.celebrate.0",
-            "advisor.celebrate.1",
-            "advisor.celebrate.2",
-            "advisor.celebrate.3",
-            "advisor.celebrate.4",
-            "advisor.celebrate.5",
-            "advisor.error.0",
-            "advisor.error.1",
-            "qa.idle.0",
-            "qa.idle.1",
-            "qa.idle.2",
-            "qa.idle.3",
+            "advisor.work.up.0",
+            "advisor.work.up.1",
+            "advisor.work.up.2",
+            "advisor.read.down.0",
+            "advisor.read.down.1",
+            "advisor.read.down.2",
+            "advisor.read.down.3",
+            "advisor.talk.down.0",
+            "advisor.talk.down.1",
+            "advisor.talk.down.2",
+            "advisor.test.up.0",
+            "advisor.test.up.1",
+            "advisor.test.up.2",
+            "advisor.celebrate.down.0",
+            "advisor.celebrate.down.1",
+            "advisor.celebrate.down.2",
+            "advisor.error.down.0",
+            "advisor.error.down.1",
+            "advisor.error.down.2",
+            "qa.idle.down.0",
+            "qa.idle.down.1",
+            "qa.idle.down.2",
+            "qa.idle.down.3",
+            "qa.idle.left.0",
+            "qa.idle.left.1",
+            "qa.idle.left.2",
+            "qa.idle.left.3",
+            "qa.idle.right.0",
+            "qa.idle.right.1",
+            "qa.idle.right.2",
+            "qa.idle.right.3",
+            "qa.idle.up.0",
+            "qa.idle.up.1",
+            "qa.idle.up.2",
+            "qa.idle.up.3",
             "qa.walk.down.0",
             "qa.walk.down.1",
             "qa.walk.down.2",
@@ -371,44 +1155,47 @@
             "qa.walk.up.1",
             "qa.walk.up.2",
             "qa.walk.up.3",
-            "qa.work.0",
-            "qa.work.1",
-            "qa.work.2",
-            "qa.work.3",
-            "qa.work.4",
-            "qa.work.5",
-            "qa.read.0",
-            "qa.read.1",
-            "qa.read.2",
-            "qa.read.3",
-            "qa.talk.0",
-            "qa.talk.1",
-            "qa.talk.2",
-            "qa.talk.3",
-            "qa.test.0",
-            "qa.test.1",
-            "qa.test.2",
-            "qa.test.3",
-            "qa.test.4",
-            "qa.test.5",
-            "qa.celebrate.0",
-            "qa.celebrate.1",
-            "qa.celebrate.2",
-            "qa.celebrate.3",
-            "qa.celebrate.4",
-            "qa.celebrate.5",
-            "qa.error.0",
-            "qa.error.1"
+            "qa.work.up.0",
+            "qa.work.up.1",
+            "qa.work.up.2",
+            "qa.read.down.0",
+            "qa.read.down.1",
+            "qa.read.down.2",
+            "qa.read.down.3",
+            "qa.talk.down.0",
+            "qa.talk.down.1",
+            "qa.talk.down.2",
+            "qa.test.up.0",
+            "qa.test.up.1",
+            "qa.test.up.2",
+            "qa.celebrate.down.0",
+            "qa.celebrate.down.1",
+            "qa.celebrate.down.2",
+            "qa.error.down.0",
+            "qa.error.down.1",
+            "qa.error.down.2"
           ],
-          "sha256": "f6d4e44da8c89a6a4b86babb36eb96b9379facbbfda88b52fe32c6ac02961322"
+          "sha256": "6a409c899378936c35bc920e83080870c0f170f460b7fae9baa4d9ff9d97721d"
         },
         {
           "path": "public/assets/characters/characters-atlas.json",
           "frames": [
-            "manager.idle.0",
-            "manager.idle.1",
-            "manager.idle.2",
-            "manager.idle.3",
+            "manager.idle.down.0",
+            "manager.idle.down.1",
+            "manager.idle.down.2",
+            "manager.idle.down.3",
+            "manager.idle.left.0",
+            "manager.idle.left.1",
+            "manager.idle.left.2",
+            "manager.idle.left.3",
+            "manager.idle.right.0",
+            "manager.idle.right.1",
+            "manager.idle.right.2",
+            "manager.idle.right.3",
+            "manager.idle.up.0",
+            "manager.idle.up.1",
+            "manager.idle.up.2",
+            "manager.idle.up.3",
             "manager.walk.down.0",
             "manager.walk.down.1",
             "manager.walk.down.2",
@@ -425,38 +1212,41 @@
             "manager.walk.up.1",
             "manager.walk.up.2",
             "manager.walk.up.3",
-            "manager.work.0",
-            "manager.work.1",
-            "manager.work.2",
-            "manager.work.3",
-            "manager.work.4",
-            "manager.work.5",
-            "manager.read.0",
-            "manager.read.1",
-            "manager.read.2",
-            "manager.read.3",
-            "manager.talk.0",
-            "manager.talk.1",
-            "manager.talk.2",
-            "manager.talk.3",
-            "manager.test.0",
-            "manager.test.1",
-            "manager.test.2",
-            "manager.test.3",
-            "manager.test.4",
-            "manager.test.5",
-            "manager.celebrate.0",
-            "manager.celebrate.1",
-            "manager.celebrate.2",
-            "manager.celebrate.3",
-            "manager.celebrate.4",
-            "manager.celebrate.5",
-            "manager.error.0",
-            "manager.error.1",
-            "worker-1.idle.0",
-            "worker-1.idle.1",
-            "worker-1.idle.2",
-            "worker-1.idle.3",
+            "manager.work.up.0",
+            "manager.work.up.1",
+            "manager.work.up.2",
+            "manager.read.down.0",
+            "manager.read.down.1",
+            "manager.read.down.2",
+            "manager.read.down.3",
+            "manager.talk.down.0",
+            "manager.talk.down.1",
+            "manager.talk.down.2",
+            "manager.test.up.0",
+            "manager.test.up.1",
+            "manager.test.up.2",
+            "manager.celebrate.down.0",
+            "manager.celebrate.down.1",
+            "manager.celebrate.down.2",
+            "manager.error.down.0",
+            "manager.error.down.1",
+            "manager.error.down.2",
+            "worker-1.idle.down.0",
+            "worker-1.idle.down.1",
+            "worker-1.idle.down.2",
+            "worker-1.idle.down.3",
+            "worker-1.idle.left.0",
+            "worker-1.idle.left.1",
+            "worker-1.idle.left.2",
+            "worker-1.idle.left.3",
+            "worker-1.idle.right.0",
+            "worker-1.idle.right.1",
+            "worker-1.idle.right.2",
+            "worker-1.idle.right.3",
+            "worker-1.idle.up.0",
+            "worker-1.idle.up.1",
+            "worker-1.idle.up.2",
+            "worker-1.idle.up.3",
             "worker-1.walk.down.0",
             "worker-1.walk.down.1",
             "worker-1.walk.down.2",
@@ -473,38 +1263,41 @@
             "worker-1.walk.up.1",
             "worker-1.walk.up.2",
             "worker-1.walk.up.3",
-            "worker-1.work.0",
-            "worker-1.work.1",
-            "worker-1.work.2",
-            "worker-1.work.3",
-            "worker-1.work.4",
-            "worker-1.work.5",
-            "worker-1.read.0",
-            "worker-1.read.1",
-            "worker-1.read.2",
-            "worker-1.read.3",
-            "worker-1.talk.0",
-            "worker-1.talk.1",
-            "worker-1.talk.2",
-            "worker-1.talk.3",
-            "worker-1.test.0",
-            "worker-1.test.1",
-            "worker-1.test.2",
-            "worker-1.test.3",
-            "worker-1.test.4",
-            "worker-1.test.5",
-            "worker-1.celebrate.0",
-            "worker-1.celebrate.1",
-            "worker-1.celebrate.2",
-            "worker-1.celebrate.3",
-            "worker-1.celebrate.4",
-            "worker-1.celebrate.5",
-            "worker-1.error.0",
-            "worker-1.error.1",
-            "worker-2.idle.0",
-            "worker-2.idle.1",
-            "worker-2.idle.2",
-            "worker-2.idle.3",
+            "worker-1.work.up.0",
+            "worker-1.work.up.1",
+            "worker-1.work.up.2",
+            "worker-1.read.down.0",
+            "worker-1.read.down.1",
+            "worker-1.read.down.2",
+            "worker-1.read.down.3",
+            "worker-1.talk.down.0",
+            "worker-1.talk.down.1",
+            "worker-1.talk.down.2",
+            "worker-1.test.up.0",
+            "worker-1.test.up.1",
+            "worker-1.test.up.2",
+            "worker-1.celebrate.down.0",
+            "worker-1.celebrate.down.1",
+            "worker-1.celebrate.down.2",
+            "worker-1.error.down.0",
+            "worker-1.error.down.1",
+            "worker-1.error.down.2",
+            "worker-2.idle.down.0",
+            "worker-2.idle.down.1",
+            "worker-2.idle.down.2",
+            "worker-2.idle.down.3",
+            "worker-2.idle.left.0",
+            "worker-2.idle.left.1",
+            "worker-2.idle.left.2",
+            "worker-2.idle.left.3",
+            "worker-2.idle.right.0",
+            "worker-2.idle.right.1",
+            "worker-2.idle.right.2",
+            "worker-2.idle.right.3",
+            "worker-2.idle.up.0",
+            "worker-2.idle.up.1",
+            "worker-2.idle.up.2",
+            "worker-2.idle.up.3",
             "worker-2.walk.down.0",
             "worker-2.walk.down.1",
             "worker-2.walk.down.2",
@@ -521,38 +1314,41 @@
             "worker-2.walk.up.1",
             "worker-2.walk.up.2",
             "worker-2.walk.up.3",
-            "worker-2.work.0",
-            "worker-2.work.1",
-            "worker-2.work.2",
-            "worker-2.work.3",
-            "worker-2.work.4",
-            "worker-2.work.5",
-            "worker-2.read.0",
-            "worker-2.read.1",
-            "worker-2.read.2",
-            "worker-2.read.3",
-            "worker-2.talk.0",
-            "worker-2.talk.1",
-            "worker-2.talk.2",
-            "worker-2.talk.3",
-            "worker-2.test.0",
-            "worker-2.test.1",
-            "worker-2.test.2",
-            "worker-2.test.3",
-            "worker-2.test.4",
-            "worker-2.test.5",
-            "worker-2.celebrate.0",
-            "worker-2.celebrate.1",
-            "worker-2.celebrate.2",
-            "worker-2.celebrate.3",
-            "worker-2.celebrate.4",
-            "worker-2.celebrate.5",
-            "worker-2.error.0",
-            "worker-2.error.1",
-            "worker-3.idle.0",
-            "worker-3.idle.1",
-            "worker-3.idle.2",
-            "worker-3.idle.3",
+            "worker-2.work.up.0",
+            "worker-2.work.up.1",
+            "worker-2.work.up.2",
+            "worker-2.read.down.0",
+            "worker-2.read.down.1",
+            "worker-2.read.down.2",
+            "worker-2.read.down.3",
+            "worker-2.talk.down.0",
+            "worker-2.talk.down.1",
+            "worker-2.talk.down.2",
+            "worker-2.test.up.0",
+            "worker-2.test.up.1",
+            "worker-2.test.up.2",
+            "worker-2.celebrate.down.0",
+            "worker-2.celebrate.down.1",
+            "worker-2.celebrate.down.2",
+            "worker-2.error.down.0",
+            "worker-2.error.down.1",
+            "worker-2.error.down.2",
+            "worker-3.idle.down.0",
+            "worker-3.idle.down.1",
+            "worker-3.idle.down.2",
+            "worker-3.idle.down.3",
+            "worker-3.idle.left.0",
+            "worker-3.idle.left.1",
+            "worker-3.idle.left.2",
+            "worker-3.idle.left.3",
+            "worker-3.idle.right.0",
+            "worker-3.idle.right.1",
+            "worker-3.idle.right.2",
+            "worker-3.idle.right.3",
+            "worker-3.idle.up.0",
+            "worker-3.idle.up.1",
+            "worker-3.idle.up.2",
+            "worker-3.idle.up.3",
             "worker-3.walk.down.0",
             "worker-3.walk.down.1",
             "worker-3.walk.down.2",
@@ -569,38 +1365,41 @@
             "worker-3.walk.up.1",
             "worker-3.walk.up.2",
             "worker-3.walk.up.3",
-            "worker-3.work.0",
-            "worker-3.work.1",
-            "worker-3.work.2",
-            "worker-3.work.3",
-            "worker-3.work.4",
-            "worker-3.work.5",
-            "worker-3.read.0",
-            "worker-3.read.1",
-            "worker-3.read.2",
-            "worker-3.read.3",
-            "worker-3.talk.0",
-            "worker-3.talk.1",
-            "worker-3.talk.2",
-            "worker-3.talk.3",
-            "worker-3.test.0",
-            "worker-3.test.1",
-            "worker-3.test.2",
-            "worker-3.test.3",
-            "worker-3.test.4",
-            "worker-3.test.5",
-            "worker-3.celebrate.0",
-            "worker-3.celebrate.1",
-            "worker-3.celebrate.2",
-            "worker-3.celebrate.3",
-            "worker-3.celebrate.4",
-            "worker-3.celebrate.5",
-            "worker-3.error.0",
-            "worker-3.error.1",
-            "worker-4.idle.0",
-            "worker-4.idle.1",
-            "worker-4.idle.2",
-            "worker-4.idle.3",
+            "worker-3.work.up.0",
+            "worker-3.work.up.1",
+            "worker-3.work.up.2",
+            "worker-3.read.down.0",
+            "worker-3.read.down.1",
+            "worker-3.read.down.2",
+            "worker-3.read.down.3",
+            "worker-3.talk.down.0",
+            "worker-3.talk.down.1",
+            "worker-3.talk.down.2",
+            "worker-3.test.up.0",
+            "worker-3.test.up.1",
+            "worker-3.test.up.2",
+            "worker-3.celebrate.down.0",
+            "worker-3.celebrate.down.1",
+            "worker-3.celebrate.down.2",
+            "worker-3.error.down.0",
+            "worker-3.error.down.1",
+            "worker-3.error.down.2",
+            "worker-4.idle.down.0",
+            "worker-4.idle.down.1",
+            "worker-4.idle.down.2",
+            "worker-4.idle.down.3",
+            "worker-4.idle.left.0",
+            "worker-4.idle.left.1",
+            "worker-4.idle.left.2",
+            "worker-4.idle.left.3",
+            "worker-4.idle.right.0",
+            "worker-4.idle.right.1",
+            "worker-4.idle.right.2",
+            "worker-4.idle.right.3",
+            "worker-4.idle.up.0",
+            "worker-4.idle.up.1",
+            "worker-4.idle.up.2",
+            "worker-4.idle.up.3",
             "worker-4.walk.down.0",
             "worker-4.walk.down.1",
             "worker-4.walk.down.2",
@@ -617,38 +1416,41 @@
             "worker-4.walk.up.1",
             "worker-4.walk.up.2",
             "worker-4.walk.up.3",
-            "worker-4.work.0",
-            "worker-4.work.1",
-            "worker-4.work.2",
-            "worker-4.work.3",
-            "worker-4.work.4",
-            "worker-4.work.5",
-            "worker-4.read.0",
-            "worker-4.read.1",
-            "worker-4.read.2",
-            "worker-4.read.3",
-            "worker-4.talk.0",
-            "worker-4.talk.1",
-            "worker-4.talk.2",
-            "worker-4.talk.3",
-            "worker-4.test.0",
-            "worker-4.test.1",
-            "worker-4.test.2",
-            "worker-4.test.3",
-            "worker-4.test.4",
-            "worker-4.test.5",
-            "worker-4.celebrate.0",
-            "worker-4.celebrate.1",
-            "worker-4.celebrate.2",
-            "worker-4.celebrate.3",
-            "worker-4.celebrate.4",
-            "worker-4.celebrate.5",
-            "worker-4.error.0",
-            "worker-4.error.1",
-            "advisor.idle.0",
-            "advisor.idle.1",
-            "advisor.idle.2",
-            "advisor.idle.3",
+            "worker-4.work.up.0",
+            "worker-4.work.up.1",
+            "worker-4.work.up.2",
+            "worker-4.read.down.0",
+            "worker-4.read.down.1",
+            "worker-4.read.down.2",
+            "worker-4.read.down.3",
+            "worker-4.talk.down.0",
+            "worker-4.talk.down.1",
+            "worker-4.talk.down.2",
+            "worker-4.test.up.0",
+            "worker-4.test.up.1",
+            "worker-4.test.up.2",
+            "worker-4.celebrate.down.0",
+            "worker-4.celebrate.down.1",
+            "worker-4.celebrate.down.2",
+            "worker-4.error.down.0",
+            "worker-4.error.down.1",
+            "worker-4.error.down.2",
+            "advisor.idle.down.0",
+            "advisor.idle.down.1",
+            "advisor.idle.down.2",
+            "advisor.idle.down.3",
+            "advisor.idle.left.0",
+            "advisor.idle.left.1",
+            "advisor.idle.left.2",
+            "advisor.idle.left.3",
+            "advisor.idle.right.0",
+            "advisor.idle.right.1",
+            "advisor.idle.right.2",
+            "advisor.idle.right.3",
+            "advisor.idle.up.0",
+            "advisor.idle.up.1",
+            "advisor.idle.up.2",
+            "advisor.idle.up.3",
             "advisor.walk.down.0",
             "advisor.walk.down.1",
             "advisor.walk.down.2",
@@ -665,38 +1467,41 @@
             "advisor.walk.up.1",
             "advisor.walk.up.2",
             "advisor.walk.up.3",
-            "advisor.work.0",
-            "advisor.work.1",
-            "advisor.work.2",
-            "advisor.work.3",
-            "advisor.work.4",
-            "advisor.work.5",
-            "advisor.read.0",
-            "advisor.read.1",
-            "advisor.read.2",
-            "advisor.read.3",
-            "advisor.talk.0",
-            "advisor.talk.1",
-            "advisor.talk.2",
-            "advisor.talk.3",
-            "advisor.test.0",
-            "advisor.test.1",
-            "advisor.test.2",
-            "advisor.test.3",
-            "advisor.test.4",
-            "advisor.test.5",
-            "advisor.celebrate.0",
-            "advisor.celebrate.1",
-            "advisor.celebrate.2",
-            "advisor.celebrate.3",
-            "advisor.celebrate.4",
-            "advisor.celebrate.5",
-            "advisor.error.0",
-            "advisor.error.1",
-            "qa.idle.0",
-            "qa.idle.1",
-            "qa.idle.2",
-            "qa.idle.3",
+            "advisor.work.up.0",
+            "advisor.work.up.1",
+            "advisor.work.up.2",
+            "advisor.read.down.0",
+            "advisor.read.down.1",
+            "advisor.read.down.2",
+            "advisor.read.down.3",
+            "advisor.talk.down.0",
+            "advisor.talk.down.1",
+            "advisor.talk.down.2",
+            "advisor.test.up.0",
+            "advisor.test.up.1",
+            "advisor.test.up.2",
+            "advisor.celebrate.down.0",
+            "advisor.celebrate.down.1",
+            "advisor.celebrate.down.2",
+            "advisor.error.down.0",
+            "advisor.error.down.1",
+            "advisor.error.down.2",
+            "qa.idle.down.0",
+            "qa.idle.down.1",
+            "qa.idle.down.2",
+            "qa.idle.down.3",
+            "qa.idle.left.0",
+            "qa.idle.left.1",
+            "qa.idle.left.2",
+            "qa.idle.left.3",
+            "qa.idle.right.0",
+            "qa.idle.right.1",
+            "qa.idle.right.2",
+            "qa.idle.right.3",
+            "qa.idle.up.0",
+            "qa.idle.up.1",
+            "qa.idle.up.2",
+            "qa.idle.up.3",
             "qa.walk.down.0",
             "qa.walk.down.1",
             "qa.walk.down.2",
@@ -713,39 +1518,30 @@
             "qa.walk.up.1",
             "qa.walk.up.2",
             "qa.walk.up.3",
-            "qa.work.0",
-            "qa.work.1",
-            "qa.work.2",
-            "qa.work.3",
-            "qa.work.4",
-            "qa.work.5",
-            "qa.read.0",
-            "qa.read.1",
-            "qa.read.2",
-            "qa.read.3",
-            "qa.talk.0",
-            "qa.talk.1",
-            "qa.talk.2",
-            "qa.talk.3",
-            "qa.test.0",
-            "qa.test.1",
-            "qa.test.2",
-            "qa.test.3",
-            "qa.test.4",
-            "qa.test.5",
-            "qa.celebrate.0",
-            "qa.celebrate.1",
-            "qa.celebrate.2",
-            "qa.celebrate.3",
-            "qa.celebrate.4",
-            "qa.celebrate.5",
-            "qa.error.0",
-            "qa.error.1"
+            "qa.work.up.0",
+            "qa.work.up.1",
+            "qa.work.up.2",
+            "qa.read.down.0",
+            "qa.read.down.1",
+            "qa.read.down.2",
+            "qa.read.down.3",
+            "qa.talk.down.0",
+            "qa.talk.down.1",
+            "qa.talk.down.2",
+            "qa.test.up.0",
+            "qa.test.up.1",
+            "qa.test.up.2",
+            "qa.celebrate.down.0",
+            "qa.celebrate.down.1",
+            "qa.celebrate.down.2",
+            "qa.error.down.0",
+            "qa.error.down.1",
+            "qa.error.down.2"
           ],
-          "sha256": "f0bd8a5aa84fe38a7c9e8a0f8d525ab40565de3f45693c215ce9e0e8a1c8a191"
+          "sha256": "d16e01009273be16f523604545533fed4839610d1e95f04dfecb7a3eaf2c7482"
         }
       ],
-      "modifications": "Three MetroCity base models were cropped from 32x32 animation cells into the existing 16x24 frame contract. Directional cycles are mapped to the existing animation keys and right-facing frames are mirrored from the left-facing cycle. No renderer code or source pixels were synthesized."
+      "modifications": "Body, clothing, shoes, eyes, and hair layers were composited into seven 32x32 role presets and mapped to Cozy Agent Office semantic animation keys."
     }
   ]
 }

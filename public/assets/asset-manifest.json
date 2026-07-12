@@ -1,15 +1,15 @@
 {
-  "version": 1,
+  "version": 2,
   "tileSize": 16,
   "office": {
-    "width": 352,
-    "height": 240,
+    "width": 768,
+    "height": 288,
     "image": "/assets/office/office-atlas.png",
     "atlas": "/assets/office/office-atlas.json"
   },
   "characters": {
-    "frameWidth": 16,
-    "frameHeight": 24,
+    "frameWidth": 32,
+    "frameHeight": 32,
     "image": "/assets/characters/characters-atlas.png",
     "atlas": "/assets/characters/characters-atlas.json",
     "actors": [

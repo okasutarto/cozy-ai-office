@@ -120,14 +120,42 @@ textarea::placeholder {
   position: relative;
   min-width: 0;
   min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
   background:
     linear-gradient(rgba(65, 82, 107, 0.2) 1px, transparent 1px),
     linear-gradient(90deg, rgba(65, 82, 107, 0.2) 1px, transparent 1px), var(--ink-800);
   background-size: 32px 32px;
+}
+
+.office-canvas-container,
+.office-canvas-container canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.office-role-tabs {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.office-role-tabs button {
+  min-width: 28px;
+  height: 24px;
+  padding: 0 5px;
+  color: var(--parchment-300);
+  background: var(--ink-800);
+  border: 1px solid var(--wood-700);
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.office-role-tabs button[aria-pressed="true"] {
+  color: var(--ink-950);
+  background: var(--gold-400);
+  border-color: var(--focus);
 }
 
 .office-stage::after {

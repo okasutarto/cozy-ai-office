@@ -1,6 +1,6 @@
 import Database from "better-sqlite3";
 import { createHash, randomUUID } from "node:crypto";
-import { lstat, mkdir, readFile, rm, rename, writeFile, open } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, rm, rename, writeFile, open } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { constants } from "node:fs";
 import type { ProjectStore } from "../db/project-store.js";
@@ -11,12 +11,80 @@ import { RelativePathSchema, type ContextSnapshot } from "../../shared/contracts
 export const MAX_CONTEXT_FILE_BYTES = 2 * 1024 * 1024;
 export const MAX_CONTEXT_TOTAL_BYTES = 100 * 1024 * 1024;
 
+const TRANSIENT_RENAME_CODES = new Set(["EACCES", "EBUSY", "EPERM"]);
+const RENAME_RETRY_DELAYS_MS = [25, 50, 100];
+
 export type DisposableContext = {
   path: string;
   baselineHash: string;
   verifyUnchanged(): Promise<void>;
   dispose(): Promise<void>;
 };
+
+export async function renameDirectoryWithRetry(
+  source: string,
+  destination: string,
+  options: {
+    renameDirectory?: typeof rename;
+    wait?: (milliseconds: number) => Promise<void>;
+  } = {},
+): Promise<void> {
+  const renameDirectory = options.renameDirectory ?? rename;
+  const wait =
+    options.wait ??
+    ((milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
+
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await renameDirectory(source, destination);
+      return;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      const delay = RENAME_RETRY_DELAYS_MS[attempt];
+      if (!code || !TRANSIENT_RENAME_CODES.has(code) || delay === undefined) throw error;
+      await wait(delay);
+    }
+  }
+}
+
+async function copyDirectoryExclusive(source: string, destination: string): Promise<void> {
+  await mkdir(destination);
+  try {
+    for (const sourceFile of await getFilesRecursive(source)) {
+      const relativePath = relative(source, sourceFile);
+      const destinationFile = join(destination, relativePath);
+      await mkdir(dirname(destinationFile), { recursive: true });
+      await copyFile(sourceFile, destinationFile, constants.COPYFILE_EXCL);
+
+      const handle = await open(destinationFile, "r+");
+      try {
+        await handle.sync();
+      } finally {
+        await handle.close();
+      }
+    }
+  } catch (error) {
+    await rm(destination, { recursive: true, force: true }).catch(() => undefined);
+    throw error;
+  }
+}
+
+export async function finalizeSnapshotDirectory(
+  source: string,
+  destination: string,
+  options: Parameters<typeof renameDirectoryWithRetry>[2] = {},
+): Promise<void> {
+  try {
+    await renameDirectoryWithRetry(source, destination, options);
+    return;
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (!code || !TRANSIENT_RENAME_CODES.has(code)) throw error;
+  }
+
+  await copyDirectoryExclusive(source, destination);
+  await rm(source, { recursive: true, force: true });
+}
 
 function isCredentialShaped(path: string): boolean {
   const name = path.replaceAll("\\", "/").split("/").at(-1)?.toLowerCase() ?? "";
@@ -238,7 +306,7 @@ export class ContextSnapshotService {
       await mkdir(dirname(finalDir), { recursive: true });
 
       try {
-        await rename(tempDir, finalDir);
+        await finalizeSnapshotDirectory(tempDir, finalDir);
       } catch (err) {
         // If rename failed because of uniqueness race, return the existing
         const existingRecord = this.projects.getContextSnapshot(snapshotId);

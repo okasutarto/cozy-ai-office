@@ -19,6 +19,16 @@ import type {
   RunStorage,
 } from "../shared/api.js";
 
+const OFFICE_ROLE_TABS = [
+  ["manager", "Mgr"],
+  ["worker-1", "W1"],
+  ["worker-2", "W2"],
+  ["worker-3", "W3"],
+  ["worker-4", "W4"],
+  ["advisor", "Adv"],
+  ["qa", "QA"],
+] as const;
+
 export const App: React.FC = () => {
   const state = useAppState();
   const dispatch = useAppDispatch();
@@ -387,21 +397,20 @@ export const App: React.FC = () => {
       <main className="panel office-panel">
         <div className="panel-heading">
           <span>▱ Swarm Workshop Map (Nearest-Neighbor Render)</span>
-          <span className="office-legend">
-            <span>
-              <i className="legend-dot" />
-              Active swarm
-            </span>
-            <span>
-              <i className="legend-dot clean" />
-              Clean isolated worktrees
-            </span>
-          </span>
+          <nav className="office-role-tabs" aria-label="Office roles">
+            {OFFICE_ROLE_TABS.map(([actorId, label]) => (
+              <button
+                key={actorId}
+                type="button"
+                aria-pressed={state.selectedActorId === actorId}
+                onClick={() => dispatch({ type: "actor_selected", actorId })}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
         </div>
         <div className="office-stage">
-          <span className="office-hotspot docs">▣ Reference Docs</span>
-          <span className="office-hotspot coffee">◉ Coffee Pot</span>
-          <span className="office-hotspot plant">⚑ Ficus Plant</span>
           <OfficeCanvas />
         </div>
       </main>

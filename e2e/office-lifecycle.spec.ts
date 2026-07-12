@@ -43,10 +43,43 @@ test.describe("Cozy Agent Office Canvas Lifecycle & PixiJS 8 Integrity", () => {
     await expect(container).toHaveAttribute("data-pixi-antialias", "false");
     await expect(container).toHaveAttribute("data-pixi-scale-mode", "nearest");
     await expect(container).toHaveAttribute("data-pixi-scene-count", "1");
+    await expect(container).toHaveAttribute("data-office-map", "768x288");
+    await expect(container).toHaveAttribute("data-office-perimeter", "true");
 
     // Check that exactly one canvas is appended
     const canvasCount = await container.locator("canvas").count();
     expect(canvasCount).toBe(1);
+  });
+
+  test("keeps the renderer full-bleed at supported viewport sizes", async ({ page, baseURL }) => {
+    await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
+    const { projectPath } = await getTestStatus(baseURL!);
+    await completeSetup(page, projectPath);
+
+    for (const viewport of [
+      { width: 1180, height: 720 },
+      { width: 1440, height: 900 },
+      { width: 1920, height: 1080 },
+      { width: 1300, height: 480 },
+    ]) {
+      await page.setViewportSize(viewport);
+      const container = page.locator(".office-canvas-container");
+      const canvas = container.locator("canvas");
+      await expect(container).toHaveAttribute("data-pixi-ready", "true");
+      await expect
+        .poll(async () => {
+          const [containerBox, canvasBox] = await Promise.all([
+            container.boundingBox(),
+            canvas.boundingBox(),
+          ]);
+          if (!containerBox || !canvasBox) return false;
+          return (
+            Math.abs(containerBox.width - canvasBox.width) <= 1 &&
+            Math.abs(containerBox.height - canvasBox.height) <= 1
+          );
+        })
+        .toBe(true);
+    }
   });
 
   test("resists crashes on unmount under React StrictMode double effect simulations", async ({
@@ -80,7 +113,7 @@ test.describe("Cozy Agent Office Canvas Lifecycle & PixiJS 8 Integrity", () => {
     baseURL,
   }) => {
     // Setup route interception with 500ms delay for assets loading
-    await page.route("**/assets/office/office-atlas.json", async (route) => {
+    await page.route("**/office-atlas.json", async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
       await route.continue();
     });

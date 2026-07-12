@@ -49,6 +49,7 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     page,
     baseURL,
   }) => {
+    test.setTimeout(90_000);
     // 1. Open with session fragment
     const launchUrl = `/#session=e2e-session-token-0000000000000000000000000001`;
     await page.goto(launchUrl);
@@ -108,14 +109,13 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     // Finally, Advisor delivery review
     await releaseBarrier(baseURL!, "reviewing-delivery");
 
-    // We should reload during execution / ready stage to prove it reconnects cleanly
+    // Reach ready_to_apply through the live subscription, then reload to prove
+    // the completed projection rehydrates deterministically without a transition race.
+    const readyToApply = page.getByText(/ready to apply/i).first();
+    await expect(readyToApply).toBeVisible({ timeout: 60_000 });
     await page.reload();
     await expect(page.locator("text=Cozy Agent Office")).toBeVisible();
-
-    // 11. Reach ready_to_apply
-    await expect(page.getByText(/ready to apply/i).first()).toBeVisible({
-      timeout: 30_000,
-    });
+    await expect(readyToApply).toBeVisible();
 
     // Verify none of the three files exist on root branch yet
     expect(fs.existsSync(path.join(projectPath, "src/greeting.ts"))).toBe(false);

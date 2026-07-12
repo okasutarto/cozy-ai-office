@@ -75,6 +75,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     await releaseBarrier(baseURL!, "planning");
     await releaseBarrier(baseURL!, "reviewing");
     await expect(page.locator("text=WORKING")).toBeVisible();
+    await expect(wrapper).toHaveAttribute("data-motion-state", "moving");
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({
@@ -107,6 +108,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     // 6. Ready State
     await releaseBarrier(baseURL!, "reviewing-delivery");
     await expect(page.getByText(/ready to apply/i).first()).toBeVisible();
+    await expect(wrapper).toHaveAttribute("data-motion-state", "moving");
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({
@@ -207,6 +209,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
   });
 
   test("runs without snapshots in reduced motion mode", async ({ page, baseURL }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
     await completeSetup(page, projectPath);
@@ -214,6 +217,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     // Toggle reduce-motion locally or verify state transitions instantly
     const wrapper = page.locator(".office-scene-wrapper");
     await expect(wrapper).toBeVisible();
+    await expect(wrapper).toHaveAttribute("data-reduced-motion", "true");
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
   });
 });

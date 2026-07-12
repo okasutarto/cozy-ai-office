@@ -4,20 +4,92 @@
       "frame": {
         "x": 0,
         "y": 0,
-        "w": 352,
-        "h": 240
+        "w": 768,
+        "h": 288
       },
       "rotated": false,
       "trimmed": false,
       "spriteSourceSize": {
         "x": 0,
         "y": 0,
-        "w": 352,
-        "h": 240
+        "w": 768,
+        "h": 288
       },
       "sourceSize": {
-        "w": 352,
-        "h": 240
+        "w": 768,
+        "h": 288
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "office.floor": {
+      "frame": {
+        "x": 768,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 32
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "office.wall": {
+      "frame": {
+        "x": 800,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 32
+      },
+      "anchor": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    "office.wallBase": {
+      "frame": {
+        "x": 832,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 32
       },
       "anchor": {
         "x": 0,
@@ -27,11 +99,11 @@
   },
   "meta": {
     "app": "cozy-agent-office-generator",
-    "version": "1",
+    "version": "2",
     "image": "office-atlas.png",
     "format": "RGBA8888",
     "size": {
-      "w": 512,
+      "w": 1024,
       "h": 512
     },
     "scale": "1"

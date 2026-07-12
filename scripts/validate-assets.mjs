@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { PNG } from "pngjs";
 
 function getSha256(filePath) {
   const content = fs.readFileSync(filePath);
@@ -69,7 +70,7 @@ function validateAtlasJson(filePath, expectedImageName, expectedW, expectedH, ex
   if (!meta) throw new Error(`Missing meta block in ${filePath}`);
   if (meta.app !== "cozy-agent-office-generator")
     throw new Error(`Invalid meta.app in ${filePath}`);
-  if (meta.version !== "1") throw new Error(`Invalid meta.version in ${filePath}`);
+  if (meta.version !== "2") throw new Error(`Invalid meta.version in ${filePath}`);
   if (meta.image !== expectedImageName) throw new Error(`Invalid meta.image in ${filePath}`);
   if (meta.format !== "RGBA8888") throw new Error(`Invalid meta.format in ${filePath}`);
   if (meta.size.w !== expectedW || meta.size.h !== expectedH) {
@@ -123,11 +124,11 @@ try {
   console.log("Validating generated assets...");
 
   // 1. Validate PNG headers & dimensions
-  validatePngHeader("public/assets/office/office-atlas.png", 512, 512);
-  validatePngHeader("public/assets/characters/characters-atlas.png", 1024, 256);
+  validatePngHeader("public/assets/office/office-atlas.png", 1024, 512);
+  validatePngHeader("public/assets/characters/characters-atlas.png", 1024, 512);
 
   // 2. Validate Atlases JSON structure
-  validateAtlasJson("public/assets/office/office-atlas.json", "office-atlas.png", 512, 512, {
+  validateAtlasJson("public/assets/office/office-atlas.json", "office-atlas.png", 1024, 512, {
     x: 0,
     y: 0,
   });
@@ -135,24 +136,27 @@ try {
     "public/assets/characters/characters-atlas.json",
     "characters-atlas.png",
     1024,
-    256,
+    512,
     { x: 0.5, y: 1 },
   );
 
-  // 3. Verify exactly 336 character frames exist
+  // 3. Verify the 32x32 directional character contract.
   const actors = ["manager", "worker-1", "worker-2", "worker-3", "worker-4", "advisor", "qa"];
   const anims = {
-    idle: 4,
+    "idle.down": 4,
+    "idle.left": 4,
+    "idle.right": 4,
+    "idle.up": 4,
     "walk.down": 4,
     "walk.left": 4,
     "walk.right": 4,
     "walk.up": 4,
-    work: 6,
-    read: 4,
-    talk: 4,
-    test: 6,
-    celebrate: 6,
-    error: 2,
+    "work.up": 3,
+    "read.down": 4,
+    "talk.down": 3,
+    "test.up": 3,
+    "celebrate.down": 3,
+    "error.down": 3,
   };
 
   const expectedFrameKeys = [];
@@ -164,16 +168,16 @@ try {
     });
   });
 
-  if (expectedFrameKeys.length !== 336) {
+  if (expectedFrameKeys.length !== 357) {
     throw new Error(
-      `Internal error: Expected frame keys length should be 336, got ${expectedFrameKeys.length}`,
+      `Internal error: Expected frame keys length should be 357, got ${expectedFrameKeys.length}`,
     );
   }
 
   const actualFrameKeys = Object.keys(charsData.frames);
-  if (actualFrameKeys.length !== 336) {
+  if (actualFrameKeys.length !== 357) {
     throw new Error(
-      `Expected exactly 336 frames in characters-atlas.json, got ${actualFrameKeys.length}`,
+      `Expected exactly 357 frames in characters-atlas.json, got ${actualFrameKeys.length}`,
     );
   }
 
@@ -182,6 +186,23 @@ try {
       throw new Error(`Missing expected character frame key: ${key}`);
     }
   });
+
+  const characterPng = PNG.sync.read(
+    fs.readFileSync("public/assets/characters/characters-atlas.png"),
+  );
+  for (const key of expectedFrameKeys) {
+    const frame = charsData.frames[key].frame;
+    let hasVisiblePixel = false;
+    for (let y = frame.y; y < frame.y + frame.h && !hasVisiblePixel; y++) {
+      for (let x = frame.x; x < frame.x + frame.w; x++) {
+        if (characterPng.data[(y * characterPng.width + x) * 4 + 3] > 0) {
+          hasVisiblePixel = true;
+          break;
+        }
+      }
+    }
+    if (!hasVisiblePixel) throw new Error(`Character frame ${key} is fully transparent`);
+  }
 
   // Verify animations field in characters-atlas.json
   const animations = charsData.animations;
@@ -206,18 +227,19 @@ try {
 
   // 4. Validate asset-manifest.json and licenses.json
   const manifest = JSON.parse(fs.readFileSync("public/assets/asset-manifest.json", "utf8"));
-  if (manifest.version !== 1) throw new Error("Invalid version in asset-manifest.json");
+  if (manifest.version !== 2) throw new Error("Invalid version in asset-manifest.json");
   if (manifest.tileSize !== 16) throw new Error("Invalid tileSize in asset-manifest.json");
 
   const licenses = JSON.parse(fs.readFileSync("public/assets/licenses.json", "utf8"));
-  if (licenses.version !== 1) throw new Error("Invalid version in licenses.json");
+  if (licenses.version !== 2) throw new Error("Invalid version in licenses.json");
   if (!Array.isArray(licenses.assets) || licenses.assets.length === 0) {
     throw new Error("licenses.json assets must be a non-empty array");
   }
 
   const expectedAssets = {
     "pixel-office-2dpig": "https://2dpig.itch.io/pixel-office",
-    "metrocity-characters-jik-a-4": "https://jik-a-4.itch.io/metrocity-free-topdown-character-pack",
+    "ordinary-bumblebee-customizable-characters":
+      "https://ordinary-bumblebee.itch.io/customizable-character-pack",
   };
   if (licenses.assets.length !== Object.keys(expectedAssets).length) {
     throw new Error(`Expected ${Object.keys(expectedAssets).length} licensed assets`);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { join } from "node:path";
-import { mkdir, writeFile, symlink } from "node:fs/promises";
+import { mkdir, readFile, writeFile, symlink } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { openDatabase } from "../../src/server/db/database.js";
 import { SqliteProjectStore } from "../../src/server/db/project-store.js";
@@ -9,10 +9,81 @@ import { createFakeRepo, commitFile } from "../helpers/fake-repo.js";
 import { ProcessSupervisor } from "../../src/server/system/process.js";
 import { GitClient } from "../../src/server/git/git.js";
 import { RepositoryService } from "../../src/server/git/repository.js";
-import { ContextSnapshotService } from "../../src/server/context/snapshots.js";
+import {
+  ContextSnapshotService,
+  finalizeSnapshotDirectory,
+  renameDirectoryWithRetry,
+} from "../../src/server/context/snapshots.js";
 import { AppError } from "../../src/server/errors.js";
 
 describe("Context Snapshot Service", () => {
+  it("retries transient Windows directory rename failures", async () => {
+    const delays: number[] = [];
+    let attempts = 0;
+
+    await renameDirectoryWithRetry("temp", "final", {
+      renameDirectory: async () => {
+        attempts++;
+        if (attempts < 3) {
+          const error = new Error("directory is temporarily locked") as NodeJS.ErrnoException;
+          error.code = "EPERM";
+          throw error;
+        }
+      },
+      wait: async (milliseconds) => {
+        delays.push(milliseconds);
+      },
+    });
+
+    expect(attempts).toBe(3);
+    expect(delays).toEqual([25, 50]);
+  });
+
+  it("does not retry permanent directory rename failures", async () => {
+    let attempts = 0;
+    const error = new Error("destination already exists") as NodeJS.ErrnoException;
+    error.code = "EEXIST";
+
+    await expect(
+      renameDirectoryWithRetry("temp", "final", {
+        renameDirectory: async () => {
+          attempts++;
+          throw error;
+        },
+        wait: async () => undefined,
+      }),
+    ).rejects.toBe(error);
+
+    expect(attempts).toBe(1);
+  });
+
+  it("copies snapshots when Windows keeps directory rename locked", async () => {
+    await withTempDir(async (dir) => {
+      const source = join(dir, "source");
+      const destination = join(dir, "destination");
+      await mkdir(join(source, "nested"), { recursive: true });
+      await writeFile(join(source, "manifest.json"), "manifest");
+      await writeFile(join(source, "nested", "context.txt"), "context");
+
+      await finalizeSnapshotDirectory(source, destination, {
+        renameDirectory: async () => {
+          const error = new Error("directory remains locked") as NodeJS.ErrnoException;
+          error.code = "EPERM";
+          throw error;
+        },
+        wait: async () => undefined,
+      });
+
+      await expect(readFile(join(destination, "manifest.json"), "utf8")).resolves.toBe("manifest");
+      await expect(readFile(join(destination, "nested", "context.txt"), "utf8")).resolves.toBe(
+        "context",
+      );
+      await expect(readFile(join(source, "manifest.json"), "utf8")).rejects.toMatchObject({
+        code: "ENOENT",
+      });
+    });
+  });
+
   it("creates, materializes, and verifies snapshot policies", async () => {
     await withTempDir(async (dir) => {
       const db = openDatabase(join(dir, "state.db"));

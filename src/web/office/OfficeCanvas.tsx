@@ -22,6 +22,14 @@ export const OfficeCanvas: React.FC = () => {
   const [motionState, setMotionState] = useState<"moving" | "settled">("settled");
   const [initialized, setInitialized] = useState(false);
 
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPreference = () => dispatch({ type: "reduce_motion", value: media.matches });
+    syncPreference();
+    media.addEventListener("change", syncPreference);
+    return () => media.removeEventListener("change", syncPreference);
+  }, [dispatch]);
+
   // 1. Initialize Scene & ResizeObserver
   useEffect(() => {
     const container = containerRef.current;
@@ -47,7 +55,7 @@ export const OfficeCanvas: React.FC = () => {
         return;
       }
       // Trigger initial resize
-      scene.resize(container.clientWidth || 352, container.clientHeight || 240);
+      scene.resize(container.clientWidth || 512, container.clientHeight || 288);
       setInitialized(true);
     });
 
@@ -90,11 +98,10 @@ export const OfficeCanvas: React.FC = () => {
     <div
       className="office-scene-wrapper"
       data-motion-state={motionState}
+      data-reduced-motion={state.reduceMotion ? "true" : "false"}
       style={{
         width: "100%",
         height: "100%",
-        display: "flex",
-        flexDirection: "column",
         position: "relative",
       }}
     >
@@ -103,57 +110,14 @@ export const OfficeCanvas: React.FC = () => {
         ref={containerRef}
         className="office-canvas-container"
         style={{
-          flex: 1,
+          position: "absolute",
+          inset: 0,
           width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          height: "100%",
           overflow: "hidden",
           background: "#1f1b24",
         }}
       />
-
-      {/* Accessible Navbar overlay for role selections */}
-      <nav
-        aria-label="Office roles"
-        style={{
-          position: "absolute",
-          bottom: "10px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          gap: "8px",
-          background: "rgba(31, 27, 36, 0.85)",
-          padding: "4px 8px",
-          border: "2px solid var(--ink-950)",
-          borderRadius: "4px",
-          zIndex: 10,
-        }}
-      >
-        {ACTORS.map((actor) => {
-          const isSelected = state.selectedActorId === actor.id;
-          return (
-            <button
-              key={actor.id}
-              type="button"
-              aria-pressed={isSelected}
-              onClick={() => dispatch({ type: "actor_selected", actorId: actor.id })}
-              style={{
-                background: isSelected ? "var(--gold-400)" : "var(--ink-800)",
-                color: isSelected ? "var(--ink-950)" : "var(--parchment-100)",
-                border: isSelected ? "2px solid var(--focus)" : "1px solid var(--parchment-300)",
-                padding: "4px 8px",
-                cursor: "pointer",
-                fontWeight: "bold",
-                fontSize: "12px",
-                borderRadius: "2px",
-              }}
-            >
-              {actor.label}
-            </button>
-          );
-        })}
-      </nav>
 
       {/* Screen-reader visually hidden live updates log */}
       <ul

@@ -1,75 +1,13 @@
 {
-  "version": 1,
-  "frame": { "width": 16, "height": 24 },
+  "version": 2,
+  "frame": { "width": 32, "height": 32 },
   "actors": [
-    {
-      "id": "manager",
-      "skin": "stone-light",
-      "hair": "wood-light",
-      "shirt": "paper-light",
-      "accent": "moss",
-      "accessory": "ledger"
-    },
-    {
-      "id": "worker-1",
-      "skin": "wood-dark",
-      "hair": "outline",
-      "shirt": "blue",
-      "accent": "gold",
-      "accessory": "headset"
-    },
-    {
-      "id": "worker-2",
-      "skin": "wood-light",
-      "hair": "outline",
-      "shirt": "rose",
-      "accent": "teal",
-      "accessory": "mug"
-    },
-    {
-      "id": "worker-3",
-      "skin": "stone-light",
-      "hair": "wood-mid",
-      "shirt": "teal",
-      "accent": "wood-dark",
-      "accessory": "tool-pouch"
-    },
-    {
-      "id": "worker-4",
-      "skin": "wood-mid",
-      "hair": "outline",
-      "shirt": "gold",
-      "accent": "blue",
-      "accessory": "scarf"
-    },
-    {
-      "id": "advisor",
-      "skin": "stone-light",
-      "hair": "stone-light",
-      "shirt": "rose",
-      "accent": "blue",
-      "accessory": "book"
-    },
-    {
-      "id": "qa",
-      "skin": "wood-dark",
-      "hair": "outline",
-      "shirt": "teal",
-      "accent": "gold",
-      "accessory": "goggles"
-    }
-  ],
-  "animations": {
-    "idle": 4,
-    "walk.down": 4,
-    "walk.left": 4,
-    "walk.right": 4,
-    "walk.up": 4,
-    "work": 6,
-    "read": 4,
-    "talk": 4,
-    "test": 6,
-    "celebrate": 6,
-    "error": 2
-  }
+    { "id": "manager", "skin": 1, "hair": 3, "top": 20, "bottom": 10, "shoes": 2, "eyes": 1 },
+    { "id": "worker-1", "skin": 0, "hair": 0, "top": 2, "bottom": 10, "shoes": 2, "eyes": 0 },
+    { "id": "worker-2", "skin": 1, "hair": 6, "top": 6, "bottom": 9, "shoes": 4, "eyes": 2 },
+    { "id": "worker-3", "skin": 2, "hair": 13, "top": 11, "bottom": 10, "shoes": 2, "eyes": 3 },
+    { "id": "worker-4", "skin": 3, "hair": 12, "top": 3, "bottom": 12, "shoes": 0, "eyes": 1 },
+    { "id": "advisor", "skin": 4, "hair": 19, "top": 17, "bottom": 7, "shoes": 0, "eyes": 0 },
+    { "id": "qa", "skin": 3, "hair": 23, "top": 15, "bottom": 10, "shoes": 2, "eyes": 2 }
+  ]
 }

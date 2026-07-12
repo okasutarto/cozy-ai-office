@@ -110,6 +110,28 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     return { ok: true };
   });
 
+  app.get<{ Params: { file: string } }>(
+    "/local-assets/pixel-life/:file",
+    async (request, reply) => {
+      if (
+        request.params.file !== "office-atlas.json" &&
+        request.params.file !== "office-atlas.png"
+      ) {
+        return reply.code(404).send({ error: "Not Found" });
+      }
+
+      try {
+        const filePath = join(process.cwd(), ".local-assets", "pixel-life", request.params.file);
+        const contents = await readFile(filePath);
+        return reply
+          .type(request.params.file.endsWith(".json") ? "application/json" : "image/png")
+          .send(contents);
+      } catch {
+        return reply.code(404).send({ error: "Not Found" });
+      }
+    },
+  );
+
   // Register bootstrap route
   registerBootstrapRoute(app, dependencies);
 
