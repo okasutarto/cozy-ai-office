@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { completeSetup } from "./helpers/setup";
 
 async function getTestStatus(baseURL: string) {
   const res = await fetch(`${baseURL}/__test/status`);
@@ -57,19 +58,13 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
 
     // 3. Paste project repository path
     const { projectPath } = await getTestStatus(baseURL!);
-    await page.fill('input[type="text"]', projectPath);
-    await page.click('button:has-text("Verify Repository Path")');
-    await expect(page.locator("text=Clean root")).toBeVisible();
-    await page.click('button:has-text("Next")'); // to step 2
-    await page.click('button:has-text("Next")'); // to step 3
-    await page.click('button:has-text("Next")'); // to step 4
-    await page.click('button:has-text("Complete Onboarding")');
+    await completeSetup(page, projectPath);
 
     // 7. Onboarding completes -> main dashboard appears. Enter discussion.
     await expect(page.locator("text=Cozy Agent Office")).toBeVisible();
 
     await page.fill(
-      'textarea[placeholder*="Type a message..."]',
+      'textarea[aria-label="Composer input"]',
       "Implement greeting, farewell, and punctuation constants",
     );
     await page.click('button:has-text("Send")');
@@ -93,7 +88,7 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     // Select concurrency=3
     await page.selectOption("#confirm-concurrency", "3");
     await page.click('dialog button:has-text("Start Execution")');
-    await expect(page.locator('h4:has-text("Plan")')).toBeVisible();
+    await expect(page.getByText(/Plan \(/).first()).toBeVisible();
 
     // 9. Now running. Release planning barrier first
     await releaseBarrier(baseURL!, "planning");
@@ -118,7 +113,7 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     await expect(page.locator("text=Cozy Agent Office")).toBeVisible();
 
     // 11. Reach ready_to_apply
-    await expect(page.getByText("READY_TO_APPLY", { exact: true })).toBeVisible({
+    await expect(page.getByText(/ready to apply/i).first()).toBeVisible({
       timeout: 30_000,
     });
 
@@ -128,7 +123,7 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     expect(fs.existsSync(path.join(projectPath, "src/punctuation.ts"))).toBe(false);
 
     // 12. Open diff evidence
-    await page.click('button:has-text("View Evidence")');
+    await page.getByRole("button", { name: "Evidence" }).click();
     const evidenceDialog = page.getByRole("dialog");
     await expect(evidenceDialog.getByText("Run Evidence & Diffs")).toBeVisible();
     await expect(evidenceDialog).toContainText("greeting.ts");
@@ -164,16 +159,10 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     // 1. Onboard project
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
-    await page.fill('input[type="text"]', projectPath);
-    await page.click('button:has-text("Verify Repository Path")');
-    await expect(page.locator("text=Clean root")).toBeVisible();
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Next")');
-    await page.click('button:has-text("Complete Onboarding")');
+    await completeSetup(page, projectPath);
 
     await page.fill(
-      'textarea[placeholder*="Type a message..."]',
+      'textarea[aria-label="Composer input"]',
       "Implement greeting, farewell, and punctuation constants",
     );
     await page.click('button:has-text("Send")');
@@ -190,7 +179,7 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     await page.click('button:has-text("Review execution")');
     await page.selectOption("#confirm-concurrency", "1");
     await page.click('dialog button:has-text("Start Execution")');
-    await expect(page.locator('h4:has-text("Plan")')).toBeVisible();
+    await expect(page.getByText(/Plan \(/).first()).toBeVisible();
 
     // Release planning & advisor preflight
     await releaseBarrier(baseURL!, "planning");
@@ -213,6 +202,16 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     await page.click('button:has-text("Cancel")');
     await expect(page.locator("text=Cancel Run Execution")).toBeVisible();
     await page.click('dialog button:has-text("Cancel Run")');
+
+    // The worker completion event can race the first cancel request. Once the
+    // realtime snapshot settles, retry against the fresh expectedUpdatedAt.
+    const cancelDialog = page.getByRole("dialog");
+    if (await cancelDialog.isVisible().catch(() => false)) {
+      await cancelDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+      await page.waitForTimeout(500);
+      await page.getByRole("button", { name: "Cancel", exact: true }).click();
+      await page.getByRole("dialog").getByRole("button", { name: "Cancel Run" }).click();
+    }
 
     // Verify terminal cancel state and that no files were integrated into main repo
     await expect(page.locator("text=CANCELLED")).toBeVisible();

@@ -169,6 +169,23 @@ export class ApiClient {
     });
     return CleanupResultSchema.parse(res);
   }
+
+  async downloadArtifact(artifactId: string): Promise<Blob> {
+    const response = await fetch(`/api/artifacts/${encodeURIComponent(artifactId)}`, {
+      headers: { authorization: `Bearer ${this.token}` },
+    });
+    if (!response.ok) {
+      let detail = `Artifact download failed (${response.status})`;
+      try {
+        const body = (await response.json()) as { message?: string; error?: { message?: string } };
+        detail = body.error?.message ?? body.message ?? detail;
+      } catch {
+        // The artifact route can return plain text errors; keep the status-based message.
+      }
+      throw new Error(detail);
+    }
+    return response.blob();
+  }
 }
 
 export class RealtimeClient {
@@ -176,10 +193,13 @@ export class RealtimeClient {
   constructor(
     private readonly token: string,
     private readonly onMessage: (message: ReturnType<typeof WsServerMessageSchema.parse>) => void,
+    private readonly onStatus: (status: "connecting" | "active" | "offline") => void = () => {},
   ) {}
   connect(runId: string | null, afterSequence: number): void {
     const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+    this.onStatus("connecting");
     this.socket = new WebSocket(`${protocol}//${location.host}/ws`);
+    this.socket.addEventListener("open", () => this.onStatus("connecting"));
     this.socket.addEventListener("message", (event) => {
       const msg = WsServerMessageSchema.parse(JSON.parse(String(event.data)));
       if (msg.type === "challenge") {
@@ -187,8 +207,13 @@ export class RealtimeClient {
         this.send({ type: "subscribe", runId, afterSequence });
         return;
       }
+      if (msg.type === "authenticated") {
+        this.onStatus("active");
+      }
       this.onMessage(msg);
     });
+    this.socket.addEventListener("close", () => this.onStatus("offline"));
+    this.socket.addEventListener("error", () => this.onStatus("offline"));
   }
   send(message: WsClientMessage): void {
     this.socket?.send(JSON.stringify(message));
@@ -196,5 +221,6 @@ export class RealtimeClient {
   close(): void {
     this.socket?.close(1000, "client closed");
     this.socket = null;
+    this.onStatus("offline");
   }
 }

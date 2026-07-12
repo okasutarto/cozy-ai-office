@@ -1,143 +1,159 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import type { RunSnapshot } from "../../shared/contracts.js";
+
+type TaskState = RunSnapshot["tasks"][number]["status"];
+
+type TaskFilter = "all" | "queued" | "running" | "attention" | "completed";
 
 type TaskBoardProps = {
   run: RunSnapshot | null;
   onSelectTask(taskId: string): void;
+  selectedTaskId?: string | null;
 };
 
-export const TaskBoard: React.FC<TaskBoardProps> = ({ run, onSelectTask }) => {
-  if (!run) {
+const GROUPS: Array<{ key: TaskFilter; label: string; statuses: TaskState[] }> = [
+  { key: "queued", label: "Plan", statuses: ["queued"] },
+  { key: "running", label: "Running", statuses: ["running"] },
+  { key: "attention", label: "Blocked / Failed", statuses: ["blocked", "failed"] },
+  { key: "completed", label: "Completed", statuses: ["completed"] },
+];
+
+const FILTERS: Array<{ key: TaskFilter; label: string }> = [
+  { key: "all", label: "All" },
+  { key: "queued", label: "Q" },
+  { key: "running", label: "R" },
+  { key: "attention", label: "⚠" },
+  { key: "completed", label: "✓" },
+];
+
+function statusTone(status: TaskState): string {
+  if (status === "running") return "running";
+  if (status === "completed") return "success";
+  if (status === "failed" || status === "blocked") return "danger";
+  return "queued";
+}
+
+export const TaskBoard: React.FC<TaskBoardProps> = ({ run, onSelectTask, selectedTaskId }) => {
+  const [filter, setFilter] = useState<TaskFilter>("all");
+  const [collapsed, setCollapsed] = useState(false);
+
+  const counts = useMemo(() => {
+    const tasks = run?.tasks ?? [];
+    return {
+      all: tasks.length,
+      queued: tasks.filter((task) => task.status === "queued").length,
+      running: tasks.filter((task) => task.status === "running").length,
+      attention: tasks.filter((task) => task.status === "blocked" || task.status === "failed")
+        .length,
+      completed: tasks.filter((task) => task.status === "completed").length,
+    };
+  }, [run?.tasks]);
+
+  if (collapsed) {
     return (
-      <div
-        style={{
-          padding: "15px",
-          color: "var(--parchment-300)",
-          textAlign: "center",
-          fontSize: "13px",
-        }}
-      >
-        No active run. Review or start a task draft to begin execution.
-      </div>
+      <aside className="task-queue task-queue-collapsed">
+        <button
+          type="button"
+          className="queue-collapse-button"
+          onClick={() => setCollapsed(false)}
+          aria-label="Expand swarm task queue"
+        >
+          ›
+        </button>
+        <span className="queue-collapsed-count">{counts.all}</span>
+      </aside>
     );
   }
 
-  const tasks = run.tasks;
-
-  const columns = [
-    { title: "Plan", status: ["queued"] },
-    { title: "Running", status: ["running"] },
-    { title: "Blocked/Failed", status: ["blocked", "failed"] },
-    { title: "Done", status: ["completed"] },
-  ];
-
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
-        gap: "10px",
-        height: "100%",
-        padding: "10px",
-        overflowY: "auto",
-      }}
-    >
-      {columns.map((col, idx) => {
-        const filtered = tasks.filter((t) => col.status.includes(t.status));
+    <section className="task-queue" aria-label="Swarm task queue">
+      <header className="panel-heading">
+        <span>▱ Swarm Task Queue</span>
+        <span className="micro-chip">{counts.all} total</span>
+        <button
+          type="button"
+          className="queue-collapse-button"
+          onClick={() => setCollapsed(true)}
+          aria-label="Collapse swarm task queue"
+        >
+          ‹
+        </button>
+      </header>
 
-        return (
-          <div
-            key={idx}
-            style={{
-              background: "var(--ink-950)",
-              border: "1px solid var(--ink-800)",
-              borderRadius: "4px",
-              display: "flex",
-              flexDirection: "column",
-              padding: "8px",
-              minHeight: "200px",
-            }}
+      <div className="queue-summary">
+        {FILTERS.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            className={`queue-filter ${filter === item.key ? "active" : ""}`}
+            onClick={() => setFilter(item.key)}
+            aria-pressed={filter === item.key}
           >
-            <h4
-              style={{
-                margin: "0 0 10px 0",
-                fontSize: "13px",
-                color: "var(--gold-400)",
-                borderBottom: "1px solid var(--ink-800)",
-                paddingBottom: "5px",
-              }}
-            >
-              {col.title} ({filtered.length})
-            </h4>
+            <span>{item.label}</span>
+            <b>{counts[item.key]}</b>
+          </button>
+        ))}
+      </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1 }}>
-              {filtered.map((task) => {
-                let statusColor = "var(--parchment-300)";
-                if (task.status === "running") statusColor = "var(--teal-400)";
-                if (task.status === "failed") statusColor = "var(--warning)";
-                if (task.status === "blocked") statusColor = "var(--rose-400)";
-                if (task.status === "completed") statusColor = "var(--moss)";
-
-                return (
-                  <div
-                    key={task.id}
-                    onClick={() => onSelectTask(task.id)}
-                    style={{
-                      background: "var(--ink-900)",
-                      border: "var(--pixel-border)",
-                      padding: "10px",
-                      cursor: "pointer",
-                      fontSize: "12px",
-                      borderRadius: "2px",
-                      transition: "border-color 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "var(--gold-400)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "var(--ink-750)";
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      <span style={{ fontWeight: "bold", color: "#fff" }}>{task.id}</span>
-                      <span style={{ color: statusColor, fontSize: "10px", fontWeight: "bold" }}>
-                        {task.status.toUpperCase()}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        color: "var(--parchment-200)",
-                        fontSize: "11px",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      {task.title}
-                    </div>
-                    {task.assignedProfileId && (
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "flex-end",
-                          fontSize: "10px",
-                          color: "var(--gold-300)",
-                        }}
+      {!run ? (
+        <div className="empty-state">
+          <p className="eyebrow">No active swarm</p>
+          <p>Draft a task in Discussion, then launch the run to populate this queue.</p>
+        </div>
+      ) : (
+        <div className="queue-groups">
+          {GROUPS.filter(
+            (group) =>
+              filter === "all" ||
+              filter === group.key ||
+              (filter === "attention" && group.key === "attention"),
+          ).map((group) => {
+            const tasks = run.tasks.filter((task) => group.statuses.includes(task.status));
+            return (
+              <section key={group.key} className="queue-group" aria-label={`${group.label} tasks`}>
+                <div className="queue-group-heading">
+                  <span>
+                    {group.label} ({tasks.length})
+                  </span>
+                  <span className={`micro-chip ${group.key === "attention" ? "danger" : ""}`}>
+                    {tasks.length}
+                  </span>
+                </div>
+                {tasks.length === 0 ? (
+                  <div className="queue-group-empty">No tasks</div>
+                ) : (
+                  <div className="queue-cards">
+                    {tasks.map((task) => (
+                      <button
+                        key={task.id}
+                        type="button"
+                        className={`task-card ${selectedTaskId === task.id ? "selected" : ""}`}
+                        onClick={() => onSelectTask(task.id)}
                       >
-                        Actor: {task.assignedProfileId}
-                      </div>
-                    )}
+                        <span className="task-card-topline">
+                          <strong>{task.id}</strong>
+                          <span className={`task-status ${statusTone(task.status)}`}>
+                            {task.status}
+                          </span>
+                        </span>
+                        <span className="task-card-title">{task.title}</span>
+                        <span className="task-card-meta">
+                          <span>{task.assignedProfileId ?? "unassigned"}</span>
+                          <span>
+                            {task.dependsOn.length
+                              ? `${task.dependsOn.length} deps`
+                              : "independent"}
+                          </span>
+                        </span>
+                      </button>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-    </div>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 };

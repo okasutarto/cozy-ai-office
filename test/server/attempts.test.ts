@@ -140,6 +140,35 @@ describe("Attempt Runner", () => {
       expect(rows.length).toBe(1);
       expect(rows[0].provider).toBe("codex");
       expect(rows[0].status).toBe("completed");
+
+      registry.loadStatuses([
+        { provider: "codex", ...mockStatusCodex } as any,
+        { provider: "claude", ...mockStatusClaude } as any,
+      ]);
+      spy.mockClear();
+      await expect(
+        runner.execute(
+          {
+            profile,
+            requiredCapability: "worktreeWrite",
+            request: {
+              runId: null,
+              taskId: null,
+              conversationId: null,
+              contextSnapshotId: "snap-1",
+              role: "worker",
+              prompt: "prompt",
+              cwd: dir,
+              timeoutMs: 10000,
+              readOnly: false,
+              outputContract: null,
+            },
+            repairPrompt: () => "repair",
+          },
+          new AbortController().signal,
+        ),
+      ).rejects.toMatchObject({ code: "provider_capability_unavailable" });
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 });

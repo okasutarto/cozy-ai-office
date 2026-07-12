@@ -208,3 +208,9 @@ CREATE INDEX tasks_run_status ON tasks(run_id, status);
 CREATE INDEX attempts_run_task ON attempts(run_id, task_id);
 CREATE INDEX artifacts_run_task ON artifacts(run_id, task_id);
 `;
+
+export const MIGRATION_2 = `
+ALTER TABLE projects
+ADD COLUMN setup_complete INTEGER NOT NULL DEFAULT 0
+CHECK (setup_complete IN (0, 1));
+`;

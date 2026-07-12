@@ -18,6 +18,7 @@ export type AppState = {
 export type AppAction =
   | { type: "bootstrapped"; value: BootstrapResponse }
   | { type: "missing_session" }
+  | { type: "setup_opened" }
   | { type: "project_selected"; projectId: string }
   | { type: "run_snapshot"; run: RunSnapshot | null }
   | { type: "draft_loaded"; value: TaskDraftVersion | null }
@@ -43,10 +44,16 @@ const initialState: AppState = {
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "bootstrapped": {
-      const activeProject = action.value.activeRun
-        ? action.value.activeRun.projectId
-        : (action.value.projects[0]?.id ?? null);
-      const phase = action.value.activeRun ? "office" : activeProject ? "office" : "onboarding";
+      const selectedProject = action.value.activeRun
+        ? action.value.projects.find((project) => project.id === action.value.activeRun?.projectId)
+        : (action.value.projects.find((project) => project.id === state.selectedProjectId) ??
+          action.value.projects[0]);
+      const activeProject = action.value.activeRun?.projectId ?? selectedProject?.id ?? null;
+      const phase = action.value.activeRun
+        ? "office"
+        : selectedProject?.setupComplete
+          ? "office"
+          : "onboarding";
       return {
         ...state,
         phase,
@@ -59,6 +66,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         phase: "missing_session",
+      };
+    case "setup_opened":
+      return {
+        ...state,
+        phase: "onboarding",
       };
     case "project_selected":
       return {

@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { once } from "node:events";
 import { performance } from "node:perf_hooks";
 import type { Readable } from "node:stream";
@@ -89,14 +89,26 @@ export class ProcessSupervisor {
     let timedOut = false;
     let cancelled = false;
     let terminating = false;
-    const child = spawn(spec.executable, spec.args, {
-      cwd: spec.cwd,
-      env: spec.env ?? process.env,
-      detached: process.platform !== "win32",
-      shell: false,
-      stdio: ["pipe", "pipe", "pipe"],
-      windowsHide: true,
-    });
+    let child: ChildProcessWithoutNullStreams;
+    try {
+      child = spawn(spec.executable, spec.args, {
+        cwd: spec.cwd,
+        env: spec.env ?? process.env,
+        detached: process.platform !== "win32",
+        shell: false,
+        stdio: ["pipe", "pipe", "pipe"],
+        windowsHide: true,
+      });
+    } catch (error) {
+      return {
+        exitCode: null,
+        signal: null,
+        durationMs: Math.round(performance.now() - started),
+        timedOut: false,
+        cancelled: false,
+        spawnErrorCode: (error as NodeJS.ErrnoException).code ?? "spawn_error",
+      };
+    }
     const pid = child.pid ?? null;
     const stdoutPump = pump(child.stdout, sinks.stdout);
     const stderrPump = pump(child.stderr, sinks.stderr);

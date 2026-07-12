@@ -25,6 +25,10 @@ export const App: React.FC = () => {
   const [token, setToken] = useState<string | null>(null);
   const [roleProfiles, setRoleProfiles] = useState<RoleProfile[]>([]);
   const [contextSnapshotId, setContextSnapshotId] = useState<string>("");
+  const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "active" | "offline">(
+    "offline",
+  );
+  const [dockHeight, setDockHeight] = useState(290);
 
   // 1. Consume session token
   useEffect(() => {
@@ -252,13 +256,17 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (!token || !state.selectedProjectId) return;
 
-    const rt = new RealtimeClient(token, (msg) => {
-      if (msg.type === "event") {
-        dispatch({ type: "event_received", event: msg.event });
-      } else if (msg.type === "snapshot") {
-        dispatch({ type: "run_snapshot", run: msg.run });
-      }
-    });
+    const rt = new RealtimeClient(
+      token,
+      (msg) => {
+        if (msg.type === "event") {
+          dispatch({ type: "event_received", event: msg.event });
+        } else if (msg.type === "snapshot") {
+          dispatch({ type: "run_snapshot", run: msg.run });
+        }
+      },
+      setRealtimeStatus,
+    );
 
     rt.connect(state.run?.id || null, state.events[state.events.length - 1]?.sequence || 0);
 
@@ -279,45 +287,46 @@ export const App: React.FC = () => {
       .catch(() => {});
   }, [api, state.selectedProjectId, state.phase, state.run?.contextSnapshotId]);
 
+  const handleDockResize = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const startY = event.clientY;
+    const startHeight = dockHeight;
+    const onMove = (moveEvent: PointerEvent) => {
+      const maxHeight = Math.max(260, window.innerHeight - 320);
+      setDockHeight(Math.min(maxHeight, Math.max(180, startHeight + startY - moveEvent.clientY)));
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp, { once: true });
+  };
+
   if (state.phase === "booting") {
     return (
-      <div
-        style={{
-          display: "grid",
-          placeItems: "center",
-          height: "100dvh",
-          color: "var(--gold-400)",
-        }}
-      >
-        <div style={{ fontSize: "20px" }}>Booting Cozy AI Office...</div>
+      <div className="boot-screen">
+        <div className="boot-card">
+          <p className="eyebrow">Local orchestrator</p>
+          <h1>Booting Cozy Agent Office</h1>
+          <p style={{ color: "var(--parchment-300)" }}>
+            Opening SQLite and checking the local session…
+          </p>
+        </div>
       </div>
     );
   }
 
   if (state.phase === "missing_session") {
     return (
-      <div
-        style={{
-          display: "grid",
-          placeItems: "center",
-          height: "100dvh",
-          color: "var(--danger-500)",
-        }}
-      >
-        <div style={{ textAlign: "center", maxWidth: "480px" }}>
+      <div className="error-screen">
+        <div className="error-card">
+          <p className="eyebrow">Authorization required</p>
           <h2>Cozy AI Office: Missing Session</h2>
           <p style={{ color: "var(--parchment-300)" }}>
             No authorization token detected. Please launch the office server using the official CLI:
           </p>
-          <pre
-            style={{
-              background: "var(--ink-800)",
-              padding: "12px",
-              border: "1px dashed var(--gold-400)",
-            }}
-          >
-            npx cozy-agent-office
-          </pre>
+          <pre className="terminal-box">npx cozy-agent-office</pre>
         </div>
       </div>
     );
@@ -325,27 +334,15 @@ export const App: React.FC = () => {
 
   if (state.phase === "fatal") {
     return (
-      <div
-        style={{
-          display: "grid",
-          placeItems: "center",
-          height: "100dvh",
-          color: "var(--danger-500)",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
+      <div className="error-screen">
+        <div className="error-card">
+          <p className="eyebrow">Startup failure</p>
           <h2>Fatal Error</h2>
           <p>{state.error}</p>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            style={{
-              background: "var(--gold-400)",
-              color: "var(--ink-950)",
-              border: "none",
-              padding: "8px 16px",
-              cursor: "pointer",
-            }}
+            className="cozy-button primary"
           >
             Retry Connection
           </button>
@@ -355,11 +352,16 @@ export const App: React.FC = () => {
   }
 
   if (state.phase === "onboarding") {
-    return <Onboarding bootstrap={state.bootstrap!} api={api!} />;
+    return (
+      <Onboarding bootstrap={state.bootstrap!} api={api!} projectId={state.selectedProjectId} />
+    );
   }
 
   return (
-    <div className="app-shell">
+    <div
+      className="app-shell"
+      style={{ "--active-dock-height": `${dockHeight}px` } as React.CSSProperties}
+    >
       {/* Top bar across the top */}
       <TopBar
         onPause={handlePause}
@@ -368,69 +370,64 @@ export const App: React.FC = () => {
         onApply={handleApply}
         onCleanup={handleCleanup}
         onShowDiff={handleShowDiff}
+        onOpenSetup={() => dispatch({ type: "setup_opened" })}
+        realtimeStatus={realtimeStatus}
       />
 
       {/* Left panel */}
-      <aside
-        style={{
-          gridArea: "left",
-          border: "var(--pixel-border)",
-          background: "var(--ink-800)",
-          padding: "0",
-          overflow: "hidden",
-        }}
-      >
+      <aside className="panel" style={{ gridArea: "left" }}>
         <TaskBoard
           run={state.run}
+          selectedTaskId={state.selectedTaskId}
           onSelectTask={(id) => dispatch({ type: "task_selected", taskId: id })}
         />
       </aside>
 
       {/* Middle office viewport */}
-      <main
-        style={{
-          gridArea: "office",
-          border: "var(--pixel-border)",
-          background: "var(--ink-950)",
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minWidth: "704px",
-          minHeight: "480px",
-        }}
-      >
-        <OfficeCanvas />
+      <main className="panel office-panel">
+        <div className="panel-heading">
+          <span>▱ Swarm Workshop Map (Nearest-Neighbor Render)</span>
+          <span className="office-legend">
+            <span>
+              <i className="legend-dot" />
+              Active swarm
+            </span>
+            <span>
+              <i className="legend-dot clean" />
+              Clean isolated worktrees
+            </span>
+          </span>
+        </div>
+        <div className="office-stage">
+          <span className="office-hotspot docs">▣ Reference Docs</span>
+          <span className="office-hotspot coffee">◉ Coffee Pot</span>
+          <span className="office-hotspot plant">⚑ Ficus Plant</span>
+          <OfficeCanvas />
+        </div>
       </main>
 
       {/* Right inspector panel */}
-      <aside
-        style={{
-          gridArea: "right",
-          border: "var(--pixel-border)",
-          background: "var(--ink-800)",
-          padding: "0",
-          overflow: "hidden",
-        }}
-      >
+      <aside className="panel" style={{ gridArea: "right" }}>
         <Inspector
           actorId={state.selectedActorId}
           taskId={state.selectedTaskId}
           run={state.run}
           attempts={attempts}
           providerStatuses={state.bootstrap?.providers || []}
+          roleProfiles={roleProfiles}
+          events={state.events}
         />
       </aside>
 
       {/* Bottom docking logs/chat panel */}
-      <footer
-        style={{
-          gridArea: "dock",
-          border: "var(--pixel-border)",
-          background: "var(--ink-800)",
-          padding: "12px",
-        }}
-      >
+      <footer className="panel dock-panel">
+        <div
+          className="dock-resizer"
+          role="separator"
+          aria-label="Resize workspace dock"
+          aria-orientation="horizontal"
+          onPointerDown={handleDockResize}
+        />
         <ConversationDock
           projectId={state.selectedProjectId || ""}
           selectedActorId={state.selectedActorId}
@@ -441,6 +438,7 @@ export const App: React.FC = () => {
           onDraftCreated={(draft) => dispatch({ type: "draft_loaded", value: draft })}
           onRequestStart={handleRequestStart}
           timelineEvents={state.events}
+          attempts={attempts}
         />
       </footer>
 

@@ -37,6 +37,9 @@ export class AttemptRunner {
     let launchedAttempts = 0;
 
     for (const candidate of input.profile.providerChain) {
+      if (!this.registry.isProbed(candidate.provider)) {
+        continue;
+      }
       const status = this.registry.statusFor(candidate.provider);
       if (!status || !supports(status, input.requiredCapability)) {
         continue; // skip incompatible candidate without attempt row

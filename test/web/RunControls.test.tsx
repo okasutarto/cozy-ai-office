@@ -165,9 +165,8 @@ describe("Owner Run Controls UI & Dashboard Components", () => {
     );
 
     // Checks that stdout and stderr links exist
-    const link = screen.getByText("Stdout Log");
+    const link = screen.getByRole("button", { name: "Stdout Log" });
     expect(link).toBeDefined();
-    expect(link.getAttribute("href")).toBe("/api/artifacts/stdout-uuid");
   });
 
   it("renders Timeline with distinct event items", () => {

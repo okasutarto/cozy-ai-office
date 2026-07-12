@@ -8,6 +8,8 @@ type TopBarProps = {
   onApply(): void;
   onCleanup(): void;
   onShowDiff(): void;
+  onOpenSetup?(): void;
+  realtimeStatus?: "connecting" | "active" | "offline";
 };
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -17,18 +19,17 @@ export const TopBar: React.FC<TopBarProps> = ({
   onApply,
   onCleanup,
   onShowDiff,
+  onOpenSetup,
+  realtimeStatus,
 }) => {
   const { bootstrap, selectedProjectId, run } = useAppState();
-
-  const project = bootstrap?.projects.find((p) => p.id === selectedProjectId);
-
-  const isTerminal = run
-    ? ["applied", "failed", "blocked", "cancelled"].includes(run.state)
-    : false;
-
-  const showPause =
+  const project = bootstrap?.projects.find((item) => item.id === selectedProjectId);
+  const terminal = Boolean(
+    run && ["applied", "failed", "blocked", "cancelled"].includes(run.state),
+  );
+  const canPause = Boolean(
     run &&
-    !isTerminal &&
+    !terminal &&
     !run.dispatchPaused &&
     [
       "advisor_preflight",
@@ -37,172 +38,153 @@ export const TopBar: React.FC<TopBarProps> = ({
       "integrating",
       "testing",
       "advisor_delivery",
-    ].includes(run.state);
+    ].includes(run.state),
+  );
+  const canResume = Boolean(run && !terminal && run.dispatchPaused);
+  const canCancel = Boolean(run && !terminal);
+  const canApply = Boolean(run?.state === "ready_to_apply");
+  const canCleanup = Boolean(run && terminal);
+  const availableProviders =
+    bootstrap?.providers.filter(
+      (provider) =>
+        provider.installed && provider.authenticated && provider.capabilities.nonInteractive,
+    ) ?? [];
 
-  const showResume = run && !isTerminal && run.dispatchPaused;
-
-  const showCancel = run && !isTerminal;
-
-  const showApply = run && run.state === "ready_to_apply";
-
-  const showCleanup = run && isTerminal;
+  const realtimeTone =
+    realtimeStatus === "active"
+      ? "success"
+      : realtimeStatus === "connecting"
+        ? "warning"
+        : "danger";
 
   return (
     <header
       style={{
         gridArea: "top",
-        background: "var(--ink-800)",
-        borderBottom: "var(--pixel-border)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 16px",
+        minWidth: 0,
         height: "100%",
+        padding: "0 12px",
+        display: "grid",
+        gridTemplateColumns: "minmax(280px, 1fr) auto minmax(360px, 1fr)",
+        alignItems: "center",
+        gap: 14,
+        background: "var(--ink-950)",
+        borderBottom: "var(--panel-border)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        <h1
-          style={{ margin: 0, fontSize: "18px", color: "var(--gold-400)", fontFamily: "inherit" }}
-        >
-          Cozy Agent Office
-        </h1>
+      <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 12 }}>
+        <div>
+          <p className="eyebrow" style={{ color: "var(--gold-400)" }}>
+            Cozy Agent Office
+          </p>
+          <strong style={{ display: "block", marginTop: 3, color: "white", fontSize: 12 }}>
+            Local orchestration control room
+          </strong>
+        </div>
         {project && (
-          <span style={{ fontSize: "14px", color: "var(--parchment-300)" }}>
-            Project: <strong>{project.name}</strong>
-          </span>
+          <div
+            style={{
+              minWidth: 0,
+              padding: "6px 9px",
+              background: "var(--ink-800)",
+              border: "1px solid var(--wood-900)",
+            }}
+          >
+            <span className="eyebrow">Repository workspace</span>
+            <div
+              style={{
+                maxWidth: 270,
+                marginTop: 3,
+                overflow: "hidden",
+                color: "white",
+                fontSize: 10,
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+              title={project.rootPath}
+            >
+              {project.name} · {project.rootPath}
+            </div>
+          </div>
         )}
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        {realtimeStatus && (
+          <span className={`status-chip ${realtimeTone}`} role="status" aria-live="polite">
+            <i className="dot" /> WS {realtimeStatus}
+          </span>
+        )}
+        <span className="eyebrow">Providers</span>
+        {(bootstrap?.providers ?? []).map((provider) => {
+          const available = availableProviders.some((item) => item.provider === provider.provider);
+          return (
+            <span
+              key={provider.provider}
+              className={`micro-chip ${available ? "success" : "danger"}`}
+              title={provider.diagnostic ?? undefined}
+            >
+              <i className="dot" /> {provider.provider}
+            </span>
+          );
+        })}
+      </div>
+
+      <div
+        style={{
+          minWidth: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          gap: 6,
+        }}
+      >
         {run && (
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", fontSize: "13px" }}>
-            <span>
-              Branch: <strong>{run.baseBranch}</strong>
+          <div style={{ marginRight: 4, textAlign: "right" }}>
+            <span className="eyebrow">{run.baseBranch}</span>
+            <span
+              className={`status-chip ${run.state === "failed" || run.state === "blocked" ? "danger" : run.dispatchPaused ? "warning" : "success"}`}
+              style={{ marginLeft: 7 }}
+            >
+              <i className="dot" /> {run.dispatchPaused ? "paused" : run.state.replaceAll("_", " ")}
             </span>
-            <span>
-              State: <strong style={{ color: "var(--gold-400)" }}>{run.state.toUpperCase()}</strong>
-            </span>
-            {run.dispatchPaused && (
-              <span
-                style={{
-                  background: "var(--rose-500)",
-                  color: "white",
-                  padding: "2px 6px",
-                  fontSize: "11px",
-                  fontWeight: "bold",
-                }}
-              >
-                PAUSED
-              </span>
-            )}
           </div>
         )}
-
-        <div style={{ display: "flex", gap: "8px" }}>
-          {showPause && (
-            <button
-              type="button"
-              onClick={onPause}
-              style={{
-                background: "var(--ink-950)",
-                color: "var(--gold-400)",
-                border: "1px solid var(--gold-400)",
-                padding: "4px 8px",
-                cursor: "pointer",
-                fontSize: "12px",
-              }}
-            >
-              Pause
-            </button>
-          )}
-
-          {showResume && (
-            <button
-              type="button"
-              onClick={onResume}
-              style={{
-                background: "var(--gold-400)",
-                color: "var(--ink-950)",
-                border: "none",
-                padding: "4px 8px",
-                cursor: "pointer",
-                fontWeight: "bold",
-                fontSize: "12px",
-              }}
-            >
-              Resume
-            </button>
-          )}
-
-          {showCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              style={{
-                background: "var(--rose-600)",
-                color: "#fff",
-                border: "none",
-                padding: "4px 8px",
-                cursor: "pointer",
-                fontSize: "12px",
-              }}
-            >
-              Cancel
-            </button>
-          )}
-
-          {showApply && (
-            <button
-              type="button"
-              onClick={onApply}
-              style={{
-                background: "var(--moss)",
-                color: "#fff",
-                border: "none",
-                padding: "4px 8px",
-                cursor: "pointer",
-                fontWeight: "bold",
-                fontSize: "12px",
-              }}
-            >
-              Apply Changes
-            </button>
-          )}
-
-          {run && (
-            <button
-              type="button"
-              onClick={onShowDiff}
-              style={{
-                background: "var(--ink-850)",
-                color: "var(--parchment-100)",
-                border: "1px solid var(--parchment-300)",
-                padding: "4px 8px",
-                cursor: "pointer",
-                fontSize: "12px",
-              }}
-            >
-              View Evidence
-            </button>
-          )}
-
-          {showCleanup && (
-            <button
-              type="button"
-              onClick={onCleanup}
-              style={{
-                background: "var(--rose-700)",
-                color: "#fff",
-                border: "none",
-                padding: "4px 8px",
-                cursor: "pointer",
-                fontSize: "12px",
-              }}
-            >
-              Cleanup Run
-            </button>
-          )}
-        </div>
+        {onOpenSetup && (
+          <button type="button" className="cozy-button" onClick={onOpenSetup}>
+            Setup
+          </button>
+        )}
+        {canPause && (
+          <button type="button" className="cozy-button" onClick={onPause}>
+            Pause
+          </button>
+        )}
+        {canResume && (
+          <button type="button" className="cozy-button primary" onClick={onResume}>
+            Resume
+          </button>
+        )}
+        {run && (
+          <button type="button" className="cozy-button" onClick={onShowDiff}>
+            Evidence
+          </button>
+        )}
+        {canApply && (
+          <button type="button" className="cozy-button success" onClick={onApply}>
+            Apply Changes
+          </button>
+        )}
+        {canCancel && (
+          <button type="button" className="cozy-button danger" onClick={onCancel}>
+            Cancel
+          </button>
+        )}
+        {canCleanup && (
+          <button type="button" className="cozy-button danger" onClick={onCleanup}>
+            Cleanup Run
+          </button>
+        )}
       </div>
     </header>
   );

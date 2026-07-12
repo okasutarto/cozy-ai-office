@@ -44,6 +44,7 @@ describe("Context Snapshot Service", () => {
           id: "00000000-0000-4000-8000-000000000201",
           name: "fake-project",
           rootPath: repoPath,
+          setupComplete: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         });

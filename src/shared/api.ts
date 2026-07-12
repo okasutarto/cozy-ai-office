@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   ProfileIdSchema,
+  CommandSpecSchema,
   ProviderStatusSchema,
   RoleIdSchema,
   RoleProfileSchema,
@@ -8,13 +9,60 @@ import {
   RunSnapshotSchema,
 } from "./contracts.js";
 
+export const ProjectRecordSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1),
+  rootPath: z.string().min(1),
+  setupComplete: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
+export const BootstrapProjectSchema = ProjectRecordSchema.omit({ createdAt: true });
 export const SelectProjectRequestSchema = z.object({ rootPath: z.string().min(1).max(1_024) });
+export const SelectProjectResponseSchema = z.object({
+  id: z.string().uuid(),
+  rootPath: z.string().min(1),
+  name: z.string().min(1),
+  branch: z.string().min(1),
+  head: z.string().regex(/^[a-f0-9]{40,64}$/u),
+  clean: z.boolean(),
+  statusEntries: z.array(z.string()),
+  trackedPaths: z.array(z.string()),
+  commandCandidates: z.array(CommandSpecSchema),
+  rulePaths: z.array(z.string()),
+  setupComplete: z.boolean(),
+  diagnostic: z.string().nullable(),
+});
+export const ProviderStatusListResponseSchema = z.array(ProviderStatusSchema);
+export const VerifyAntigravityLoginRequestSchema = z.object({
+  model: z.string().nullable(),
+  confirmation: z.literal("USE SUBSCRIPTION TURN"),
+});
+export const UpdateCommandsRequestSchema = z.object({
+  commands: z.array(CommandSpecSchema),
+});
 export const UpdateRoleProfilesRequestSchema = z.object({
   profiles: z.array(RoleProfileSchema).length(7),
 });
 export const CreateContextSnapshotRequestSchema = z.object({
   paths: z.array(z.string().min(1).max(500)).min(1).max(5_000),
 });
+export const ContextCandidatesResponseSchema = z.object({
+  candidates: z.array(z.string()),
+  excluded: z.array(z.object({ path: z.string(), reason: z.string().min(1) })),
+});
+export const ProjectOnboardingResponseSchema = z.object({
+  project: ProjectRecordSchema,
+  commands: z.array(CommandSpecSchema),
+  roles: z.array(RoleProfileSchema),
+  contextSnapshotId: z.string().uuid().nullable(),
+});
+export const CompleteProjectSetupResponseSchema = z.object({
+  projectId: z.string().uuid(),
+  setupComplete: z.literal(true),
+  contextSnapshotId: z.string().uuid(),
+});
+export const CompleteProjectSetupRequestSchema = z.object({}).strict();
 export const CreateConversationRequestSchema = z.object({
   role: RoleIdSchema,
   profileId: ProfileIdSchema,
@@ -60,14 +108,7 @@ export const WsServerMessageSchema = z.discriminatedUnion("type", [
 ]);
 
 export const BootstrapResponseSchema = z.object({
-  projects: z.array(
-    z.object({
-      id: z.string().uuid(),
-      name: z.string(),
-      rootPath: z.string(),
-      updatedAt: z.string(),
-    }),
-  ),
+  projects: z.array(BootstrapProjectSchema),
   providers: z.array(ProviderStatusSchema),
   activeRun: RunSnapshotSchema.nullable(),
 });
@@ -208,6 +249,17 @@ export const RunEventsResponseSchema = z.array(RunEventSchema);
 export { TaskDraftVersionSchema };
 
 export type BootstrapResponse = z.infer<typeof BootstrapResponseSchema>;
+export type ProjectRecord = z.infer<typeof ProjectRecordSchema>;
+export type BootstrapProject = z.infer<typeof BootstrapProjectSchema>;
+export type SelectProjectRequest = z.infer<typeof SelectProjectRequestSchema>;
+export type SelectProjectResponse = z.infer<typeof SelectProjectResponseSchema>;
+export type ProviderStatusListResponse = z.infer<typeof ProviderStatusListResponseSchema>;
+export type VerifyAntigravityLoginRequest = z.infer<typeof VerifyAntigravityLoginRequestSchema>;
+export type UpdateCommandsRequest = z.infer<typeof UpdateCommandsRequestSchema>;
+export type ProjectOnboardingResponse = z.infer<typeof ProjectOnboardingResponseSchema>;
+export type ContextCandidatesResponse = z.infer<typeof ContextCandidatesResponseSchema>;
+export type CompleteProjectSetupRequest = z.infer<typeof CompleteProjectSetupRequestSchema>;
+export type CompleteProjectSetupResponse = z.infer<typeof CompleteProjectSetupResponseSchema>;
 export type WsClientMessage = z.infer<typeof WsClientMessageSchema>;
 export type WsServerMessage = z.infer<typeof WsServerMessageSchema>;
 export type ConversationRecord = z.infer<typeof ConversationRecordSchema>;

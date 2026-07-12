@@ -1,3 +1,6 @@
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import type {
   BuiltCommand,
   ProviderAdapter,
@@ -7,6 +10,16 @@ import type {
 } from "./types.js";
 import { probeCli } from "./execute.js";
 
+function defaultCodexExecutable(): string {
+  const bundled = join(
+    homedir(),
+    ".codex",
+    ".sandbox-bin",
+    process.platform === "win32" ? "codex.exe" : "codex",
+  );
+  return existsSync(bundled) ? bundled : "codex";
+}
+
 export class CodexAdapter implements ProviderAdapter {
   readonly id = "codex" as const;
   readonly declaredCapabilities = {
@@ -14,7 +27,7 @@ export class CodexAdapter implements ProviderAdapter {
     readOnly: true,
     worktreeWrite: true,
   } as const;
-  constructor(private readonly executable = "codex") {}
+  constructor(private readonly executable = defaultCodexExecutable()) {}
 
   probe(runtime: ProviderProbeRuntime, signal: AbortSignal) {
     return probeCli(
