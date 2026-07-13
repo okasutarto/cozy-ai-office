@@ -37,7 +37,6 @@ describe("Conversation Service direct role chats", () => {
         await mkdir(tempRoot, { recursive: true });
 
         const snapshotService = new ContextSnapshotService(
-          db,
           projectStore,
           repoService,
           contextsRoot,

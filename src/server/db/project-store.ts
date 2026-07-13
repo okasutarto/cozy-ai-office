@@ -7,7 +7,6 @@ import {
   type RoleProfile,
   RoleProfileSchema,
   type ContextSnapshot,
-  ContextSnapshotSchema,
 } from "../../shared/contracts.js";
 
 export type ProjectRecord = {

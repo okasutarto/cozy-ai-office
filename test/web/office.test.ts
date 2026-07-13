@@ -148,6 +148,32 @@ import type { RunEvent, RunSnapshot } from "../../src/shared/contracts.js";
 import { calculateOfficeViewport } from "../../src/web/office/layout.js";
 
 describe("Office Animation & State Projection", () => {
+  it("normalizes ordered event sequences with linear reads", () => {
+    let sequenceReads = 0;
+    const events = Array.from({ length: 500 }, (_, index) => {
+      const event = {
+        sequence: index + 1,
+        runId: "963d3fb6-787f-44e2-a7cb-df95880df965",
+        kind: "task.started",
+        actorId: "worker-1",
+        taskId: `task-${index}`,
+        payload: {},
+        createdAt: "2026-07-11T12:01:00.000Z",
+      } as RunEvent;
+      Object.defineProperty(event, "sequence", {
+        get() {
+          sequenceReads++;
+          return index + 1;
+        },
+      });
+      return event;
+    });
+
+    projectActorPoses({ state: "working", tasks: [] } as RunSnapshot, events);
+
+    expect(sequenceReads).toBeLessThan(events.length * 10);
+  });
+
   it("computes shortest paths correctly based on NAV_GRAPH", () => {
     const path = shortestStationPath("manager-desk", "meeting");
     expect(path).toEqual(["manager-desk", "meeting"]);

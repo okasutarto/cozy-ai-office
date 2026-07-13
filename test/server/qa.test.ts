@@ -1,7 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { QaRunner, type QaCommand, type QaRunInput } from "../../src/server/orchestrator/qa.js";
 import { openDatabase } from "../../src/server/db/database.js";
-import { SqliteRunStore } from "../../src/server/db/run-store.js";
 import { ArtifactStore } from "../../src/server/artifacts/store.js";
 import { ProcessSupervisor } from "../../src/server/system/process.js";
 import { withTempDir } from "../helpers/temp.js";
@@ -18,14 +17,10 @@ describe("QaRunner", () => {
   it("runs commands in position order and returns passed report", async () => {
     await withTempDir(async (dir) => {
       const db = openDatabase(":memory:");
-      const runStore = new SqliteRunStore(db);
       const artifacts = new ArtifactStore(db, join(dir, "artifacts"));
       const supervisor = new ProcessSupervisor();
 
-      // AttemptRunner not used in passing path, pass null-ish mock
-      const attempts = {} as any;
-
-      const runner = new QaRunner(supervisor, artifacts, attempts, runStore, null);
+      const runner = new QaRunner(supervisor, artifacts, null);
 
       const commands: QaCommand[] = [
         {
@@ -74,12 +69,10 @@ describe("QaRunner", () => {
   it("stops on first required failure and reports failed", async () => {
     await withTempDir(async (dir) => {
       const db = openDatabase(":memory:");
-      const runStore = new SqliteRunStore(db);
       const artifacts = new ArtifactStore(db, join(dir, "artifacts"));
       const supervisor = new ProcessSupervisor();
-      const attempts = {} as any;
 
-      const runner = new QaRunner(supervisor, artifacts, attempts, runStore, null);
+      const runner = new QaRunner(supervisor, artifacts, null);
 
       const commands: QaCommand[] = [
         {
@@ -134,12 +127,10 @@ describe("QaRunner", () => {
   it("optional failures do not stop first pass", async () => {
     await withTempDir(async (dir) => {
       const db = openDatabase(":memory:");
-      const runStore = new SqliteRunStore(db);
       const artifacts = new ArtifactStore(db, join(dir, "artifacts"));
       const supervisor = new ProcessSupervisor();
-      const attempts = {} as any;
 
-      const runner = new QaRunner(supervisor, artifacts, attempts, runStore, null);
+      const runner = new QaRunner(supervisor, artifacts, null);
 
       const commands: QaCommand[] = [
         {

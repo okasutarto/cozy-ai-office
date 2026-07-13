@@ -10,14 +10,7 @@ import { TaskBoard } from "./components/TaskBoard.js";
 import { Inspector } from "./components/Inspector.js";
 import { ConfirmDialog } from "./components/ConfirmDialog.js";
 import { DiffDialog } from "./components/DiffDialog.js";
-import type {
-  AttemptView,
-  DiffView,
-  QaReportView,
-  AdvisorReviewView,
-  RunEvidence,
-  RunStorage,
-} from "../shared/api.js";
+import type { AttemptView, DiffView, QaReportView, AdvisorReviewView } from "../shared/api.js";
 
 const OFFICE_ROLE_TABS = [
   ["manager", "Mgr"],
@@ -405,7 +398,7 @@ export const App: React.FC = () => {
           </nav>
         </div>
         <div className="office-stage">
-          <OfficeCanvas />
+          <OfficeCanvas api={api!} projectId={state.selectedProjectId!} />
         </div>
       </main>
 

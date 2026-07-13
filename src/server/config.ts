@@ -36,6 +36,8 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): Server
   if (!Number.isInteger(port) || port < 0 || port > 65_535) throw new Error("Invalid COZY_PORT");
   const dataDir = resolve(environment.COZY_DATA_DIR ?? defaultDataDir());
   const publicOrigin = environment.COZY_PUBLIC_ORIGIN ?? "";
+  const sessionToken = environment.COZY_SESSION_TOKEN ?? randomBytes(32).toString("base64url");
+  if (sessionToken.length < 32) throw new Error("Invalid COZY_SESSION_TOKEN");
   // TypeScript emits the server below dist/server/server while Vite emits the
   // browser bundle below dist/web. During source development the UI lives in
   // src/web, so resolve both layouts without requiring a post-build copy.
@@ -46,7 +48,7 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): Server
     host: "127.0.0.1",
     port,
     publicOrigin,
-    sessionToken: randomBytes(32).toString("base64url"),
+    sessionToken,
     dataDir,
     databasePath: join(dataDir, "state.db"),
     artifactsDir: join(dataDir, "runs"),

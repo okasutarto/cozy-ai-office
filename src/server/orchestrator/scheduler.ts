@@ -1,7 +1,6 @@
 import type { ProfileId, RoleProfile, TaskBrief, WorkerResult } from "../../shared/contracts.js";
 import type { RunStore } from "../db/run-store.js";
 import type { WorktreeService } from "../git/worktrees.js";
-import type { ContextSnapshotService } from "../context/snapshots.js";
 import type { RealtimeHub } from "../realtime/hub.js";
 import type { ValidatedPlan } from "./plan-validator.js";
 import { pathsOverlap } from "./plan-validator.js";
@@ -22,7 +21,6 @@ export type SchedulerInput = {
 export type SchedulerResult = {
   completedTaskIds: string[];
   resultArtifactIds: string[];
-  integrationHead: string;
 };
 
 export type WorkerExecutionPort = {
@@ -61,7 +59,6 @@ export class WorkerScheduler {
   constructor(
     private readonly runs: RunStore,
     private readonly worktrees: WorktreeService,
-    private readonly snapshots: ContextSnapshotService,
     private readonly executor: WorkerExecutionPort,
     private readonly realtime: RealtimeHub,
   ) {}
@@ -225,9 +222,6 @@ export class WorkerScheduler {
       throw new AppError("scheduler_tasks_failed", `Tasks failed: ${failedIds.join(", ")}`, 500);
     }
 
-    // Integration HEAD
-    const integrationHead = await this.getIntegrationHead(input.integrationWorktree, signal);
-
     // Result artifacts in topological order
     const completedTaskIds: string[] = [];
     const resultArtifactIds: string[] = [];
@@ -241,7 +235,7 @@ export class WorkerScheduler {
       }
     }
 
-    return { completedTaskIds, resultArtifactIds, integrationHead };
+    return { completedTaskIds, resultArtifactIds };
   }
 
   // ── Private helpers ───────────────────────────────────────────────
@@ -447,15 +441,6 @@ export class WorkerScheduler {
         this.runs.updateTask(runId, blockId, { status: "blocked" });
       }
     }
-  }
-
-  private async getIntegrationHead(
-    integrationWorktree: string,
-    _signal: AbortSignal,
-  ): Promise<string> {
-    // In production this would do: git rev-parse HEAD in integrationWorktree
-    // For now, return a placeholder that tests can override
-    return integrationWorktree;
   }
 
   private emitEvent(

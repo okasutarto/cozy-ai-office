@@ -64,7 +64,6 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
   const dispatch = useAppDispatch();
   const api = useMemo(() => new ApiClient(sessionStorage.getItem("cozy-session") || ""), []);
   const [tab, setTab] = useState<DockTab>("discussion");
-  const [conversations, setConversations] = useState<ConversationRecord[]>([]);
   const [activeConversation, setActiveConversation] = useState<ConversationRecord | null>(null);
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [inputText, setInputText] = useState("");
@@ -93,7 +92,6 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
       .listConversations(projectId)
       .then((data) => {
         if (!active) return;
-        setConversations(data);
         const found = data.find((conversation) => conversation.profileId === selectedActorId);
         if (found) {
           setActiveConversation(found);
@@ -112,7 +110,6 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
           })
           .then((conversation) => {
             if (!active) return;
-            setConversations((current) => [...current, conversation]);
             setActiveConversation(conversation);
           });
       })

@@ -51,6 +51,80 @@ test.describe("Cozy Agent Office Canvas Lifecycle & PixiJS 8 Integrity", () => {
     expect(canvasCount).toBe(1);
   });
 
+  test("places and persists furniture from the layout editor", async ({ page, baseURL }) => {
+    await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
+    const { projectPath } = await getTestStatus(baseURL!);
+    await completeSetup(page, projectPath);
+
+    await page.getByRole("button", { name: "Layout", exact: true }).click();
+    const canvas = page.locator(".office-canvas-container canvas");
+    const canvasBox = await canvas.boundingBox();
+    if (!canvasBox) throw new Error("office canvas is not visible");
+    const paintX = canvasBox.x + canvasBox.width - 24;
+    await page.mouse.click(paintX, canvasBox.y + 5);
+    await page.mouse.click(paintX, canvasBox.y + canvasBox.height - 5);
+    const furnitureTarget = {
+      x: Math.max(24, canvasBox.width - 24),
+      y: Math.min(130, canvasBox.height - 24),
+    };
+    await page
+      .getByRole("button", { name: "desk mahogany small front", exact: true })
+      .dragTo(canvas, {
+        targetPosition: furnitureTarget,
+      });
+    await page.getByRole("button", { name: "Monitor1 F", exact: true }).dragTo(canvas, {
+      targetPosition: furnitureTarget,
+    });
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+
+    await expect
+      .poll(() =>
+        page.evaluate(async () => {
+          const token = sessionStorage.getItem("cozy-session");
+          const headers = { authorization: `Bearer ${token}` };
+          const bootstrap = await fetch("/api/bootstrap", { headers }).then((response) =>
+            response.json(),
+          );
+          const layout = await fetch(`/api/projects/${bootstrap.projects[0].id}/office-layout`, {
+            headers,
+          }).then((response) => response.json());
+          const floorKeys = Object.keys(layout.floors);
+          const desk = layout.furniture.find((item) => item.kind.includes("desk"));
+          const monitor = layout.furniture.find((item) => item.kind.includes("monitor"));
+          return {
+            furniture: layout.furniture.length,
+            floors: floorKeys.length,
+            monitorOnDesk: Boolean(desk && monitor && desk.x === monitor.x && desk.y === monitor.y),
+            paintedOutsideMap: floorKeys.some((key) => {
+              const y = Number(key.split(":")[1]);
+              return y < 0 || y >= 288;
+            }),
+          };
+        }),
+      )
+      .toEqual({ furniture: 2, floors: 2, monitorOnDesk: true, paintedOutsideMap: true });
+
+    await page.locator(".office-scene-wrapper").press("Delete");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect
+      .poll(() =>
+        page.evaluate(async () => {
+          const token = sessionStorage.getItem("cozy-session");
+          const headers = { authorization: `Bearer ${token}` };
+          const bootstrap = await fetch("/api/bootstrap", { headers }).then((response) =>
+            response.json(),
+          );
+          return fetch(`/api/projects/${bootstrap.projects[0].id}/office-layout`, { headers })
+            .then((response) => response.json())
+            .then((layout) => ({
+              furniture: layout.furniture.length,
+              monitor: layout.furniture.some((item) => item.kind.includes("monitor")),
+            }));
+        }),
+      )
+      .toEqual({ furniture: 1, monitor: false });
+  });
+
   test("keeps the renderer full-bleed at supported viewport sizes", async ({ page, baseURL }) => {
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);

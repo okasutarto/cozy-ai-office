@@ -1,8 +1,6 @@
 import type { ProcessSupervisor, ProcessResult } from "../system/process.js";
 import { sanitizedChildEnv } from "../system/process.js";
 import type { ArtifactStore } from "../artifacts/store.js";
-import type { AttemptRunner } from "./attempts.js";
-import type { RunStore } from "../db/run-store.js";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -59,8 +57,6 @@ export class QaRunner {
   constructor(
     private readonly supervisor: ProcessSupervisor,
     private readonly artifacts: ArtifactStore,
-    private readonly attempts: AttemptRunner,
-    private readonly runs: RunStore,
     private readonly workerPort: WorkerExecutionPort | null,
   ) {}
 

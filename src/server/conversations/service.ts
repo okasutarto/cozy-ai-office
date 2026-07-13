@@ -9,7 +9,7 @@ import type {
 import type { ProviderRegistry } from "../providers/registry.js";
 import type { ContextSnapshotService } from "../context/snapshots.js";
 import type { ArtifactStore } from "../artifacts/store.js";
-import type { ProviderRequest, ProviderRuntime, ProviderAdapter } from "../providers/types.js";
+import type { ProviderRequest, ProviderRuntime } from "../providers/types.js";
 import {
   type TaskDraftVersion,
   ChatResponseSchema,

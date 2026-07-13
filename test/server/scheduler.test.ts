@@ -5,7 +5,6 @@ import {
   type WorkerExecutionPort,
   type SchedulerInput,
 } from "../../src/server/orchestrator/scheduler.js";
-import type { ContextSnapshotService } from "../../src/server/context/snapshots.js";
 import type { WorktreeService, TaskWorktree } from "../../src/server/git/worktrees.js";
 import type { ValidatedPlan } from "../../src/server/orchestrator/plan-validator.js";
 import type { RoleProfile, TaskBrief, WorkerResult } from "../../src/shared/contracts.js";
@@ -53,10 +52,6 @@ function makeFakeWorktreeService(): WorktreeService {
     integrateCommit: async () => ({ conflictFiles: [] }),
     resolveConflict: async () => "a".repeat(40),
   } as unknown as WorktreeService;
-}
-
-function makeFakeSnapshotService(): ContextSnapshotService {
-  return {} as ContextSnapshotService;
 }
 
 function makeWorkerProfile(id: "worker-1" | "worker-2" | "worker-3" | "worker-4"): RoleProfile {
@@ -172,7 +167,6 @@ describe("WorkerScheduler", () => {
     const scheduler = new WorkerScheduler(
       deps.runs,
       makeFakeWorktreeService(),
-      makeFakeSnapshotService(),
       executor,
       deps.realtime,
     );
@@ -251,7 +245,6 @@ describe("WorkerScheduler", () => {
     const scheduler = new WorkerScheduler(
       deps.runs,
       makeFakeWorktreeService(),
-      makeFakeSnapshotService(),
       makeFakeExecutor([]),
       deps.realtime,
     );
@@ -313,7 +306,6 @@ describe("WorkerScheduler", () => {
     const scheduler = new WorkerScheduler(
       deps.runs,
       worktrees,
-      makeFakeSnapshotService(),
       makeFakeExecutor([]),
       deps.realtime,
     );

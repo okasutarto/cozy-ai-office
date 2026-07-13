@@ -1,11 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { resolve, join } from "node:path";
 import { lstat, readdir, rm, unlink } from "node:fs/promises";
-import {
-  CleanupRunRequestSchema,
-  RunStorageSchema,
-  CleanupResultSchema,
-} from "../../shared/api.js";
+import { CleanupRunRequestSchema } from "../../shared/api.js";
 import type { RunStore } from "../db/run-store.js";
 import type { ArtifactStore } from "../artifacts/store.js";
 import type { WorktreeService } from "../git/worktrees.js";
@@ -95,7 +91,7 @@ export function registerStorageRoutes(
   }
 
   // 1. GET /api/storage
-  app.get("/api/storage", async (request, reply) => {
+  app.get("/api/storage", async (_request, reply) => {
     // Return storage for all runs
     const db = (runs as any).db;
     const runRows = db.prepare("SELECT id FROM runs").all() as { id: string }[];
