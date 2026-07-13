@@ -92,7 +92,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
 
     // 5. Advisor Review State
     await releaseBarrier(baseURL!, "testing");
-    await expect(page.locator("text=ADVISOR_DELIVERY")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByText(/advisor delivery/i).first()).toBeVisible({ timeout: 60_000 });
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({
