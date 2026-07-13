@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, realpath, writeFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { buildApp } from "../../src/server/app.js";
 import { ProviderRegistry } from "../../src/server/providers/registry.js";
@@ -130,7 +130,9 @@ describe("project setup completion", () => {
       });
       expect(clone.statusCode).toBe(200);
       const project = SelectProjectResponseSchema.parse(clone.json());
-      expect(project.rootPath).toBe(join(cloneParent, "copy").replaceAll("\\", "/"));
+      expect(project.rootPath).toBe(
+        (await realpath(join(cloneParent, "copy"))).replaceAll("\\", "/"),
+      );
       expect(project.clean).toBe(true);
       expect(deps.projects.getProject(project.id)?.rootPath).toBe(project.rootPath);
     } finally {

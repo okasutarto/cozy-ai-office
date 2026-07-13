@@ -135,7 +135,9 @@ describe("Onboarding Wizard Component", () => {
         request.mock.calls.filter(([path]) => path === `/api/projects/${project.id}/onboarding`),
       ).toHaveLength(1);
     });
-    fireEvent.click(screen.getByRole("button", { name: /LLM Engines/u }));
+    const enginesStep = screen.getByRole("button", { name: /LLM Engines/u });
+    await waitFor(() => expect((enginesStep as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(enginesStep);
     fireEvent.click(screen.getByRole("button", { name: /Probe official CLIs/u }));
     await screen.findByText(/Probe complete/u);
 
@@ -167,7 +169,9 @@ describe("Onboarding Wizard Component", () => {
     });
     fireEvent.click(screen.getByText(/Open Repository/u));
     await screen.findByText(/Repository ready/u);
-    fireEvent.click(screen.getByRole("button", { name: /LLM Engines/u }));
+    const enginesStep = screen.getByRole("button", { name: /LLM Engines/u });
+    await waitFor(() => expect((enginesStep as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(enginesStep);
     fireEvent.click(screen.getByRole("button", { name: /Probe official CLIs/u }));
     await screen.findByText(/Probe complete/u);
     fireEvent.click(screen.getByRole("button", { name: /Test Suites & Context/u }));

@@ -1,11 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { completeSetup } from "./helpers/setup";
-
-async function resetTestServer(baseURL: string) {
-  const res = await fetch(`${baseURL}/__test/reset`, { method: "POST" });
-  if (!res.ok) throw new Error(`E2E reset failed: ${res.status} ${await res.text()}`);
-  return res.json();
-}
+import { resetTestServer } from "./helpers/reset";
 
 async function getTestStatus(baseURL: string) {
   const res = await fetch(`${baseURL}/__test/status`);
