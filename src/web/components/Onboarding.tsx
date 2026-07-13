@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   BootstrapProject,
   BootstrapResponse,
+  BrowseDirectoriesResponse,
   ContextCandidatesResponse,
   ProjectOnboardingResponse,
   SelectProjectResponse,
@@ -20,6 +21,7 @@ type OnboardingProps = {
   bootstrap: BootstrapResponse;
   api: ApiClient;
   projectId?: string | null;
+  onClose?(projectId: string | null): void;
 };
 
 type SetupStep = 1 | 2 | 3 | 4;
@@ -52,6 +54,17 @@ function messageFromError(error: unknown): string {
 
 function isProviderReady(status: ProviderStatus): boolean {
   return status.installed && status.authenticated && status.capabilities.nonInteractive;
+}
+
+function repositoryNameFromRemote(remoteUrl: string): string {
+  return (
+    remoteUrl
+      .trim()
+      .replace(/\/?$/u, "")
+      .split(/[/:]/u)
+      .at(-1)
+      ?.replace(/\.git$/u, "") ?? ""
+  );
 }
 
 function buildProfilesFromProbe(statuses: ProviderStatus[]): RoleProfile[] {
@@ -111,7 +124,12 @@ function buildProfilesFromProbe(statuses: ProviderStatus[]): RoleProfile[] {
   ];
 }
 
-export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api, projectId: initialId }) => {
+export const Onboarding: React.FC<OnboardingProps> = ({
+  bootstrap,
+  api,
+  projectId: initialId,
+  onClose,
+}) => {
   const dispatch = useAppDispatch();
   const initialProject =
     bootstrap.projects.find((project) => project.id === initialId) ?? bootstrap.projects[0] ?? null;
@@ -121,6 +139,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api, projectI
     initialId ?? initialProject?.id ?? null,
   );
   const [repoPath, setRepoPath] = useState(initialProject?.rootPath ?? "");
+  const [repositoryMode, setRepositoryMode] = useState<"local" | "clone">("local");
+  const [cloneUrl, setCloneUrl] = useState("");
+  const [cloneParentPath, setCloneParentPath] = useState("");
+  const [cloneDirectoryName, setCloneDirectoryName] = useState("");
+  const [cloning, setCloning] = useState(false);
+  const [browserTarget, setBrowserTarget] = useState<"local" | "clone" | null>(null);
+  const [directoryBrowser, setDirectoryBrowser] = useState<BrowseDirectoriesResponse | null>(null);
+  const [browsingDirectories, setBrowsingDirectories] = useState(false);
   const [inspection, setInspection] = useState<SelectProjectResponse | null>(null);
   const [projectNotice, setProjectNotice] = useState<Notice | null>(null);
   const [loadingProject, setLoadingProject] = useState(false);
@@ -221,7 +247,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api, projectI
     (status) => isProviderReady(status) && status.capabilities.worktreeWrite,
   );
 
-  const repositoryComplete = Boolean(projectId && inspection?.clean === true);
+  const repositoryComplete = Boolean(projectId && inspection?.clean === true && !loadingProject);
   const providersComplete =
     providersProbedThisSession && readProviders.length > 0 && writeProviders.length > 0;
   const testsComplete = commands.length > 0 && contextPaths.length > 0;
@@ -258,6 +284,43 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api, projectI
     return repositoryComplete && providersComplete && testsComplete;
   };
 
+  const browseDirectories = async (target: "local" | "clone", path: string | null = null) => {
+    setBrowserTarget(target);
+    setBrowsingDirectories(true);
+    setProjectNotice({ kind: "working", text: "Opening local folders…" });
+    try {
+      const result = await api.request<BrowseDirectoriesResponse>("/api/filesystem/directories", {
+        method: "POST",
+        body: JSON.stringify({ path }),
+      });
+      setDirectoryBrowser(result);
+      setProjectNotice(null);
+    } catch (error) {
+      setProjectNotice({ kind: "error", text: messageFromError(error) });
+    } finally {
+      setBrowsingDirectories(false);
+    }
+  };
+
+  const acceptProject = async (result: SelectProjectResponse, successText: string) => {
+    const normalizedResult = {
+      ...result,
+      clean: result.clean === true,
+      setupComplete: result.setupComplete ?? false,
+    } as SelectProjectResponse;
+    setInspection(normalizedResult);
+    setProjectId(result.id);
+    setRepoPath(result.rootPath);
+    if (Array.isArray(result.commandCandidates)) setCommands(result.commandCandidates);
+    setProjectNotice({
+      kind: normalizedResult.clean ? "success" : "error",
+      text: normalizedResult.clean
+        ? `${successText} Branch: ${result.branch ?? "unknown"}, HEAD: ${result.head ?? "unknown"}`
+        : `Workspace has ${result.statusEntries?.length ?? 0} uncommitted status entries. Clean it before setup completion.`,
+    });
+    await loadProjectConfiguration(result.id, null);
+  };
+
   const verifyRepository = async () => {
     if (!repoPath.trim()) return;
     setProjectNotice({ kind: "working", text: "Inspecting the existing local Git workspace…" });
@@ -266,25 +329,32 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api, projectI
         method: "POST",
         body: JSON.stringify({ rootPath: repoPath.trim() }),
       });
-      const normalizedResult = {
-        ...result,
-        clean: result.clean === true,
-        setupComplete: result.setupComplete ?? false,
-      } as SelectProjectResponse;
-      setInspection(normalizedResult);
-      setProjectId(result.id);
-      setRepoPath(result.rootPath ?? repoPath.trim());
-      if (Array.isArray(result.commandCandidates)) setCommands(result.commandCandidates);
-      setProjectNotice({
-        kind: normalizedResult.clean ? "success" : "error",
-        text: normalizedResult.clean
-          ? `Clean root. Branch: ${result.branch ?? "unknown"}, HEAD: ${result.head ?? "unknown"}`
-          : `Workspace has ${result.statusEntries?.length ?? 0} uncommitted status entries. Clean it before setup completion.`,
-      });
-      await loadProjectConfiguration(result.id, null);
+      await acceptProject(result, "Repository ready.");
     } catch (error) {
       setInspection(null);
       setProjectNotice({ kind: "error", text: messageFromError(error) });
+    }
+  };
+
+  const cloneRepository = async () => {
+    if (!cloneUrl.trim() || !cloneParentPath.trim() || !cloneDirectoryName.trim()) return;
+    setCloning(true);
+    setProjectNotice({ kind: "working", text: "Cloning repository…" });
+    try {
+      const result = await api.request<SelectProjectResponse>("/api/projects/clone", {
+        method: "POST",
+        body: JSON.stringify({
+          remoteUrl: cloneUrl.trim(),
+          parentPath: cloneParentPath.trim(),
+          directoryName: cloneDirectoryName.trim(),
+        }),
+      });
+      await acceptProject(result, "Repository cloned and ready.");
+    } catch (error) {
+      setInspection(null);
+      setProjectNotice({ kind: "error", text: messageFromError(error) });
+    } finally {
+      setCloning(false);
     }
   };
 
@@ -463,13 +533,17 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api, projectI
             <span className={`status-chip ${allComplete ? "success" : "warning"}`}>
               <i className="dot" /> {allComplete ? "ready" : "setup required"}
             </span>
-            {canReturnToOffice && projectId && (
+            {(onClose || (canReturnToOffice && projectId)) && (
               <button
                 type="button"
                 className="cozy-button"
-                onClick={() => dispatch({ type: "project_selected", projectId })}
+                onClick={() =>
+                  onClose
+                    ? onClose(projectId)
+                    : projectId && dispatch({ type: "project_selected", projectId })
+                }
               >
-                Return to Office
+                Close Setup
               </button>
             )}
           </div>
@@ -500,11 +574,28 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api, projectI
             <div>
               <h2 className="setup-section-heading">01. Connect an existing local workspace</h2>
               <p className="setup-section-copy">
-                Select a registered project or enter an absolute path already present on this
-                machine. Cozy never fabricates a browser filesystem or clones a remote repository.
+                Browse to an existing repository on this machine, select a recent workspace, or
+                clone a remote repository into a local folder.
               </p>
 
-              {bootstrap.projects.length > 0 && (
+              <div className="setup-mode-tabs" style={{ marginBottom: 16 }}>
+                <button
+                  type="button"
+                  className={`setup-mode-tab${repositoryMode === "local" ? " active" : ""}`}
+                  onClick={() => setRepositoryMode("local")}
+                >
+                  Browse local
+                </button>
+                <button
+                  type="button"
+                  className={`setup-mode-tab${repositoryMode === "clone" ? " active" : ""}`}
+                  onClick={() => setRepositoryMode("clone")}
+                >
+                  Clone repository
+                </button>
+              </div>
+
+              {repositoryMode === "local" && bootstrap.projects.length > 0 && (
                 <div style={{ marginBottom: 16 }}>
                   <p className="eyebrow" style={{ marginBottom: 7 }}>
                     Recent projects
@@ -542,34 +633,157 @@ export const Onboarding: React.FC<OnboardingProps> = ({ bootstrap, api, projectI
                 </div>
               )}
 
-              <div className="setup-card">
-                <div className="cozy-field">
-                  <label htmlFor="repo-path">
-                    Repository Absolute Path · existing local workspace
-                  </label>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+              {repositoryMode === "local" ? (
+                <div className="setup-card">
+                  <div className="cozy-field">
+                    <label htmlFor="repo-path">Local repository folder</label>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 8 }}>
+                      <input
+                        id="repo-path"
+                        className="cozy-input"
+                        value={repoPath}
+                        placeholder="Choose a repository folder"
+                        disabled={loadingProject}
+                        onChange={(event) => setRepoPath(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") void verifyRepository();
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="cozy-button"
+                        disabled={browsingDirectories || loadingProject}
+                        onClick={() => void browseDirectories("local")}
+                      >
+                        Browse…
+                      </button>
+                      <button
+                        type="button"
+                        className="cozy-button primary"
+                        disabled={!repoPath.trim() || loadingProject}
+                        onClick={() => void verifyRepository()}
+                      >
+                        Use Repository
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="setup-card">
+                  <div className="cozy-field">
+                    <label htmlFor="clone-url">Remote repository URL</label>
                     <input
-                      id="repo-path"
+                      id="clone-url"
                       className="cozy-input"
-                      value={repoPath}
-                      placeholder="C:/projects/cozy-agent-office"
-                      disabled={loadingProject}
-                      onChange={(event) => setRepoPath(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") void verifyRepository();
+                      value={cloneUrl}
+                      placeholder="https://github.com/owner/repository.git"
+                      disabled={cloning}
+                      onChange={(event) => {
+                        const nextUrl = event.target.value;
+                        setCloneUrl(nextUrl);
+                        setCloneDirectoryName(repositoryNameFromRemote(nextUrl));
                       }}
                     />
+                  </div>
+                  <div className="setup-grid-2" style={{ marginTop: 10 }}>
+                    <div className="cozy-field">
+                      <label htmlFor="clone-parent">Clone into folder</label>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+                        <input
+                          id="clone-parent"
+                          className="cozy-input"
+                          value={cloneParentPath}
+                          placeholder="Choose a parent folder"
+                          disabled={cloning}
+                          onChange={(event) => setCloneParentPath(event.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="cozy-button"
+                          disabled={browsingDirectories || cloning}
+                          onClick={() => void browseDirectories("clone")}
+                        >
+                          Browse…
+                        </button>
+                      </div>
+                    </div>
+                    <div className="cozy-field">
+                      <label htmlFor="clone-directory">Repository folder name</label>
+                      <input
+                        id="clone-directory"
+                        className="cozy-input"
+                        value={cloneDirectoryName}
+                        placeholder="repository"
+                        disabled={cloning}
+                        onChange={(event) => setCloneDirectoryName(event.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="cozy-button primary"
+                    style={{ marginTop: 10 }}
+                    disabled={
+                      cloning ||
+                      !cloneUrl.trim() ||
+                      !cloneParentPath.trim() ||
+                      !cloneDirectoryName.trim()
+                    }
+                    onClick={() => void cloneRepository()}
+                  >
+                    {cloning ? "Cloning…" : "Clone and Use Repository"}
+                  </button>
+                </div>
+              )}
+
+              {browserTarget && directoryBrowser && (
+                <div className="setup-card" style={{ marginTop: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                    <code>{directoryBrowser.currentPath}</code>
                     <button
                       type="button"
                       className="cozy-button primary"
-                      disabled={!repoPath.trim() || loadingProject}
-                      onClick={() => void verifyRepository()}
+                      onClick={() => {
+                        if (browserTarget === "local") {
+                          setRepoPath(directoryBrowser.currentPath);
+                        } else {
+                          setCloneParentPath(directoryBrowser.currentPath);
+                        }
+                        setBrowserTarget(null);
+                        setDirectoryBrowser(null);
+                      }}
                     >
-                      Verify Repository Path
+                      Select This Folder
                     </button>
                   </div>
+                  <div className="directory-browser-list" style={{ marginTop: 10 }}>
+                    {directoryBrowser.parentPath && (
+                      <button
+                        type="button"
+                        className="context-row"
+                        onClick={() =>
+                          void browseDirectories(browserTarget, directoryBrowser.parentPath)
+                        }
+                      >
+                        <strong>↑ Parent folder</strong>
+                      </button>
+                    )}
+                    {directoryBrowser.directories.map((directory) => (
+                      <button
+                        key={directory.path}
+                        type="button"
+                        className="context-row"
+                        onClick={() => void browseDirectories(browserTarget, directory.path)}
+                      >
+                        <span>▸</span> <code>{directory.name}</code>
+                      </button>
+                    ))}
+                    {directoryBrowser.directories.length === 0 && (
+                      <div className="empty-state">No child folders.</div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {projectNotice && (
                 <div className={`inline-message ${projectNotice.kind}`} style={{ marginTop: 10 }}>

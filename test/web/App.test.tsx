@@ -5,6 +5,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { App } from "../../src/web/App.js";
 import { AppStoreProvider } from "../../src/web/store.js";
 
+vi.mock("../../src/web/office/OfficeCanvas.js", () => ({
+  OfficeCanvas: () => <div data-testid="office-canvas" />,
+}));
+
 describe("App Container", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -65,5 +69,10 @@ describe("App Container", () => {
         }),
       }),
     );
+
+    await waitFor(() => {
+      expect(document.querySelector(".app-shell")).not.toBeNull();
+      expect(screen.queryByText("Workspace Setup")).toBeNull();
+    });
   });
 });

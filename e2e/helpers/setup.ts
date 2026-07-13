@@ -2,8 +2,9 @@ import { expect, type Page } from "@playwright/test";
 
 /** Complete the live repository/provider/context/role setup used by every E2E flow. */
 export async function completeSetup(page: Page, projectPath: string) {
-  await page.getByLabel(/Repository Absolute Path/).fill(projectPath);
-  await page.getByRole("button", { name: /Verify Repository Path/ }).click();
+  await page.getByRole("button", { name: /^Setup$/ }).click();
+  await page.getByLabel(/Local repository folder/).fill(projectPath);
+  await page.getByRole("button", { name: /Use Repository/ }).click();
   await expect(page.getByText("Clean").first()).toBeVisible();
 
   await page.getByRole("button", { name: /LLM Engines/ }).click();

@@ -1,9 +1,10 @@
-import { realpath, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { lstat, realpath, readFile } from "node:fs/promises";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import { type GitClient, splitNul } from "./git.js";
 import { AppError } from "../errors.js";
 import type { CommandSpec } from "../../shared/contracts.js";
+import { redactText } from "../security/redact.js";
 
 export type RepositoryInspection = {
   rootPath: string;
@@ -19,6 +20,69 @@ export type RepositoryInspection = {
 
 export class RepositoryService {
   constructor(private readonly git: GitClient) {}
+
+  async clone(
+    remoteUrl: string,
+    parentPath: string,
+    directoryName: string,
+    signal: AbortSignal,
+  ): Promise<RepositoryInspection> {
+    const remote = remoteUrl.trim();
+    if (/\p{C}/u.test(remote)) {
+      throw new AppError("invalid_clone_url", "Repository URL contains invalid characters", 400);
+    }
+    if (remote.includes("://")) {
+      let parsed: URL;
+      try {
+        parsed = new URL(remote);
+      } catch {
+        throw new AppError("invalid_clone_url", "Repository URL is invalid", 400);
+      }
+      if (!["https:", "http:", "ssh:", "git:"].includes(parsed.protocol)) {
+        throw new AppError("invalid_clone_url", "Repository URL protocol is not supported", 400);
+      }
+      if (parsed.username || parsed.password) {
+        throw new AppError(
+          "clone_credentials_forbidden",
+          "Do not place credentials in the repository URL; use your Git credential helper",
+          400,
+        );
+      }
+    } else if (!isAbsolute(remote) && !/^[^\s@]+@[^\s:]+:.+$/u.test(remote)) {
+      throw new AppError(
+        "invalid_clone_url",
+        "Use an HTTPS, SSH, or absolute local repository URL",
+        400,
+      );
+    }
+
+    const realParent = await realpath(parentPath);
+    const destination = resolve(realParent, directoryName);
+    if (dirname(destination) !== realParent) {
+      throw new AppError(
+        "invalid_clone_destination",
+        "Clone destination must be a child folder",
+        400,
+      );
+    }
+    try {
+      await lstat(destination);
+      throw new AppError("clone_destination_exists", "Clone destination already exists", 409);
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
+
+    const result = await this.git.run(realParent, ["clone", "--", remote, directoryName], signal);
+    if (result.exitCode !== 0) {
+      throw new AppError(
+        "git_clone_failed",
+        `Git clone failed: ${redactText(result.stderr).trim() || "unknown Git error"}`,
+        400,
+      );
+    }
+    return this.inspect(destination, signal);
+  }
 
   async inspect(rootPath: string, signal: AbortSignal): Promise<RepositoryInspection> {
     const realRoot = (await realpath(rootPath)).replaceAll("\\", "/");
