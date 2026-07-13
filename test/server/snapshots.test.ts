@@ -99,7 +99,6 @@ describe("Context Snapshot Service", () => {
         await mkdir(tempRoot, { recursive: true });
 
         const snapshotService = new ContextSnapshotService(
-          db,
           projectStore,
           repoService,
           contextsRoot,

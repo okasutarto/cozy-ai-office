@@ -147,7 +147,6 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     dependencies.providers,
   );
   const snapshotService = new ContextSnapshotService(
-    (dependencies.projects as any).db, // ponytail: SQLite db is accessed directly from SqliteProjectStore for context snapshots
     dependencies.projects,
     repositoryService,
     dependencies.config.contextsDir,

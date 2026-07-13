@@ -1,11 +1,10 @@
-import Database from "better-sqlite3";
 import { createHash, randomUUID } from "node:crypto";
-import { copyFile, lstat, mkdir, readFile, rm, rename, writeFile, open } from "node:fs/promises";
+import { copyFile, lstat, mkdir, readFile, rm, rename, open } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { constants } from "node:fs";
 import type { ProjectStore } from "../db/project-store.js";
 import type { RepositoryService } from "../git/repository.js";
-import { AppError, errorMessage } from "../errors.js";
+import { AppError } from "../errors.js";
 import { RelativePathSchema, type ContextSnapshot } from "../../shared/contracts.js";
 
 export const MAX_CONTEXT_FILE_BYTES = 2 * 1024 * 1024;
@@ -123,7 +122,6 @@ async function getFilesRecursive(dir: string, currentRoot = dir): Promise<string
 
 export class ContextSnapshotService {
   constructor(
-    private readonly db: Database.Database,
     private readonly projects: ProjectStore,
     private readonly repositories: RepositoryService,
     private readonly contextsRoot: string,
@@ -352,8 +350,7 @@ export class ContextSnapshotService {
         const srcPath = join(snapshot.directoryPath, entry.path);
         const destPath = join(destDir, entry.path);
         await mkdir(dirname(destPath), { recursive: true });
-        const content = await readFile(srcPath);
-        await writeFile(destPath, content);
+        await copyFile(srcPath, destPath);
       }
 
       const verifyUnchanged = async () => {
