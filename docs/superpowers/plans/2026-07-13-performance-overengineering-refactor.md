@@ -36,10 +36,12 @@
 ### Task 1: Linear event normalization
 
 **Files:**
+
 - Modify: `test/web/office.test.ts`
 - Modify: `src/web/office/animation.ts`
 
 **Interfaces:**
+
 - Consumes: `projectActorPoses(run: RunSnapshot | null, events: RunEvent[]): ActorPose[]`.
 - Produces: the same signature and event semantics with linear deduplication followed by the existing sequence sort.
 
@@ -126,12 +128,14 @@ git commit -m "perf(web): normalize events linearly"
 ### Task 2: Native disposable snapshot copying
 
 **Files:**
+
 - Modify: `src/server/context/snapshots.ts`
 - Modify: `src/server/app.ts`
 - Modify: `test/server/snapshots.test.ts`
 - Modify: `test/server/conversations.test.ts`
 
 **Interfaces:**
+
 - Consumes: `ContextSnapshotService(projects, repositories, contextsRoot, tempRoot)`.
 - Produces: unchanged `create`, `materializeDisposable`, `verifyUnchanged`, and `get` behavior with native file copies.
 
@@ -228,6 +232,7 @@ git commit -m "perf(server): use native snapshot copies"
 ### Task 3: Enforce unused checks and delete server/shared dead structure
 
 **Files:**
+
 - Modify: `tsconfig.base.json`
 - Modify: `src/server/app.ts`
 - Modify: `src/server/conversations/service.ts`
@@ -246,6 +251,7 @@ git commit -m "perf(server): use native snapshot copies"
 - Modify: `test/server/scheduler.test.ts`
 
 **Interfaces:**
+
 - Consumes: current QA and scheduler call sites.
 - Produces: `QaRunner(supervisor, artifacts, workerPort)` and `WorkerScheduler(runs, worktrees, executor, realtime)`; `SchedulerResult` retains `completedTaskIds` and `resultArtifactIds` only.
 
@@ -284,7 +290,7 @@ export class QaRunner {
 Remove its `AttemptRunner` and `RunStore` imports. Update `src/server/app.ts` and all three `test/server/qa.test.ts` call sites to:
 
 ```ts
-new QaRunner(supervisor, artifacts, null)
+new QaRunner(supervisor, artifacts, null);
 ```
 
 The app call uses the existing repair-port object as the third argument.
@@ -382,10 +388,12 @@ git commit -m "refactor(server): remove unused structure"
 ### Task 4: Delete browser dead state and imports
 
 **Files:**
+
 - Modify: `src/web/App.tsx`
 - Modify: `src/web/components/ConversationDock.tsx`
 
 **Interfaces:**
+
 - Consumes: existing `ConversationDockProps` and `ApiClient` methods.
 - Produces: unchanged conversation selection/creation behavior without storing an unread conversation list.
 
@@ -464,9 +472,11 @@ git commit -m "refactor(web): remove unread state"
 ### Task 5: Verify the complete refactor
 
 **Files:**
+
 - Verify only; modify code only to fix a regression introduced by Tasks 1–4.
 
 **Interfaces:**
+
 - Consumes: all outputs from Tasks 1–4.
 - Produces: evidence that formatting, assets, types, tests, builds, and browser workflows remain valid.
 
