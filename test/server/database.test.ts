@@ -7,10 +7,10 @@ import { SqliteRunStore } from "../../src/server/db/run-store.js";
 import { withTempDir } from "../helpers/temp.js";
 
 describe("database", () => {
-  it("applies migrations through version 2 with foreign keys and WAL", async () => {
+  it("applies migrations through version 3 with foreign keys and WAL", async () => {
     await withTempDir(async (dir) => {
       const db = openDatabase(join(dir, "state.db"));
-      expect(db.pragma("user_version", { simple: true })).toBe(2);
+      expect(db.pragma("user_version", { simple: true })).toBe(3);
       expect(db.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(db.pragma("journal_mode", { simple: true })).toBe("wal");
       const names = db
@@ -121,7 +121,7 @@ describe("database", () => {
       legacy.close();
 
       const migrated = openDatabase(databasePath);
-      expect(migrated.pragma("user_version", { simple: true })).toBe(2);
+      expect(migrated.pragma("user_version", { simple: true })).toBe(3);
       const projects = migrated
         .prepare("SELECT id, setup_complete AS setupComplete FROM projects ORDER BY id")
         .all() as Array<{ id: string; setupComplete: number }>;

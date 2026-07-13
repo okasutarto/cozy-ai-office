@@ -4,9 +4,9 @@ import { mkdirSync } from "node:fs";
 import { ProviderStatusSchema, RoleProfileSchema } from "../../shared/contracts.js";
 import type { ProviderStatus, RoleProfile } from "../../shared/contracts.js";
 import { evaluateSetupReadiness } from "../projects/setup.js";
-import { MIGRATION_1, MIGRATION_2 } from "./migration.js";
+import { MIGRATION_1, MIGRATION_2, MIGRATION_3 } from "./migration.js";
 
-const SUPPORTED_DATABASE_VERSION = 2;
+const SUPPORTED_DATABASE_VERSION = 3;
 
 function backfillLegacySetupCompletion(db: Database.Database): void {
   const providerStatuses = (
@@ -100,6 +100,13 @@ export function openDatabase(path: string): Database.Database {
       db.exec(MIGRATION_2);
       backfillLegacySetupCompletion(db);
       db.pragma("user_version = 2");
+    })();
+    version = 2;
+  }
+  if (version === 2) {
+    db.transaction(() => {
+      db.exec(MIGRATION_3);
+      db.pragma("user_version = 3");
     })();
   }
   return db;

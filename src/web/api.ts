@@ -17,6 +17,7 @@ import {
   type RunStorage,
   type CleanupResult,
 } from "../shared/api.js";
+import { OfficeLayoutSchema, type OfficeLayout } from "../shared/api.js";
 import { type TaskDraftVersion, type RunSnapshot, RunSnapshotSchema } from "../shared/contracts.js";
 
 const SESSION_KEY = "cozy-session";
@@ -185,6 +186,19 @@ export class ApiClient {
       throw new Error(detail);
     }
     return response.blob();
+  }
+
+  async getOfficeLayout(projectId: string): Promise<OfficeLayout> {
+    return OfficeLayoutSchema.parse(await this.request(`/api/projects/${projectId}/office-layout`));
+  }
+
+  async saveOfficeLayout(projectId: string, layout: OfficeLayout): Promise<OfficeLayout> {
+    return OfficeLayoutSchema.parse(
+      await this.request(`/api/projects/${projectId}/office-layout`, {
+        method: "PUT",
+        body: JSON.stringify(layout),
+      }),
+    );
   }
 }
 

@@ -214,3 +214,11 @@ ALTER TABLE projects
 ADD COLUMN setup_complete INTEGER NOT NULL DEFAULT 0
 CHECK (setup_complete IN (0, 1));
 `;
+
+export const MIGRATION_3 = `
+CREATE TABLE office_layouts (
+  project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+  layout_json TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+`;

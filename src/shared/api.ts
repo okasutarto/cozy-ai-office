@@ -243,6 +243,30 @@ export const CleanupResultSchema = z.object({
   auditPreserved: z.literal(true),
 });
 
+export const OfficeLayoutSchema = z.object({
+  floors: z.record(
+    z
+      .string()
+      .regex(/^-?\d+:-?\d+$/)
+      .max(32),
+    z
+      .string()
+      .regex(/^[a-z0-9-]+$/)
+      .max(200),
+  ),
+  furniture: z.array(
+    z.object({
+      id: z.string().min(1).max(100),
+      kind: z
+        .string()
+        .regex(/^[a-z0-9-]+$/)
+        .max(200),
+      x: z.number().int().min(-8192).max(8192),
+      y: z.number().int().min(-8192).max(8192),
+    }),
+  ),
+});
+
 export const ConversationListResponseSchema = z.array(ConversationRecordSchema);
 export const MessageListResponseSchema = z.array(MessageRecordSchema);
 export const RunEventsResponseSchema = z.array(RunEventSchema);
@@ -271,3 +295,4 @@ export type AdvisorReviewView = z.infer<typeof AdvisorReviewViewSchema>;
 export type RunEvidence = z.infer<typeof RunEvidenceSchema>;
 export type RunStorage = z.infer<typeof RunStorageSchema>;
 export type CleanupResult = z.infer<typeof CleanupResultSchema>;
+export type OfficeLayout = z.infer<typeof OfficeLayoutSchema>;
