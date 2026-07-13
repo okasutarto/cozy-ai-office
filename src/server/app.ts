@@ -32,6 +32,7 @@ import { OrchestratorEngine } from "./orchestrator/engine.js";
 import { registerRunRoutes } from "./routes/runs.js";
 import { registerStorageRoutes } from "./routes/storage.js";
 import { buildWorkerPrompt, buildConflictPrompt } from "./prompts/worker.js";
+import type { DirectoryPicker } from "./system/directory-picker.js";
 
 export type AppDependencies = {
   config: ServerConfig;
@@ -42,6 +43,7 @@ export type AppDependencies = {
   providers: ProviderRegistry;
   artifacts: ArtifactStore;
   realtime: RealtimeHub;
+  directoryPicker?: DirectoryPicker;
 };
 
 function safeEqual(left: string, right: string): boolean {
@@ -155,7 +157,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
   );
 
   // Register project routes
-  registerProjectRoutes(app, projectService, snapshotService);
+  registerProjectRoutes(app, projectService, snapshotService, dependencies.directoryPicker);
 
   const conversationService = new ConversationService(
     (dependencies.projects as any).db,
