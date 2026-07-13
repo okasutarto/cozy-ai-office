@@ -47,6 +47,29 @@ describe("Git repository service", () => {
     });
   });
 
+  it("clones a repository into a selected parent directory", async () => {
+    await withTempDir(async (dir) => {
+      const supervisor = new ProcessSupervisor();
+      const gitClient = new GitClient(supervisor);
+      const repoService = new RepositoryService(gitClient);
+      const sourcePath = join(dir, "source");
+      const parentPath = join(dir, "clones");
+      await createFakeRepo(sourcePath);
+      await mkdir(parentPath);
+
+      const inspection = await repoService.clone(
+        sourcePath,
+        parentPath,
+        "copy",
+        new AbortController().signal,
+      );
+
+      expect(inspection.rootPath).toBe(join(parentPath, "copy").replaceAll("\\", "/"));
+      expect(inspection.branch).toBe("main");
+      expect(inspection.clean).toBe(true);
+    });
+  });
+
   it("inspects a clean git repo, detects npm/flutter candidates, rule files, and handles dirty state", async () => {
     await withTempDir(async (dir) => {
       const supervisor = new ProcessSupervisor();

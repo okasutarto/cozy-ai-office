@@ -1,10 +1,14 @@
 import type { FastifyInstance } from "fastify";
-import { lstat, open } from "node:fs/promises";
-import { join } from "node:path";
+import { lstat, open, readdir, realpath } from "node:fs/promises";
+import { dirname, join } from "node:path";
 import { constants } from "node:fs";
+import { homedir } from "node:os";
 import {
   SelectProjectRequestSchema,
   SelectProjectResponseSchema,
+  BrowseDirectoriesRequestSchema,
+  BrowseDirectoriesResponseSchema,
+  CloneProjectRequestSchema,
   ProviderStatusListResponseSchema,
   VerifyAntigravityLoginRequestSchema,
   UpdateCommandsRequestSchema,
@@ -33,6 +37,35 @@ function isCredentialShaped(path: string): boolean {
   );
 }
 
+async function browseDirectories(requestedPath?: string | null) {
+  let currentPath: string;
+  try {
+    currentPath = (await realpath(requestedPath?.trim() || homedir())).replaceAll("\\", "/");
+  } catch {
+    throw new AppError("directory_not_found", "Directory could not be opened", 400);
+  }
+
+  let entries;
+  try {
+    entries = await readdir(currentPath, { withFileTypes: true });
+  } catch {
+    throw new AppError("directory_unreadable", "Directory cannot be browsed", 400);
+  }
+
+  const parent = dirname(currentPath).replaceAll("\\", "/");
+  return {
+    currentPath,
+    parentPath: parent === currentPath ? null : parent,
+    directories: entries
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => ({
+        name: entry.name,
+        path: join(currentPath, entry.name).replaceAll("\\", "/"),
+      }))
+      .sort((left, right) => left.name.localeCompare(right.name)),
+  };
+}
+
 export function registerProjectRoutes(
   app: FastifyInstance,
   projectService: ProjectService,
@@ -46,6 +79,22 @@ export function registerProjectRoutes(
   };
   app.post("/api/projects/select", selectHandler);
   app.post("/api/projects", selectHandler);
+
+  app.post("/api/filesystem/directories", async (request, reply) => {
+    const body = BrowseDirectoriesRequestSchema.parse(request.body ?? {});
+    return reply.send(BrowseDirectoriesResponseSchema.parse(await browseDirectories(body.path)));
+  });
+
+  app.post("/api/projects/clone", async (request, reply) => {
+    const body = CloneProjectRequestSchema.parse(request.body);
+    const result = await projectService.cloneProject(
+      body.remoteUrl,
+      body.parentPath,
+      body.directoryName,
+      new AbortController().signal,
+    );
+    return reply.send(SelectProjectResponseSchema.parse(result));
+  });
 
   // 2. POST /api/projects/:projectId/providers/probe
   app.post("/api/projects/:projectId/providers/probe", async (request, reply) => {

@@ -146,6 +146,16 @@ export class ProjectService {
     };
   }
 
+  async cloneProject(
+    remoteUrl: string,
+    parentPath: string,
+    directoryName: string,
+    signal: AbortSignal,
+  ): ReturnType<ProjectService["selectProject"]> {
+    const inspection = await this.repositories.clone(remoteUrl, parentPath, directoryName, signal);
+    return this.selectProject(inspection.rootPath, signal);
+  }
+
   async probeProviders(projectId: string, signal: AbortSignal): Promise<ProviderStatus[]> {
     const project = this.store.getProject(projectId);
     if (!project) throw new AppError("project_not_found", "Project not found", 404);

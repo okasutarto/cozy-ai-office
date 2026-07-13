@@ -354,12 +354,6 @@ export const App: React.FC = () => {
     );
   }
 
-  if (state.phase === "onboarding") {
-    return (
-      <Onboarding bootstrap={state.bootstrap!} api={api!} projectId={state.selectedProjectId} />
-    );
-  }
-
   return (
     <div
       className="app-shell"
@@ -466,6 +460,17 @@ export const App: React.FC = () => {
         advisorReviews={diffDialog.advisorReviews}
         onClose={() => setDiffDialog((prev) => ({ ...prev, open: false }))}
       />
+
+      {state.phase === "onboarding" && (
+        <Onboarding
+          bootstrap={state.bootstrap!}
+          api={api!}
+          projectId={state.selectedProjectId}
+          onClose={(projectId) =>
+            dispatch(projectId ? { type: "project_selected", projectId } : { type: "setup_closed" })
+          }
+        />
+      )}
     </div>
   );
 };

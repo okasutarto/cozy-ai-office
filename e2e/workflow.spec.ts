@@ -205,16 +205,23 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
 
     // The worker completion event can race the first cancel request. Once the
     // realtime snapshot settles, retry against the fresh expectedUpdatedAt.
+    const cancelledState = page.locator("text=CANCELLED");
     const cancelDialog = page.getByRole("dialog");
-    if (await cancelDialog.isVisible().catch(() => false)) {
-      await cancelDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    if (!(await cancelledState.isVisible().catch(() => false))) {
+      const dismiss = cancelDialog.getByRole("button", { name: "Cancel", exact: true });
+      if (await dismiss.isVisible().catch(() => false)) {
+        await dismiss.click({ timeout: 1_000 }).catch(() => undefined);
+      }
       await page.waitForTimeout(500);
-      await page.getByRole("button", { name: "Cancel", exact: true }).click();
-      await page.getByRole("dialog").getByRole("button", { name: "Cancel Run" }).click();
+      const retryCancel = page.getByRole("button", { name: "Cancel", exact: true });
+      if (await retryCancel.isVisible().catch(() => false)) {
+        await retryCancel.click();
+        await page.getByRole("dialog").getByRole("button", { name: "Cancel Run" }).click();
+      }
     }
 
     // Verify terminal cancel state and that no files were integrated into main repo
-    await expect(page.locator("text=CANCELLED")).toBeVisible();
+    await expect(cancelledState).toBeVisible();
     expect(fs.existsSync(path.join(projectPath, "src/greeting.ts"))).toBe(false);
     expect(fs.existsSync(path.join(projectPath, "src/farewell.ts"))).toBe(false);
     expect(fs.existsSync(path.join(projectPath, "src/punctuation.ts"))).toBe(false);

@@ -19,6 +19,30 @@ export const ProjectRecordSchema = z.object({
 });
 export const BootstrapProjectSchema = ProjectRecordSchema.omit({ createdAt: true });
 export const SelectProjectRequestSchema = z.object({ rootPath: z.string().min(1).max(1_024) });
+export const BrowseDirectoriesRequestSchema = z.object({
+  path: z.string().min(1).max(1_024).nullable().optional(),
+});
+export const BrowseDirectoriesResponseSchema = z.object({
+  currentPath: z.string().min(1),
+  parentPath: z.string().min(1).nullable(),
+  directories: z.array(
+    z.object({
+      name: z.string().min(1),
+      path: z.string().min(1),
+    }),
+  ),
+});
+export const CloneProjectRequestSchema = z.object({
+  remoteUrl: z.string().trim().min(1).max(2_048),
+  parentPath: z.string().trim().min(1).max(1_024),
+  directoryName: z
+    .string()
+    .trim()
+    .min(1)
+    .max(255)
+    .regex(/^[^/\\]+$/u)
+    .refine((value) => value !== "." && value !== "..", "Invalid directory name"),
+});
 export const SelectProjectResponseSchema = z.object({
   id: z.string().uuid(),
   rootPath: z.string().min(1),
@@ -248,6 +272,9 @@ export type ProjectRecord = z.infer<typeof ProjectRecordSchema>;
 export type BootstrapProject = z.infer<typeof BootstrapProjectSchema>;
 export type SelectProjectRequest = z.infer<typeof SelectProjectRequestSchema>;
 export type SelectProjectResponse = z.infer<typeof SelectProjectResponseSchema>;
+export type BrowseDirectoriesRequest = z.infer<typeof BrowseDirectoriesRequestSchema>;
+export type BrowseDirectoriesResponse = z.infer<typeof BrowseDirectoriesResponseSchema>;
+export type CloneProjectRequest = z.infer<typeof CloneProjectRequestSchema>;
 export type ProviderStatusListResponse = z.infer<typeof ProviderStatusListResponseSchema>;
 export type VerifyAntigravityLoginRequest = z.infer<typeof VerifyAntigravityLoginRequestSchema>;
 export type UpdateCommandsRequest = z.infer<typeof UpdateCommandsRequestSchema>;
