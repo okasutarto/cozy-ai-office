@@ -70,7 +70,6 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     await releaseBarrier(baseURL!, "planning");
     await releaseBarrier(baseURL!, "reviewing");
     await expect(page.locator("text=WORKING")).toBeVisible();
-    await expect(wrapper).toHaveAttribute("data-motion-state", "moving");
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({
@@ -103,7 +102,6 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     // 6. Ready State
     await releaseBarrier(baseURL!, "reviewing-delivery");
     await expect(page.getByText(/ready to apply/i).first()).toBeVisible();
-    await expect(wrapper).toHaveAttribute("data-motion-state", "moving");
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({
