@@ -181,6 +181,7 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     await releaseBarrier(baseURL!, "reviewing");
 
     // Hold worker-1 barrier, but click Pause
+    await expect(page.locator("text=WORKING")).toBeVisible({ timeout: 60_000 });
     await page.click('button:has-text("Pause")');
     // Confirm dispatchPaused is visible/applied
     await expect(page.locator("text=Resume")).toBeVisible();
