@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Use Node.js 24 or newer for final verification; the current Node 22.18.0 environment is below the package's declared floor.
+- Run final verification with the installed Node 22.18.0 and explicitly report that it is below the package's declared Node.js 24 floor.
 - Add no dependencies, caches, workers, queues, or interfaces.
 - Do not change HTTP or WebSocket contracts, React context structure, SQLite transition-before-event ordering, provider behavior, scheduler concurrency, worktree isolation, security, or credential handling.
 - Preserve event semantics: accept out-of-order input, keep the first duplicate sequence, and sort by sequence.
@@ -490,7 +490,7 @@ cmd /c npm.cmd run typecheck
 cmd /c npm.cmd run test -- --reporter=dot
 ```
 
-Expected on Node 24: PASS. If Node 22 remains active, compare any snapshot/worktree timeout only against the documented 109/111 baseline; any different failure is a regression and must be fixed before continuing.
+Expected: compare any snapshot/worktree timeout against the documented 109/111 Node 22 baseline; any different failure is a regression and must be fixed before continuing. Report the Node 24 engine mismatch with the final evidence.
 
 - [ ] **Step 3: Run the production build and E2E suite**
 
