@@ -39,7 +39,7 @@ export class ClaudeAdapter implements ProviderAdapter {
   build(
     request: ProviderRequest,
     schema: StructuredSchema | null,
-    resultPath: string,
+    _resultPath: string,
   ): BuiltCommand {
     const denied = request.readOnly
       ? "Edit,Write,Bash,NotebookEdit,WebFetch,WebSearch,mcp__*"

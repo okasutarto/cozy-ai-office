@@ -9,7 +9,7 @@ import {
   type ProviderRuntime,
   type ProviderProbeRuntime,
 } from "./types.js";
-import { ProcessSupervisor, sanitizedChildEnv } from "../system/process.js";
+import { sanitizedChildEnv } from "../system/process.js";
 import { AppError, errorMessage } from "../errors.js";
 import {
   ManagerPlanSchema,
@@ -126,7 +126,6 @@ export async function executeProviderRequest(
     };
 
     let result;
-    let spawnError: any = null;
     try {
       result = await runtime.supervisor.run(
         {
@@ -140,9 +139,6 @@ export async function executeProviderRequest(
         { stdout: stdoutSink, stderr: stderrSink },
         signal,
       );
-    } catch (err) {
-      spawnError = err;
-      throw err;
     } finally {
       var stdoutArtifact = await stdoutWriter.finalize();
       var stderrArtifact = await stderrWriter.finalize();

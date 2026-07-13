@@ -3,7 +3,7 @@ import type { AppDependencies } from "../app.js";
 import { BootstrapResponseSchema } from "../../shared/api.js";
 
 export function registerBootstrapRoute(app: FastifyInstance, dependencies: AppDependencies): void {
-  app.get("/api/bootstrap", async (request, reply) => {
+  app.get("/api/bootstrap", async (_request, reply) => {
     const projects = dependencies.projects.listProjects().map((p) => ({
       id: p.id,
       name: p.name,

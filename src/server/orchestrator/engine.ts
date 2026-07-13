@@ -1,19 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { join } from "node:path";
 import { rm } from "node:fs/promises";
-import type {
-  RunSnapshot,
-  RunState,
-  ProfileId,
-  TaskBrief,
-  RoleProfile,
-  CommandSpec,
-} from "../../shared/contracts.js";
+import type { RunSnapshot, RunState, ProfileId } from "../../shared/contracts.js";
 import type { RunStore } from "../db/run-store.js";
 import type { RealtimeHub } from "../realtime/hub.js";
 import type { ProjectStore } from "../db/project-store.js";
 import type { ConversationStore } from "../db/conversation-store.js";
-import type { ArtifactStore } from "../artifacts/store.js";
 import type { WorktreeService } from "../git/worktrees.js";
 import type { ContextSnapshotService } from "../context/snapshots.js";
 import type { AttemptRunner } from "./attempts.js";
@@ -189,7 +180,7 @@ export class OrchestratorEngine {
    * Recover interrupted runs on startup.
    */
   recoverInterruptedRuns(): RunSnapshot[] {
-    const count = this.runs.markRunningAttemptsInterrupted();
+    this.runs.markRunningAttemptsInterrupted();
     const activeRuns = this.runs.listActiveRuns();
     const recovered: RunSnapshot[] = [];
 
@@ -362,7 +353,6 @@ export class OrchestratorEngine {
 
     const managerProfile = profiles.find((p) => p.id === "manager")!;
     const advisorProfile = profiles.find((p) => p.id === "advisor")!;
-    const qaProfile = profiles.find((p) => p.id === "qa")!;
 
     // ── 6. Manager Planning ──
     const managerPrompt = buildManagerPlanPrompt(
@@ -630,7 +620,7 @@ export class OrchestratorEngine {
       signal,
     );
 
-    const synthesisArtifact = await this.attempts["runtime"].artifacts.writeText({
+    await this.attempts["runtime"].artifacts.writeText({
       runId,
       taskId: null,
       kind: "delivery-synthesis",

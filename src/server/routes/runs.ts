@@ -1,5 +1,4 @@
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
 import { resolve, join } from "node:path";
 import { readFile } from "node:fs/promises";
 import {

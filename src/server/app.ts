@@ -60,7 +60,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
   await app.register(websocket);
 
   // Error Handler
-  app.setErrorHandler((error, request, reply) => {
+  app.setErrorHandler((error, _request, reply) => {
     if (error instanceof AppError) {
       app.log.warn(`AppError [${error.code}]: ${error.message}`);
       reply.status(error.statusCode || 400).send({
@@ -90,7 +90,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
   });
 
   // onRequest Hook for APIs
-  app.addHook("onRequest", async (request, reply) => {
+  app.addHook("onRequest", async (request, _reply) => {
     if (!request.url.startsWith("/api/")) {
       return;
     }
@@ -245,86 +245,79 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
   const workerScheduler = new WorkerScheduler(
     dependencies.runs,
     worktreeService,
-    snapshotService,
     schedulerWorkerPort,
     dependencies.realtime,
   );
 
-  const qaRunner = new QaRunner(
-    supervisor,
-    dependencies.artifacts,
-    attemptRunner,
-    dependencies.runs,
-    {
-      async requestRepair(input: any) {
-        const diagArtifact = dependencies.artifacts.getArtifact(input.diagnosisArtifactId);
-        if (!diagArtifact) throw new Error("Diagnosis artifact not found");
-        const diagPath = join(dependencies.artifacts.root, diagArtifact.relativePath);
-        const diagText = await readFile(diagPath, "utf8");
+  const qaRunner = new QaRunner(supervisor, dependencies.artifacts, {
+    async requestRepair(input: any) {
+      const diagArtifact = dependencies.artifacts.getArtifact(input.diagnosisArtifactId);
+      if (!diagArtifact) throw new Error("Diagnosis artifact not found");
+      const diagPath = join(dependencies.artifacts.root, diagArtifact.relativePath);
+      const diagText = await readFile(diagPath, "utf8");
 
-        const workerProfile: any = {
-          id: "worker-1",
-          role: "worker",
-          label: "worker-1",
-          providerChain: [{ provider: "codex", model: null }],
-          timeoutMs: 60_000,
-          promptVersion: "v1",
-        };
+      const workerProfile: any = {
+        id: "worker-1",
+        role: "worker",
+        label: "worker-1",
+        providerChain: [{ provider: "codex", model: null }],
+        timeoutMs: 60_000,
+        promptVersion: "v1",
+      };
 
-        const repairBrief = {
-          id: "repair-task",
-          title: "QA Repair",
-          objective: diagText,
-          mode: "write",
-          dependsOn: [],
-          contextArtifacts: [],
-          allowedPaths: input.allowedRepairPaths,
-          forbiddenPaths: [],
-          acceptanceCriteria: ["QA checks pass"],
-          verificationCommands: [],
-        };
+      const repairBrief = {
+        id: "repair-task",
+        title: "QA Repair",
+        objective: diagText,
+        mode: "write",
+        dependsOn: [],
+        contextArtifacts: [],
+        allowedPaths: input.allowedRepairPaths,
+        forbiddenPaths: [],
+        acceptanceCriteria: ["QA checks pass"],
+        verificationCommands: [],
+      };
 
-        const runRow = (dependencies.runs as any).db
-          .prepare("SELECT integration_worktree FROM runs LIMIT 1")
-          .get() as { integration_worktree: string } | undefined;
-        const cwd = runRow?.integration_worktree ?? "";
+      const runRow = (dependencies.runs as any).db
+        .prepare("SELECT integration_worktree FROM runs LIMIT 1")
+        .get() as { integration_worktree: string } | undefined;
+      const cwd = runRow?.integration_worktree ?? "";
 
-        const outcome = await attemptRunner.execute(
-          {
-            profile: workerProfile,
-            requiredCapability: "worktreeWrite",
-            request: {
-              runId: null,
-              taskId: null,
-              conversationId: null,
-              contextSnapshotId: null,
-              role: "worker",
-              prompt: buildWorkerPrompt({
-                brief: repairBrief as any,
-                dependencySummaries: [],
-                projectRules: [],
-              }),
-              cwd,
-              timeoutMs: workerProfile.timeoutMs,
-              readOnly: false,
-              outputContract: "worker_result",
-            },
-            repairPrompt: (err) => `Repair: ${err}`,
+      const outcome = await attemptRunner.execute(
+        {
+          profile: workerProfile,
+          requiredCapability: "worktreeWrite",
+          request: {
+            runId: null,
+            taskId: null,
+            conversationId: null,
+            contextSnapshotId: null,
+            role: "worker",
+            prompt: buildWorkerPrompt({
+              brief: repairBrief as any,
+              dependencySummaries: [],
+              projectRules: [],
+            }),
+            cwd,
+            timeoutMs: workerProfile.timeoutMs,
+            readOnly: false,
+            outputContract: "worker_result",
           },
-          new AbortController().signal,
-        );
+          repairPrompt: (err) => `Repair: ${err}`,
+        },
+        new AbortController().signal,
+      );
 
-        const resultArtifact = await dependencies.artifacts.writeJson({
-          runId: null,
-          taskId: null,
-          kind: "worker-result",
-          value: outcome.execution.structuredOutput,
-        });
+      const resultArtifact = await dependencies.artifacts.writeJson({
+        runId: null,
+        taskId: null,
+        kind: "worker-result",
+        value: outcome.execution.structuredOutput,
+      });
 
-        return { resultArtifactId: resultArtifact.id };
-      },
+      return { resultArtifactId: resultArtifact.id };
     },
-  );
+  });
 
   const orchestratorEngine = new OrchestratorEngine(
     dependencies.runs,
@@ -375,7 +368,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
         }
       },
     },
-    (socket, req) => {
+    (socket, _req) => {
       const nonce = randomBytes(16).toString("hex");
 
       socket.send(JSON.stringify({ type: "challenge", nonce }));

@@ -4,7 +4,6 @@ import { ProcessSupervisor } from "../system/process.js";
 import { mkdir, rm, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { AntigravityAdapter } from "./antigravity.js";
 
 export class ProviderRegistry {
   private readonly adapters: Map<ProviderId, ProviderAdapter>;

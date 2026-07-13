@@ -123,12 +123,7 @@ export const RetryTaskRequestSchema = z.object({
 });
 export const CleanupRunRequestSchema = z.object({ confirmation: z.string().uuid() });
 
-import {
-  ProviderIdSchema,
-  TaskDraftVersionSchema,
-  normalizeRelativePath,
-  RelativePathWireSchema,
-} from "./contracts.js";
+import { ProviderIdSchema, TaskDraftVersionSchema } from "./contracts.js";
 
 export const ConversationRecordSchema = z.object({
   id: z.string().uuid(),
