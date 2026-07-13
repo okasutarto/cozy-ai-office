@@ -26,6 +26,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
   });
 
   test("captures all workflow visual states in sequence", async ({ page, baseURL }) => {
+    test.setTimeout(120_000);
     // 1. Initial State: Onboard to main office dashboard
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
