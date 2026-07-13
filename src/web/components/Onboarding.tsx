@@ -668,7 +668,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                         disabled={!repoPath.trim() || loadingProject}
                         onClick={() => void verifyRepository()}
                       >
-                        Open Repository
+                        Use as Workspace
                       </button>
                     </div>
                   </div>

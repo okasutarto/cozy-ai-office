@@ -4,7 +4,7 @@ import { expect, type Page } from "@playwright/test";
 export async function completeSetup(page: Page, projectPath: string) {
   await page.getByRole("button", { name: /^Setup$/ }).click();
   await page.getByLabel(/Local repository folder/).fill(projectPath);
-  await page.getByRole("button", { name: /Open Repository/ }).click();
+  await page.getByRole("button", { name: /Use as Workspace/ }).click();
   await expect(page.getByText("Clean").first()).toBeVisible();
 
   await page.getByRole("button", { name: /LLM Engines/ }).click();
