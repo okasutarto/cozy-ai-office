@@ -166,10 +166,13 @@ function workingPose(actorId: ProfileId, run: RunSnapshot, sourceSequence: numbe
 }
 
 export function projectActorPoses(run: RunSnapshot | null, events: RunEvent[]): ActorPose[] {
-  const normalizedEvents = [...events]
-    .filter(
-      (event, index, all) => all.findIndex((item) => item.sequence === event.sequence) === index,
-    )
+  const seenSequences = new Set<number>();
+  const normalizedEvents = events
+    .filter((event) => {
+      if (seenSequences.has(event.sequence)) return false;
+      seenSequences.add(event.sequence);
+      return true;
+    })
     .sort((left, right) => left.sequence - right.sequence);
   const sourceSequence = normalizedEvents.at(-1)?.sequence ?? 0;
   const gathering =
