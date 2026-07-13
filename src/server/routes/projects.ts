@@ -1,13 +1,12 @@
 import type { FastifyInstance } from "fastify";
-import { lstat, open, readdir, realpath } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { lstat, open } from "node:fs/promises";
+import { join } from "node:path";
 import { constants } from "node:fs";
-import { homedir } from "node:os";
 import {
   SelectProjectRequestSchema,
   SelectProjectResponseSchema,
-  BrowseDirectoriesRequestSchema,
-  BrowseDirectoriesResponseSchema,
+  PickDirectoryRequestSchema,
+  PickDirectoryResponseSchema,
   CloneProjectRequestSchema,
   ProviderStatusListResponseSchema,
   VerifyAntigravityLoginRequestSchema,
@@ -23,6 +22,7 @@ import { ProviderStatusSchema } from "../../shared/contracts.js";
 import type { ProjectService } from "../projects/service.js";
 import { ContextSnapshotService, MAX_CONTEXT_FILE_BYTES } from "../context/snapshots.js";
 import { AppError, errorMessage } from "../errors.js";
+import { pickDirectory, type DirectoryPicker } from "../system/directory-picker.js";
 
 function isCredentialShaped(path: string): boolean {
   const name = path.replaceAll("\\", "/").split("/").at(-1)?.toLowerCase() ?? "";
@@ -37,39 +37,11 @@ function isCredentialShaped(path: string): boolean {
   );
 }
 
-async function browseDirectories(requestedPath?: string | null) {
-  let currentPath: string;
-  try {
-    currentPath = (await realpath(requestedPath?.trim() || homedir())).replaceAll("\\", "/");
-  } catch {
-    throw new AppError("directory_not_found", "Directory could not be opened", 400);
-  }
-
-  let entries;
-  try {
-    entries = await readdir(currentPath, { withFileTypes: true });
-  } catch {
-    throw new AppError("directory_unreadable", "Directory cannot be browsed", 400);
-  }
-
-  const parent = dirname(currentPath).replaceAll("\\", "/");
-  return {
-    currentPath,
-    parentPath: parent === currentPath ? null : parent,
-    directories: entries
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => ({
-        name: entry.name,
-        path: join(currentPath, entry.name).replaceAll("\\", "/"),
-      }))
-      .sort((left, right) => left.name.localeCompare(right.name)),
-  };
-}
-
 export function registerProjectRoutes(
   app: FastifyInstance,
   projectService: ProjectService,
   snapshotService: ContextSnapshotService,
+  directoryPicker: DirectoryPicker = pickDirectory,
 ): void {
   // 1. POST /api/projects/select & POST /api/projects
   const selectHandler = async (request: any, reply: any) => {
@@ -80,9 +52,10 @@ export function registerProjectRoutes(
   app.post("/api/projects/select", selectHandler);
   app.post("/api/projects", selectHandler);
 
-  app.post("/api/filesystem/directories", async (request, reply) => {
-    const body = BrowseDirectoriesRequestSchema.parse(request.body ?? {});
-    return reply.send(BrowseDirectoriesResponseSchema.parse(await browseDirectories(body.path)));
+  app.post("/api/filesystem/pick-directory", async (request, reply) => {
+    const body = PickDirectoryRequestSchema.parse(request.body ?? {});
+    const path = await directoryPicker(body.initialPath);
+    return reply.send(PickDirectoryResponseSchema.parse({ path }));
   });
 
   app.post("/api/projects/clone", async (request, reply) => {

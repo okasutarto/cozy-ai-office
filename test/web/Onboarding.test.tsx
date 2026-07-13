@@ -80,13 +80,7 @@ function makeApi() {
   const request = vi.spyOn(api, "request").mockImplementation(async (path, init = {}) => {
     if (path === "/api/projects/select") return selectResponse as any;
     if (path === "/api/projects/clone") return selectResponse as any;
-    if (path === "/api/filesystem/directories") {
-      return {
-        currentPath: "C:/projects",
-        parentPath: "C:/",
-        directories: [{ name: "my-repo", path: "C:/projects/my-repo" }],
-      } as any;
-    }
+    if (path === "/api/filesystem/pick-directory") return { path: "C:/projects" } as any;
     if (path === `/api/projects/${project.id}/onboarding`) {
       return { project, commands: [command], roles: [], contextSnapshotId: null } as any;
     }
@@ -134,9 +128,16 @@ describe("Onboarding Wizard Component", () => {
     fireEvent.change(screen.getByLabelText(/Local repository folder/u), {
       target: { value: "C:/my-repo" },
     });
-    fireEvent.click(screen.getByText(/Use Repository/u));
+    fireEvent.click(screen.getByText(/Open Repository/u));
     await screen.findByText(/Repository ready/u);
-    fireEvent.click(screen.getByRole("button", { name: /LLM Engines/u }));
+    await waitFor(() => {
+      expect(
+        request.mock.calls.filter(([path]) => path === `/api/projects/${project.id}/onboarding`),
+      ).toHaveLength(1);
+    });
+    const enginesStep = screen.getByRole("button", { name: /LLM Engines/u });
+    await waitFor(() => expect((enginesStep as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(enginesStep);
     fireEvent.click(screen.getByRole("button", { name: /Probe official CLIs/u }));
     await screen.findByText(/Probe complete/u);
 
@@ -166,9 +167,11 @@ describe("Onboarding Wizard Component", () => {
     fireEvent.change(screen.getByLabelText(/Local repository folder/u), {
       target: { value: "C:/my-repo" },
     });
-    fireEvent.click(screen.getByText(/Use Repository/u));
+    fireEvent.click(screen.getByText(/Open Repository/u));
     await screen.findByText(/Repository ready/u);
-    fireEvent.click(screen.getByRole("button", { name: /LLM Engines/u }));
+    const enginesStep = screen.getByRole("button", { name: /LLM Engines/u });
+    await waitFor(() => expect((enginesStep as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(enginesStep);
     fireEvent.click(screen.getByRole("button", { name: /Probe official CLIs/u }));
     await screen.findByText(/Probe complete/u);
     fireEvent.click(screen.getByRole("button", { name: /Test Suites & Context/u }));
@@ -185,21 +188,24 @@ describe("Onboarding Wizard Component", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Browse…" }));
-    await screen.findByText("C:/projects");
-    fireEvent.click(screen.getByRole("button", { name: /my-repo/u }));
-    fireEvent.click(await screen.findByRole("button", { name: /Select This Folder/u }));
-    expect((screen.getByLabelText(/Local repository folder/u) as HTMLInputElement).value).toBe(
-      "C:/projects",
+    await waitFor(() => {
+      expect((screen.getByLabelText(/Local repository folder/u) as HTMLInputElement).value).toBe(
+        "C:/projects",
+      );
+    });
+    expect(request).toHaveBeenCalledWith(
+      "/api/filesystem/pick-directory",
+      expect.objectContaining({ method: "POST" }),
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /Clone repository/u }));
+    fireEvent.click(screen.getByRole("button", { name: /Repository URL/u }));
     fireEvent.change(screen.getByLabelText(/Remote repository URL/u), {
       target: { value: "https://github.com/example/cozy.git" },
     });
     fireEvent.change(screen.getByLabelText(/Clone into folder/u), {
       target: { value: "C:/projects" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Clone and Use Repository/u }));
+    fireEvent.click(screen.getByRole("button", { name: /^Use Repository$/u }));
 
     await waitFor(() => {
       expect(request).toHaveBeenCalledWith(

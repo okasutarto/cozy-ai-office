@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { join } from "node:path";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, realpath, writeFile } from "node:fs/promises";
 import { openDatabase } from "../../src/server/db/database.js";
 import { SqliteProjectStore } from "../../src/server/db/project-store.js";
 import { withTempDir } from "../helpers/temp.js";
@@ -64,7 +64,9 @@ describe("Git repository service", () => {
         new AbortController().signal,
       );
 
-      expect(inspection.rootPath).toBe(join(parentPath, "copy").replaceAll("\\", "/"));
+      expect(inspection.rootPath).toBe(
+        (await realpath(join(parentPath, "copy"))).replaceAll("\\", "/"),
+      );
       expect(inspection.branch).toBe("main");
       expect(inspection.clean).toBe(true);
     });

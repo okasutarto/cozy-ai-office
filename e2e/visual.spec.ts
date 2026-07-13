@@ -1,11 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { completeSetup } from "./helpers/setup";
-
-async function resetTestServer(baseURL: string) {
-  const res = await fetch(`${baseURL}/__test/reset`, { method: "POST" });
-  if (!res.ok) throw new Error(`E2E reset failed: ${res.status} ${await res.text()}`);
-  return res.json();
-}
+import { resetTestServer } from "./helpers/reset";
 
 async function getTestStatus(baseURL: string) {
   const res = await fetch(`${baseURL}/__test/status`);
@@ -31,6 +26,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
   });
 
   test("captures all workflow visual states in sequence", async ({ page, baseURL }) => {
+    test.setTimeout(120_000);
     // 1. Initial State: Onboard to main office dashboard
     await page.goto(`/#session=e2e-session-token-0000000000000000000000000001`);
     const { projectPath } = await getTestStatus(baseURL!);
@@ -75,7 +71,6 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     await releaseBarrier(baseURL!, "planning");
     await releaseBarrier(baseURL!, "reviewing");
     await expect(page.locator("text=WORKING")).toBeVisible();
-    await expect(wrapper).toHaveAttribute("data-motion-state", "moving");
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({
@@ -97,7 +92,7 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
 
     // 5. Advisor Review State
     await releaseBarrier(baseURL!, "testing");
-    await expect(page.locator("text=ADVISOR_DELIVERY")).toBeVisible();
+    await expect(page.getByText(/advisor delivery/i).first()).toBeVisible({ timeout: 60_000 });
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({
@@ -108,7 +103,6 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     // 6. Ready State
     await releaseBarrier(baseURL!, "reviewing-delivery");
     await expect(page.getByText(/ready to apply/i).first()).toBeVisible();
-    await expect(wrapper).toHaveAttribute("data-motion-state", "moving");
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({

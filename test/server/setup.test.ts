@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, realpath, writeFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { buildApp } from "../../src/server/app.js";
 import { ProviderRegistry } from "../../src/server/providers/registry.js";
@@ -8,7 +8,7 @@ import type { ProviderAdapter } from "../../src/server/providers/types.js";
 import { ProcessSupervisor } from "../../src/server/system/process.js";
 import {
   BootstrapResponseSchema,
-  BrowseDirectoriesResponseSchema,
+  PickDirectoryResponseSchema,
   CompleteProjectSetupResponseSchema,
   ConversationRecordSchema,
   SelectProjectResponseSchema,
@@ -98,26 +98,25 @@ function sevenRoles(): RoleProfile[] {
 }
 
 describe("project setup completion", () => {
-  it("browses local folders and clones a selected repository", async () => {
+  it("opens the native folder picker and clones a selected repository", async () => {
     const deps = await createTestDependencies();
     try {
       const sourcePath = join(deps.config.dataDir, "source");
       const cloneParent = join(deps.config.dataDir, "clones");
       await createFakeRepo(sourcePath);
       await mkdir(cloneParent);
+      deps.directoryPicker = async () => sourcePath;
       const app = await buildApp(deps);
       const headers = authHeaders(deps);
 
       const browse = await app.inject({
         method: "POST",
-        url: "/api/filesystem/directories",
+        url: "/api/filesystem/pick-directory",
         headers,
-        payload: { path: deps.config.dataDir },
+        payload: { initialPath: deps.config.dataDir },
       });
       expect(browse.statusCode).toBe(200);
-      expect(
-        BrowseDirectoriesResponseSchema.parse(browse.json()).directories.map((entry) => entry.name),
-      ).toContain("source");
+      expect(PickDirectoryResponseSchema.parse(browse.json()).path).toBe(sourcePath);
 
       const clone = await app.inject({
         method: "POST",
@@ -131,7 +130,9 @@ describe("project setup completion", () => {
       });
       expect(clone.statusCode).toBe(200);
       const project = SelectProjectResponseSchema.parse(clone.json());
-      expect(project.rootPath).toBe(join(cloneParent, "copy").replaceAll("\\", "/"));
+      expect(project.rootPath).toBe(
+        (await realpath(join(cloneParent, "copy"))).replaceAll("\\", "/"),
+      );
       expect(project.clean).toBe(true);
       expect(deps.projects.getProject(project.id)?.rootPath).toBe(project.rootPath);
     } finally {

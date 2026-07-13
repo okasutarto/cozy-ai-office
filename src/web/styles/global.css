@@ -633,22 +633,9 @@ textarea::placeholder {
 
 .command-list,
 .context-list,
-.directory-browser-list,
 .role-directory {
   display: grid;
   gap: 6px;
-}
-
-.directory-browser-list {
-  max-height: 220px;
-  overflow: auto;
-}
-
-.directory-browser-list .context-row {
-  width: 100%;
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
 }
 
 .command-row,

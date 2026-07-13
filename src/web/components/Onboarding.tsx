@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   BootstrapProject,
   BootstrapResponse,
-  BrowseDirectoriesResponse,
+  PickDirectoryResponse,
   ContextCandidatesResponse,
   ProjectOnboardingResponse,
   SelectProjectResponse,
@@ -144,12 +144,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({
   const [cloneParentPath, setCloneParentPath] = useState("");
   const [cloneDirectoryName, setCloneDirectoryName] = useState("");
   const [cloning, setCloning] = useState(false);
-  const [browserTarget, setBrowserTarget] = useState<"local" | "clone" | null>(null);
-  const [directoryBrowser, setDirectoryBrowser] = useState<BrowseDirectoriesResponse | null>(null);
-  const [browsingDirectories, setBrowsingDirectories] = useState(false);
+  const [pickingDirectory, setPickingDirectory] = useState<"local" | "clone" | null>(null);
   const [inspection, setInspection] = useState<SelectProjectResponse | null>(null);
   const [projectNotice, setProjectNotice] = useState<Notice | null>(null);
-  const [loadingProject, setLoadingProject] = useState(false);
+  const [loadingProject, setLoadingProject] = useState(Boolean(initialProject));
 
   const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>(bootstrap.providers);
   const [providersProbedThisSession, setProvidersProbedThisSession] = useState(false);
@@ -284,25 +282,32 @@ export const Onboarding: React.FC<OnboardingProps> = ({
     return repositoryComplete && providersComplete && testsComplete;
   };
 
-  const browseDirectories = async (target: "local" | "clone", path: string | null = null) => {
-    setBrowserTarget(target);
-    setBrowsingDirectories(true);
-    setProjectNotice({ kind: "working", text: "Opening local folders…" });
+  const openDirectoryPicker = async (target: "local" | "clone") => {
+    setPickingDirectory(target);
+    setProjectNotice({ kind: "working", text: "Opening the system folder picker…" });
     try {
-      const result = await api.request<BrowseDirectoriesResponse>("/api/filesystem/directories", {
+      const initialPath = target === "local" ? repoPath.trim() : cloneParentPath.trim();
+      const result = await api.request<PickDirectoryResponse>("/api/filesystem/pick-directory", {
         method: "POST",
-        body: JSON.stringify({ path }),
+        body: JSON.stringify({ initialPath: initialPath || null }),
       });
-      setDirectoryBrowser(result);
-      setProjectNotice(null);
+      if (result.path) {
+        if (target === "local") setRepoPath(result.path);
+        else setCloneParentPath(result.path);
+        setProjectNotice({ kind: "success", text: "Folder selected." });
+      } else {
+        setProjectNotice(null);
+      }
     } catch (error) {
       setProjectNotice({ kind: "error", text: messageFromError(error) });
     } finally {
-      setBrowsingDirectories(false);
+      setPickingDirectory(null);
     }
   };
 
   const acceptProject = async (result: SelectProjectResponse, successText: string) => {
+    const projectChanged = projectId !== result.id;
+    if (projectChanged) setLoadingProject(true);
     const normalizedResult = {
       ...result,
       clean: result.clean === true,
@@ -318,7 +323,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
         ? `${successText} Branch: ${result.branch ?? "unknown"}, HEAD: ${result.head ?? "unknown"}`
         : `Workspace has ${result.statusEntries?.length ?? 0} uncommitted status entries. Clean it before setup completion.`,
     });
-    await loadProjectConfiguration(result.id, null);
+    if (!projectChanged) await loadProjectConfiguration(result.id, null);
   };
 
   const verifyRepository = async () => {
@@ -574,8 +579,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({
             <div>
               <h2 className="setup-section-heading">01. Connect an existing local workspace</h2>
               <p className="setup-section-copy">
-                Browse to an existing repository on this machine, select a recent workspace, or
-                clone a remote repository into a local folder.
+                Browse opens the native system folder picker for a local repository. Use Repository
+                clones a Git URL into a destination you choose.
               </p>
 
               <div className="setup-mode-tabs" style={{ marginBottom: 16 }}>
@@ -584,14 +589,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                   className={`setup-mode-tab${repositoryMode === "local" ? " active" : ""}`}
                   onClick={() => setRepositoryMode("local")}
                 >
-                  Browse local
+                  Local repository
                 </button>
                 <button
                   type="button"
                   className={`setup-mode-tab${repositoryMode === "clone" ? " active" : ""}`}
                   onClick={() => setRepositoryMode("clone")}
                 >
-                  Clone repository
+                  Repository URL
                 </button>
               </div>
 
@@ -652,10 +657,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                       <button
                         type="button"
                         className="cozy-button"
-                        disabled={browsingDirectories || loadingProject}
-                        onClick={() => void browseDirectories("local")}
+                        disabled={pickingDirectory !== null || loadingProject}
+                        onClick={() => void openDirectoryPicker("local")}
                       >
-                        Browse…
+                        {pickingDirectory === "local" ? "Opening…" : "Browse…"}
                       </button>
                       <button
                         type="button"
@@ -663,7 +668,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                         disabled={!repoPath.trim() || loadingProject}
                         onClick={() => void verifyRepository()}
                       >
-                        Use Repository
+                        Open Repository
                       </button>
                     </div>
                   </div>
@@ -700,10 +705,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                         <button
                           type="button"
                           className="cozy-button"
-                          disabled={browsingDirectories || cloning}
-                          onClick={() => void browseDirectories("clone")}
+                          disabled={pickingDirectory !== null || cloning}
+                          onClick={() => void openDirectoryPicker("clone")}
                         >
-                          Browse…
+                          {pickingDirectory === "clone" ? "Opening…" : "Browse…"}
                         </button>
                       </div>
                     </div>
@@ -731,57 +736,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                     }
                     onClick={() => void cloneRepository()}
                   >
-                    {cloning ? "Cloning…" : "Clone and Use Repository"}
+                    {cloning ? "Cloning…" : "Use Repository"}
                   </button>
-                </div>
-              )}
-
-              {browserTarget && directoryBrowser && (
-                <div className="setup-card" style={{ marginTop: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                    <code>{directoryBrowser.currentPath}</code>
-                    <button
-                      type="button"
-                      className="cozy-button primary"
-                      onClick={() => {
-                        if (browserTarget === "local") {
-                          setRepoPath(directoryBrowser.currentPath);
-                        } else {
-                          setCloneParentPath(directoryBrowser.currentPath);
-                        }
-                        setBrowserTarget(null);
-                        setDirectoryBrowser(null);
-                      }}
-                    >
-                      Select This Folder
-                    </button>
-                  </div>
-                  <div className="directory-browser-list" style={{ marginTop: 10 }}>
-                    {directoryBrowser.parentPath && (
-                      <button
-                        type="button"
-                        className="context-row"
-                        onClick={() =>
-                          void browseDirectories(browserTarget, directoryBrowser.parentPath)
-                        }
-                      >
-                        <strong>↑ Parent folder</strong>
-                      </button>
-                    )}
-                    {directoryBrowser.directories.map((directory) => (
-                      <button
-                        key={directory.path}
-                        type="button"
-                        className="context-row"
-                        onClick={() => void browseDirectories(browserTarget, directory.path)}
-                      >
-                        <span>▸</span> <code>{directory.name}</code>
-                      </button>
-                    ))}
-                    {directoryBrowser.directories.length === 0 && (
-                      <div className="empty-state">No child folders.</div>
-                    )}
-                  </div>
                 </div>
               )}
 

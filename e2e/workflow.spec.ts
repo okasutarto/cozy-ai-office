@@ -2,15 +2,10 @@ import { test, expect } from "@playwright/test";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { completeSetup } from "./helpers/setup";
+import { resetTestServer } from "./helpers/reset";
 
 async function getTestStatus(baseURL: string) {
   const res = await fetch(`${baseURL}/__test/status`);
-  return res.json();
-}
-
-async function resetTestServer(baseURL: string) {
-  const res = await fetch(`${baseURL}/__test/reset`, { method: "POST" });
-  if (!res.ok) throw new Error(`E2E reset failed: ${res.status} ${await res.text()}`);
   return res.json();
 }
 
@@ -186,6 +181,7 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     await releaseBarrier(baseURL!, "reviewing");
 
     // Hold worker-1 barrier, but click Pause
+    await expect(page.locator("text=WORKING")).toBeVisible({ timeout: 60_000 });
     await page.click('button:has-text("Pause")');
     // Confirm dispatchPaused is visible/applied
     await expect(page.locator("text=Resume")).toBeVisible();
