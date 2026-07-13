@@ -128,7 +128,7 @@ describe("Onboarding Wizard Component", () => {
     fireEvent.change(screen.getByLabelText(/Local repository folder/u), {
       target: { value: "C:/my-repo" },
     });
-    fireEvent.click(screen.getByText(/Open Repository/u));
+    fireEvent.click(screen.getByText(/Use as Workspace/u));
     await screen.findByText(/Repository ready/u);
     await waitFor(() => {
       expect(
@@ -167,7 +167,7 @@ describe("Onboarding Wizard Component", () => {
     fireEvent.change(screen.getByLabelText(/Local repository folder/u), {
       target: { value: "C:/my-repo" },
     });
-    fireEvent.click(screen.getByText(/Open Repository/u));
+    fireEvent.click(screen.getByText(/Use as Workspace/u));
     await screen.findByText(/Repository ready/u);
     const enginesStep = screen.getByRole("button", { name: /LLM Engines/u });
     await waitFor(() => expect((enginesStep as HTMLButtonElement).disabled).toBe(false));
