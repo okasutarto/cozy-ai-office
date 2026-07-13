@@ -9,6 +9,7 @@ const sourceRoot = process.env.PIXEL_LIFE_ASSETS_DIR
   : path.join(root, ".local-assets", "pixel-life-source");
 const outputRoot = path.join(root, ".local-assets", "pixel-life");
 const individualRoot = path.join(sourceRoot, "individual");
+const catalogRoot = path.join(outputRoot, "catalog");
 
 const WIDTH = 768;
 const HEIGHT = 288;
@@ -118,6 +119,36 @@ const asset = (relativePath) => {
   if (!cache.has(relativePath)) cache.set(relativePath, readAsset(relativePath));
   return cache.get(relativePath);
 };
+
+const sourceFiles = fs
+  .readdirSync(individualRoot, { recursive: true, withFileTypes: true })
+  .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith(".png"))
+  .map((entry) => path.relative(individualRoot, path.join(entry.parentPath, entry.name)));
+fs.mkdirSync(catalogRoot, { recursive: true });
+const catalog = sourceFiles.map((source) => {
+  const id = source
+    .replace(/\.png$/iu, "")
+    .replace(/[^a-z0-9]+/giu, "-")
+    .toLowerCase();
+  const file = `${id}.png`;
+  const image = PNG.sync.read(fs.readFileSync(path.join(individualRoot, source)));
+  fs.copyFileSync(path.join(individualRoot, source), path.join(catalogRoot, file));
+  return {
+    id,
+    file,
+    label: path.basename(source, ".png").replaceAll("_", " "),
+    category: source.split(path.sep)[0],
+    width: image.width,
+    height: image.height,
+    floor: source.startsWith(`Walls_floor_doors${path.sep}floor`),
+  };
+});
+for (const stale of fs.readdirSync(catalogRoot)) {
+  if (stale !== "manifest.json" && !catalog.some((asset) => asset.file === stale)) {
+    fs.rmSync(path.join(catalogRoot, stale));
+  }
+}
+fs.writeFileSync(path.join(catalogRoot, "manifest.json"), JSON.stringify(catalog, null, 2));
 
 const scene = new PNG({ width: WIDTH, height: HEIGHT });
 const foreground = new PNG({ width: WIDTH, height: HEIGHT });

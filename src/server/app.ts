@@ -31,6 +31,7 @@ import { QaRunner } from "./orchestrator/qa.js";
 import { OrchestratorEngine } from "./orchestrator/engine.js";
 import { registerRunRoutes } from "./routes/runs.js";
 import { registerStorageRoutes } from "./routes/storage.js";
+import { registerOfficeLayoutRoutes } from "./routes/office-layout.js";
 import { buildWorkerPrompt, buildConflictPrompt } from "./prompts/worker.js";
 
 export type AppDependencies = {
@@ -126,6 +127,25 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
         return reply
           .type(request.params.file.endsWith(".json") ? "application/json" : "image/png")
           .send(contents);
+      } catch {
+        return reply.code(404).send({ error: "Not Found" });
+      }
+    },
+  );
+  app.get<{ Params: { file: string } }>(
+    "/local-assets/pixel-life/catalog/:file",
+    async (request, reply) => {
+      if (!/^(?:[a-z0-9-]+\.png|manifest\.json)$/u.test(request.params.file)) {
+        return reply.code(404).send({ error: "Not Found" });
+      }
+      try {
+        return reply
+          .type(request.params.file.endsWith(".json") ? "application/json" : "image/png")
+          .send(
+            await readFile(
+              join(process.cwd(), ".local-assets", "pixel-life", "catalog", request.params.file),
+            ),
+          );
       } catch {
         return reply.code(404).send({ error: "Not Found" });
       }
@@ -347,6 +367,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     worktreeService,
     dependencies.projects,
   );
+  registerOfficeLayoutRoutes(app, (dependencies.projects as any).db);
 
   // WebSocket Route
   app.get(

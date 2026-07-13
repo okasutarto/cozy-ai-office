@@ -398,7 +398,7 @@ export const App: React.FC = () => {
           </nav>
         </div>
         <div className="office-stage">
-          <OfficeCanvas />
+          <OfficeCanvas api={api!} projectId={state.selectedProjectId!} />
         </div>
       </main>
 
