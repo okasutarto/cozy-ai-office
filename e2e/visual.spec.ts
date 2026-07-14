@@ -49,12 +49,13 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     );
     await page.click('button:has-text("Send")');
 
-    // Wait for and select the message checkbox to enable "Send to Manager"
-    const checkbox1 = page.locator('input[type="checkbox"][aria-label*="Select message"]');
+    await page.click('button:has-text("Create Task Draft")');
+    // Select the discussion context for the task draft.
+    const checkbox1 = page.getByRole("checkbox", { name: "Select message from You" });
     await expect(checkbox1).toBeVisible();
     await checkbox1.check();
 
-    await page.click('button:has-text("Send to Manager")');
+    await page.click('button:has-text("Create Draft (")');
     await page.click('button:has-text("Draft Task")');
     await page.click('button:has-text("Review execution")');
     await page.click('dialog button:has-text("Start Execution")');
@@ -135,12 +136,13 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     );
     await page.click('button:has-text("Send")');
 
-    // Wait for and select the message checkbox to enable "Send to Manager"
-    const checkbox2 = page.locator('input[type="checkbox"][aria-label*="Select message"]');
+    await page.click('button:has-text("Create Task Draft")');
+    // Select the discussion context for the task draft.
+    const checkbox2 = page.getByRole("checkbox", { name: "Select message from You" });
     await expect(checkbox2).toBeVisible();
     await checkbox2.check();
 
-    await page.click('button:has-text("Send to Manager")');
+    await page.click('button:has-text("Create Draft (")');
     await page.click('button:has-text("Draft Task")');
     await page.click('button:has-text("Review execution")');
     await page.click('dialog button:has-text("Start Execution")');
@@ -178,12 +180,13 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
     );
     await page.click('button:has-text("Send")');
 
-    // Wait for and select the message checkbox to enable "Send to Manager"
-    const checkbox3 = page.locator('input[type="checkbox"][aria-label*="Select message"]');
+    await page.click('button:has-text("Create Task Draft")');
+    // Select the discussion context for the task draft.
+    const checkbox3 = page.getByRole("checkbox", { name: "Select message from You" });
     await expect(checkbox3).toBeVisible();
     await checkbox3.check();
 
-    await page.click('button:has-text("Send to Manager")');
+    await page.click('button:has-text("Create Draft (")');
     await page.click('button:has-text("Draft Task")');
     await page.click('button:has-text("Review execution")');
     await page.click('dialog button:has-text("Start Execution")');

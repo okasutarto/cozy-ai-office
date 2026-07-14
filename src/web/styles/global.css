@@ -1194,6 +1194,11 @@ textarea::placeholder {
   border-color: var(--gold-300);
 }
 
+.persona-tab:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .discussion-panel {
   display: flex;
   flex-direction: column;
@@ -1206,29 +1211,103 @@ textarea::placeholder {
   padding: 8px 12px;
   display: grid;
   align-content: start;
-  gap: 6px;
+  gap: 8px;
   overflow-y: auto;
   list-style: none;
 }
 
-.message-card {
-  padding: 7px;
+.message-row {
   display: flex;
+  align-items: end;
   gap: 8px;
+}
+
+.message-row.outgoing {
+  flex-direction: row-reverse;
+}
+
+.message-bubble {
+  max-width: min(78%, 620px);
+  padding: 8px 10px;
   color: var(--parchment-300);
   background: var(--ink-900);
-  border: 1px solid transparent;
+  border: 1px solid var(--wood-900);
+  border-radius: 8px 8px 8px 2px;
   font-size: 10px;
 }
 
-.message-card.selected {
+.message-row.outgoing .message-bubble {
+  background: var(--wood-900);
+  border-color: var(--wood-700);
+  border-radius: 8px 8px 2px 8px;
+}
+
+.message-bubble.selected {
   border-color: var(--gold-400);
 }
 
-.message-card p {
+.message-bubble p {
   margin: 4px 0 0;
   color: var(--parchment-100);
   line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.typing-bubble {
+  min-width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.typing-bubble i {
+  width: 5px;
+  height: 5px;
+  background: var(--wood-500);
+  border-radius: 50%;
+  animation: typing-bounce 1s ease-in-out infinite;
+}
+
+.typing-bubble i:nth-child(2) {
+  animation-delay: 120ms;
+}
+
+.typing-bubble i:nth-child(3) {
+  animation-delay: 240ms;
+}
+
+@keyframes typing-bounce {
+  0%,
+  60%,
+  100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing-bubble i {
+    animation: none;
+    opacity: 0.65;
+  }
+}
+
+.draft-selection-bar {
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--gold-400);
+  background: var(--ink-900);
+  border-top: 1px solid var(--wood-900);
+  font-size: 9px;
 }
 
 .dock-warning-check {

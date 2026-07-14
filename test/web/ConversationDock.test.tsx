@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import React from "react";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ConversationDock } from "../../src/web/components/ConversationDock.js";
 import { AppStoreProvider } from "../../src/web/store.js";
 import type { RoleProfile, ProviderStatus } from "../../shared/contracts.js";
@@ -175,7 +175,7 @@ describe("ConversationDock Component", () => {
     });
   });
 
-  it("sends Tech Lead chat through the advisor conversation without a blocking checkbox", async () => {
+  it("sends Tech Lead chat with Enter and keeps Shift+Enter for newlines", async () => {
     const fetchMock = vi.mocked(fetch);
     render(
       <AppStoreProvider>
@@ -210,7 +210,21 @@ describe("ConversationDock Component", () => {
     fireEvent.change(screen.getByLabelText("Composer input"), {
       target: { value: "Review this plan" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+    fireEvent.keyDown(screen.getByLabelText("Composer input"), {
+      key: "Enter",
+      code: "Enter",
+      shiftKey: true,
+    });
+    expect(
+      fetchMock.mock.calls.filter(
+        ([url, options]) => String(url).includes("/messages") && options?.method === "POST",
+      ),
+    ).toHaveLength(0);
+
+    fireEvent.keyDown(screen.getByLabelText("Composer input"), {
+      key: "Enter",
+      code: "Enter",
+    });
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
         `/api/conversations/${VALID_CONV_ID}/messages`,
@@ -224,6 +238,79 @@ describe("ConversationDock Component", () => {
           }),
         }),
       );
+    });
+  });
+
+  it("keeps task-draft selection out of normal chat", async () => {
+    render(
+      <AppStoreProvider>
+        <ConversationDock
+          projectId={VALID_PROJECT_ID}
+          activeRun={null}
+          roleProfiles={mockProfiles}
+          providerStatuses={mockProviders}
+          contextSnapshotId={VALID_SNAP_ID}
+          onDraftCreated={vi.fn()}
+        />
+      </AppStoreProvider>,
+    );
+
+    await screen.findByText("Hello Manager");
+    expect(screen.queryByRole("checkbox", { name: /Select message/u })).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Create Task Draft" }));
+    expect(screen.getByRole("checkbox", { name: "Select message from You" })).toBeDefined();
+    expect(
+      (screen.getByRole("button", { name: "Create Draft (0)" }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+  });
+
+  it("shows a typing indicator while the selected persona is replying", async () => {
+    const fetchMock = vi.mocked(fetch);
+    render(
+      <AppStoreProvider>
+        <ConversationDock
+          projectId={VALID_PROJECT_ID}
+          activeRun={null}
+          roleProfiles={mockProfiles}
+          providerStatuses={mockProviders}
+          contextSnapshotId={VALID_SNAP_ID}
+          onDraftCreated={vi.fn()}
+        />
+      </AppStoreProvider>,
+    );
+
+    await screen.findByText("Hello Manager");
+    let finishSend = () => {};
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishSend = () =>
+            resolve({
+              ok: true,
+              json: () =>
+                Promise.resolve({
+                  id: VALID_MSG_ID,
+                  conversationId: VALID_CONV_ID,
+                  sender: "agent",
+                  body: "On it",
+                  sourceMessageIds: [],
+                  artifactIds: [],
+                  createdAt: "2026-07-11T12:02:00.000Z",
+                }),
+            } as Response);
+        }),
+    );
+
+    fireEvent.change(screen.getByLabelText("Composer input"), {
+      target: { value: "Check this" },
+    });
+    fireEvent.keyDown(screen.getByLabelText("Composer input"), { key: "Enter", code: "Enter" });
+    expect(screen.getByRole("status", { name: "Manager is typing" })).toBeDefined();
+
+    await act(async () => finishSend());
+    await waitFor(() => {
+      expect(screen.queryByRole("status", { name: "Manager is typing" })).toBeNull();
     });
   });
 

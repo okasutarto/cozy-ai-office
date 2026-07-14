@@ -65,12 +65,13 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     );
     await page.click('button:has-text("Send")');
 
-    // Wait for and select the message checkbox to enable "Send to Manager"
-    const checkbox = page.locator('input[type="checkbox"][aria-label*="Select message"]');
+    await page.click('button:has-text("Create Task Draft")');
+    // Select the discussion context for the task draft.
+    const checkbox = page.getByRole("checkbox", { name: "Select message from You" });
     await expect(checkbox).toBeVisible();
     await checkbox.check();
 
-    await page.click('button:has-text("Send to Manager")');
+    await page.click('button:has-text("Create Draft (")');
 
     // 8. Review draft in ConversationDock
     await page.click('button:has-text("Draft Task")');
@@ -162,12 +163,13 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     );
     await page.click('button:has-text("Send")');
 
-    // Wait for and select the message checkbox to enable "Send to Manager"
-    const checkbox = page.locator('input[type="checkbox"][aria-label*="Select message"]');
+    await page.click('button:has-text("Create Task Draft")');
+    // Select the discussion context for the task draft.
+    const checkbox = page.getByRole("checkbox", { name: "Select message from You" });
     await expect(checkbox).toBeVisible();
     await checkbox.check();
 
-    await page.click('button:has-text("Send to Manager")');
+    await page.click('button:has-text("Create Draft (")');
 
     // Start Execution with Concurrency=1
     await page.click('button:has-text("Draft Task")');
