@@ -73,6 +73,8 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
   const [activeConversation, setActiveConversation] = useState<ConversationRecord | null>(null);
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [inputText, setInputText] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [draftSelectionActive, setDraftSelectionActive] = useState(false);
   const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
   const [commands, setCommands] = useState<unknown[]>([]);
   const [editableProfiles, setEditableProfiles] = useState(roleProfiles);
@@ -95,6 +97,7 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
     let active = true;
     setActiveConversation(null);
     setMessages([]);
+    setDraftSelectionActive(false);
     setSelectedMessageIds([]);
     api
       .listConversations(projectId)
@@ -158,18 +161,35 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
   const totalDuration = attempts.reduce((sum, attempt) => sum + (attempt.durationMs ?? 0), 0);
 
   const sendMessage = async () => {
-    if (!activeConversation || !inputText.trim() || antigravityOnly) return;
+    if (!activeConversation || !inputText.trim() || antigravityOnly || isSending) return;
+    const conversation = activeConversation;
+    const body = inputText.trim();
+    const optimisticId = crypto.randomUUID();
+    const optimisticMessage: MessageRecord = {
+      id: optimisticId,
+      conversationId: conversation.id,
+      sender: "owner",
+      body,
+      sourceMessageIds: [],
+      artifactIds: [],
+      createdAt: new Date().toISOString(),
+    };
+    setInputText("");
+    setIsSending(true);
+    setMessages((current) => [...current, optimisticMessage]);
     try {
-      const message = await api.sendMessage(activeConversation.id, {
-        body: inputText.trim(),
+      await api.sendMessage(conversation.id, {
+        body,
         selectedMessageIds: [],
         selectedArtifactIds: [],
         additionalUsageConfirmed: isTechLead,
       });
-      setMessages((current) => [...current, message]);
-      setInputText("");
+      setMessages(await api.listMessages(conversation.id));
     } catch {
-      // The server response is surfaced by the next timeline event; keep the draft text intact.
+      setMessages((current) => current.filter((message) => message.id !== optimisticId));
+      setInputText((current) => current || body);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -178,6 +198,8 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
     try {
       const draft = await api.forwardToManager(activeConversation.id, selectedMessageIds);
       onDraftCreated(draft);
+      setDraftSelectionActive(false);
+      setSelectedMessageIds([]);
       setTab("draft");
     } catch {
       // Keep selected context available so the owner can retry.
@@ -212,6 +234,7 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
               type="button"
               role="tab"
               aria-selected={discussionProfileId === persona.id}
+              disabled={isSending}
               className={`persona-tab ${discussionProfileId === persona.id ? "active" : ""}`}
               onClick={() => setDiscussionProfileId(persona.id)}
             >
@@ -228,29 +251,50 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
         {messages.length === 0 ? (
           <li className="empty-state">No messages yet. Start a chat with {activePersona.label}.</li>
         ) : (
-          messages.map((message) => {
-            const selected = selectedMessageIds.includes(message.id);
-            return (
-              <li className={`message-card ${selected ? "selected" : ""}`} key={message.id}>
-                <input
-                  aria-label={`Select message from ${message.sender}`}
-                  type="checkbox"
-                  checked={selected}
-                  onChange={() =>
-                    setSelectedMessageIds((current) =>
-                      selected
-                        ? current.filter((id) => id !== message.id)
-                        : [...current, message.id],
-                    )
-                  }
-                />
-                <div>
-                  <span className="eyebrow">{message.sender}</span>
-                  <p>{message.body}</p>
+          <>
+            {messages.map((message) => {
+              const selected = selectedMessageIds.includes(message.id);
+              const outgoing = message.sender === "owner";
+              return (
+                <li
+                  className={`message-row ${outgoing ? "outgoing" : "incoming"}`}
+                  key={message.id}
+                >
+                  {draftSelectionActive && (
+                    <input
+                      aria-label={`Select message from ${outgoing ? "You" : activePersona.label}`}
+                      type="checkbox"
+                      checked={selected}
+                      onChange={() =>
+                        setSelectedMessageIds((current) =>
+                          selected
+                            ? current.filter((id) => id !== message.id)
+                            : [...current, message.id],
+                        )
+                      }
+                    />
+                  )}
+                  <div className={`message-bubble ${selected ? "selected" : ""}`}>
+                    <span className="eyebrow">{outgoing ? "You" : activePersona.label}</span>
+                    <p>{message.body}</p>
+                  </div>
+                </li>
+              );
+            })}
+            {isSending && (
+              <li
+                className="message-row incoming"
+                role="status"
+                aria-label={`${activePersona.label} is typing`}
+              >
+                <div className="message-bubble typing-bubble" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
                 </div>
               </li>
-            );
-          })
+            )}
+          </>
         )}
       </ol>
       {antigravityOnly && (
@@ -259,19 +303,40 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
           fallback chain to enable chat.
         </p>
       )}
+      {draftSelectionActive && (
+        <div className="draft-selection-bar">
+          <span>Select the messages that should become task context.</span>
+          <button
+            type="button"
+            className="cozy-button"
+            onClick={() => {
+              setDraftSelectionActive(false);
+              setSelectedMessageIds([]);
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
       <div className="composer">
         <textarea
           aria-label="Composer input"
           value={inputText}
-          disabled={antigravityOnly || !activeConversation}
+          disabled={antigravityOnly || !activeConversation || isSending}
           onChange={(event) => setInputText(event.target.value.slice(0, 40_000))}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+              event.preventDefault();
+              void sendMessage();
+            }
+          }}
           placeholder={antigravityOnly ? "Chat disabled" : `Message ${activePersona.label}…`}
         />
         <div className="composer-actions">
           <button
             type="button"
             className="cozy-button"
-            disabled={!inputText.trim() || !activeConversation || antigravityOnly}
+            disabled={!inputText.trim() || !activeConversation || antigravityOnly || isSending}
             onClick={() => void sendMessage()}
           >
             Send
@@ -279,10 +344,17 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
           <button
             type="button"
             className="cozy-button primary"
-            disabled={!activeConversation || selectedMessageIds.length === 0}
-            onClick={() => void forwardToManager()}
+            disabled={
+              !activeConversation || (draftSelectionActive && selectedMessageIds.length === 0)
+            }
+            onClick={() => {
+              if (draftSelectionActive) void forwardToManager();
+              else setDraftSelectionActive(true);
+            }}
           >
-            Send to Manager
+            {draftSelectionActive
+              ? `Create Draft (${selectedMessageIds.length})`
+              : "Create Task Draft"}
           </button>
         </div>
       </div>
@@ -414,7 +486,7 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
       </div>
     ) : (
       <div className="empty-state">
-        No draft loaded. Select messages in Discussion and send them to Manager.
+        No draft loaded. Choose Create Task Draft in Discussion and select its context.
       </div>
     );
   };
