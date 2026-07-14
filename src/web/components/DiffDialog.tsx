@@ -134,7 +134,7 @@ export const DiffDialog: React.FC<DiffDialogProps> = ({
         )}
       </section>
 
-      {/* Advisor Reviews */}
+      {/* Tech Lead Reviews */}
       <section
         style={{
           marginBottom: "25px",
@@ -142,7 +142,7 @@ export const DiffDialog: React.FC<DiffDialogProps> = ({
           paddingBottom: "15px",
         }}
       >
-        <h3 style={{ color: "var(--gold-400)", margin: "0 0 10px 0" }}>Advisor Gates</h3>
+        <h3 style={{ color: "var(--gold-400)", margin: "0 0 10px 0" }}>Tech Lead Gates</h3>
         {advisorReviews.length > 0 ? (
           <ul style={{ paddingLeft: "20px", margin: 0, fontSize: "13px" }}>
             {advisorReviews.map((rev, i) => (
@@ -163,7 +163,9 @@ export const DiffDialog: React.FC<DiffDialogProps> = ({
             ))}
           </ul>
         ) : (
-          <p style={{ fontSize: "13px", color: "var(--parchment-300)" }}>No advisor reviews yet.</p>
+          <p style={{ fontSize: "13px", color: "var(--parchment-300)" }}>
+            No Tech Lead reviews yet.
+          </p>
         )}
       </section>
 

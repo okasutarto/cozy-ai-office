@@ -31,6 +31,7 @@ export const DraftEditor: React.FC<DraftEditorProps> = ({
   const [newAcceptanceItem, setNewAcceptanceItem] = useState("");
 
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   // Sync state if draft changes
   useEffect(() => {
@@ -59,8 +60,29 @@ export const DraftEditor: React.FC<DraftEditorProps> = ({
   };
 
   const handleReviewExecution = () => {
+    if (isDirty) {
+      setSaveStatus("Save the draft before starting execution.");
+      return;
+    }
     onRequestStart(draft);
   };
+
+  const isDirty =
+    objective !== draft.objective ||
+    JSON.stringify(scope) !== JSON.stringify(draft.scope) ||
+    JSON.stringify(constraints) !== JSON.stringify(draft.constraints) ||
+    JSON.stringify(acceptanceCriteria) !== JSON.stringify(draft.acceptanceCriteria);
+
+  const renderItems = (items: string[]) =>
+    items.length === 0 ? (
+      <p style={{ margin: 0, color: "var(--parchment-300)" }}>None</p>
+    ) : (
+      <ul style={{ margin: 0, paddingLeft: "18px" }}>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    );
 
   return (
     <div
@@ -75,190 +97,227 @@ export const DraftEditor: React.FC<DraftEditorProps> = ({
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ margin: 0, color: "var(--gold-400)" }}>
-          Draft Task Editor (v{draft.version})
-        </h2>
+        <h2 style={{ margin: 0, color: "var(--gold-400)" }}>Draft Review (v{draft.version})</h2>
         <span style={{ fontSize: "11px", color: "var(--parchment-300)" }}>
           Ctx: {draft.contextSnapshotId.substring(0, 8)}... | Src: {draft.sourceMessageIds.length}{" "}
           msgs
         </span>
       </div>
 
-      {/* Objective */}
-      <div style={{ display: "grid", gap: "6px" }}>
-        <label htmlFor="draft-objective">Objective:</label>
-        <textarea
-          id="draft-objective"
-          value={objective}
-          onChange={(e) => setObjective(e.target.value)}
-          style={{
-            background: "var(--ink-950)",
-            color: "white",
-            border: "1px solid var(--parchment-300)",
-            padding: "8px",
-            height: "72px",
-            resize: "none",
-          }}
-        />
-      </div>
+      <section
+        style={{
+          display: "grid",
+          gap: "12px",
+          border: "1px solid var(--wood-900)",
+          background: "var(--ink-900)",
+          padding: "14px",
+        }}
+      >
+        <div>
+          <p className="eyebrow">Objective</p>
+          <p style={{ margin: "4px 0 0 0" }}>{draft.objective}</p>
+        </div>
+        <div>
+          <p className="eyebrow">Scope / areas</p>
+          {renderItems(draft.scope)}
+        </div>
+        <div>
+          <p className="eyebrow">Acceptance criteria</p>
+          {renderItems(draft.acceptanceCriteria)}
+        </div>
+        <div>
+          <p className="eyebrow">Constraints</p>
+          {renderItems(draft.constraints)}
+        </div>
+        <button
+          type="button"
+          className="cozy-button"
+          style={{ justifySelf: "start" }}
+          onClick={() => setAdvancedOpen((value) => !value)}
+        >
+          {advancedOpen ? "Hide Advanced Edit" : "Advanced Edit"}
+        </button>
+      </section>
 
-      {/* Scope */}
-      <div style={{ display: "grid", gap: "6px" }}>
-        <label>Scope Items:</label>
-        <p style={{ margin: "0 0 6px 0", fontSize: "11px", color: "var(--parchment-300)" }}>
-          Write prose, or <code>path:src/feature</code> to declare a write path.
-        </p>
-        <div style={{ display: "grid", gap: "4px" }}>
-          {scope.map((item, idx) => (
-            <div key={idx} style={{ display: "flex", justifyContent: "space-between" }}>
-              <span>{item}</span>
+      {advancedOpen && (
+        <>
+          {/* Objective */}
+          <div style={{ display: "grid", gap: "6px" }}>
+            <label htmlFor="draft-objective">Objective:</label>
+            <textarea
+              id="draft-objective"
+              value={objective}
+              onChange={(e) => setObjective(e.target.value)}
+              style={{
+                background: "var(--ink-950)",
+                color: "white",
+                border: "1px solid var(--parchment-300)",
+                padding: "8px",
+                height: "72px",
+                resize: "none",
+              }}
+            />
+          </div>
+
+          {/* Scope */}
+          <div style={{ display: "grid", gap: "6px" }}>
+            <label>Scope Items:</label>
+            <p style={{ margin: "0 0 6px 0", fontSize: "11px", color: "var(--parchment-300)" }}>
+              Write prose, or <code>path:src/feature</code> to declare a write path.
+            </p>
+            <div style={{ display: "grid", gap: "4px" }}>
+              {scope.map((item, idx) => (
+                <div key={idx} style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>{item}</span>
+                  <button
+                    type="button"
+                    onClick={() => setScope(scope.filter((_, i) => i !== idx))}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--rose-500)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <input
+                aria-label="Add scope item"
+                type="text"
+                placeholder="e.g. path:src/routes"
+                value={newScopeItem}
+                onChange={(e) => setNewScopeItem(e.target.value)}
+                style={{ background: "var(--ink-950)", color: "white", flex: 1, padding: "6px" }}
+              />
               <button
                 type="button"
-                onClick={() => setScope(scope.filter((_, i) => i !== idx))}
+                onClick={() => {
+                  if (newScopeItem) {
+                    setScope([...scope, newScopeItem]);
+                    setNewScopeItem("");
+                  }
+                }}
                 style={{
-                  background: "transparent",
+                  background: "var(--teal-600)",
                   border: "none",
-                  color: "var(--rose-500)",
-                  cursor: "pointer",
+                  color: "white",
+                  padding: "6px 12px",
                 }}
               >
-                ✕
+                Add
               </button>
             </div>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <input
-            aria-label="Add scope item"
-            type="text"
-            placeholder="e.g. path:src/routes"
-            value={newScopeItem}
-            onChange={(e) => setNewScopeItem(e.target.value)}
-            style={{ background: "var(--ink-950)", color: "white", flex: 1, padding: "6px" }}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              if (newScopeItem) {
-                setScope([...scope, newScopeItem]);
-                setNewScopeItem("");
-              }
-            }}
-            style={{
-              background: "var(--teal-600)",
-              border: "none",
-              color: "white",
-              padding: "6px 12px",
-            }}
-          >
-            Add
-          </button>
-        </div>
-      </div>
+          </div>
 
-      {/* Constraints */}
-      <div style={{ display: "grid", gap: "6px" }}>
-        <label>Constraints:</label>
-        <div style={{ display: "grid", gap: "4px" }}>
-          {constraints.map((item, idx) => (
-            <div key={idx} style={{ display: "flex", justifyContent: "space-between" }}>
-              <span>{item}</span>
+          {/* Constraints */}
+          <div style={{ display: "grid", gap: "6px" }}>
+            <label>Constraints:</label>
+            <div style={{ display: "grid", gap: "4px" }}>
+              {constraints.map((item, idx) => (
+                <div key={idx} style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>{item}</span>
+                  <button
+                    type="button"
+                    onClick={() => setConstraints(constraints.filter((_, i) => i !== idx))}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--rose-500)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <input
+                aria-label="Add constraint"
+                type="text"
+                placeholder="Add constraint"
+                value={newConstraintItem}
+                onChange={(e) => setNewConstraintItem(e.target.value)}
+                style={{ background: "var(--ink-950)", color: "white", flex: 1, padding: "6px" }}
+              />
               <button
                 type="button"
-                onClick={() => setConstraints(constraints.filter((_, i) => i !== idx))}
+                onClick={() => {
+                  if (newConstraintItem) {
+                    setConstraints([...constraints, newConstraintItem]);
+                    setNewConstraintItem("");
+                  }
+                }}
                 style={{
-                  background: "transparent",
+                  background: "var(--teal-600)",
                   border: "none",
-                  color: "var(--rose-500)",
-                  cursor: "pointer",
+                  color: "white",
+                  padding: "6px 12px",
                 }}
               >
-                ✕
+                Add
               </button>
             </div>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <input
-            aria-label="Add constraint"
-            type="text"
-            placeholder="Add constraint"
-            value={newConstraintItem}
-            onChange={(e) => setNewConstraintItem(e.target.value)}
-            style={{ background: "var(--ink-950)", color: "white", flex: 1, padding: "6px" }}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              if (newConstraintItem) {
-                setConstraints([...constraints, newConstraintItem]);
-                setNewConstraintItem("");
-              }
-            }}
-            style={{
-              background: "var(--teal-600)",
-              border: "none",
-              color: "white",
-              padding: "6px 12px",
-            }}
-          >
-            Add
-          </button>
-        </div>
-      </div>
+          </div>
 
-      {/* Acceptance Criteria */}
-      <div style={{ display: "grid", gap: "6px" }}>
-        <label>Acceptance Criteria:</label>
-        <div style={{ display: "grid", gap: "4px" }}>
-          {acceptanceCriteria.map((item, idx) => (
-            <div key={idx} style={{ display: "flex", justifyContent: "space-between" }}>
-              <span>{item}</span>
+          {/* Acceptance Criteria */}
+          <div style={{ display: "grid", gap: "6px" }}>
+            <label>Acceptance Criteria:</label>
+            <div style={{ display: "grid", gap: "4px" }}>
+              {acceptanceCriteria.map((item, idx) => (
+                <div key={idx} style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span>{item}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setAcceptanceCriteria(acceptanceCriteria.filter((_, i) => i !== idx))
+                    }
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--rose-500)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <input
+                aria-label="Add acceptance criterion"
+                type="text"
+                placeholder="Add acceptance criterion"
+                value={newAcceptanceItem}
+                onChange={(e) => setNewAcceptanceItem(e.target.value)}
+                style={{ background: "var(--ink-950)", color: "white", flex: 1, padding: "6px" }}
+              />
               <button
                 type="button"
-                onClick={() =>
-                  setAcceptanceCriteria(acceptanceCriteria.filter((_, i) => i !== idx))
-                }
+                onClick={() => {
+                  if (newAcceptanceItem) {
+                    setAcceptanceCriteria([...acceptanceCriteria, newAcceptanceItem]);
+                    setNewAcceptanceItem("");
+                  }
+                }}
                 style={{
-                  background: "transparent",
+                  background: "var(--teal-600)",
                   border: "none",
-                  color: "var(--rose-500)",
-                  cursor: "pointer",
+                  color: "white",
+                  padding: "6px 12px",
                 }}
               >
-                ✕
+                Add
               </button>
             </div>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          <input
-            aria-label="Add acceptance criterion"
-            type="text"
-            placeholder="Add acceptance criterion"
-            value={newAcceptanceItem}
-            onChange={(e) => setNewAcceptanceItem(e.target.value)}
-            style={{ background: "var(--ink-950)", color: "white", flex: 1, padding: "6px" }}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              if (newAcceptanceItem) {
-                setAcceptanceCriteria([...acceptanceCriteria, newAcceptanceItem]);
-                setNewAcceptanceItem("");
-              }
-            }}
-            style={{
-              background: "var(--teal-600)",
-              border: "none",
-              color: "white",
-              padding: "6px 12px",
-            }}
-          >
-            Add
-          </button>
-        </div>
-      </div>
+          </div>
+        </>
+      )}
 
       {/* Blocking Reasons */}
       {blockingReasons.length > 0 && (
@@ -288,20 +347,22 @@ export const DraftEditor: React.FC<DraftEditorProps> = ({
         }}
       >
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-          <button
-            type="button"
-            onClick={handleSave}
-            style={{
-              background: "var(--teal-600)",
-              color: "white",
-              border: "none",
-              padding: "10px 20px",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            {activeRun ? "Save as new run draft" : "Save Draft"}
-          </button>
+          {advancedOpen && (
+            <button
+              type="button"
+              onClick={handleSave}
+              style={{
+                background: "var(--teal-600)",
+                color: "white",
+                border: "none",
+                padding: "10px 20px",
+                cursor: "pointer",
+                fontWeight: "bold",
+              }}
+            >
+              {activeRun ? "Save as new run draft" : "Save Draft"}
+            </button>
+          )}
           {saveStatus && (
             <span style={{ fontSize: "12px", color: "var(--gold-400)" }}>{saveStatus}</span>
           )}
@@ -309,18 +370,19 @@ export const DraftEditor: React.FC<DraftEditorProps> = ({
 
         <button
           type="button"
-          disabled={!canStart}
+          disabled={!canStart || isDirty}
           onClick={handleReviewExecution}
+          title={isDirty ? "Save the draft before starting execution." : undefined}
           style={{
-            background: canStart ? "var(--gold-400)" : "var(--ink-950)",
-            color: canStart ? "var(--ink-950)" : "var(--parchment-300)",
-            border: canStart ? "none" : "1px solid var(--parchment-300)",
+            background: canStart && !isDirty ? "var(--gold-400)" : "var(--ink-950)",
+            color: canStart && !isDirty ? "var(--ink-950)" : "var(--parchment-300)",
+            border: canStart && !isDirty ? "none" : "1px solid var(--parchment-300)",
             padding: "10px 20px",
             fontWeight: "bold",
-            cursor: canStart ? "pointer" : "not-allowed",
+            cursor: canStart && !isDirty ? "pointer" : "not-allowed",
           }}
         >
-          Review execution
+          Start Execution
         </button>
       </div>
     </div>

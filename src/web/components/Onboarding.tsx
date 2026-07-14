@@ -39,7 +39,7 @@ const REQUIRED_PROFILE_IDS = [
 
 const STEP_DETAILS: Array<{ id: SetupStep; label: string; description: string }> = [
   { id: 1, label: "Repository", description: "Local workspace" },
-  { id: 2, label: "LLM Engines", description: "Official CLI probes" },
+  { id: 2, label: "AI Tools", description: "Device check" },
   { id: 3, label: "Test Suites & Context", description: "Commands and snapshot" },
   { id: 4, label: "Agent Roles", description: "Fixed seven profiles" },
 ];
@@ -108,7 +108,7 @@ function buildProfilesFromProbe(statuses: ProviderStatus[]): RoleProfile[] {
     {
       id: "advisor",
       role: "advisor",
-      label: "Advisor",
+      label: "Tech Lead",
       providerChain: chainFor(readProviders, Math.max(0, readProviders.length - 1)),
       timeoutMs: 15 * 60 * 1000,
       promptVersion: "advisor-v1",
@@ -387,7 +387,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
   const probeProviders = async () => {
     if (!projectId) return;
     setProbing(true);
-    setProbeNotice({ kind: "working", text: "Probing official provider CLIs…" });
+    setProbeNotice({ kind: "working", text: "Checking available AI tools..." });
     try {
       const statuses = await api.request<ProviderStatus[]>(
         `/api/projects/${projectId}/providers/probe`,
@@ -413,8 +413,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({
         kind: readable && writable ? "success" : "error",
         text:
           readable && writable
-            ? "Probe complete: consultation and isolated worktree capabilities are available."
-            : "Probe complete, but both read-only and worktree-write capabilities are required.",
+            ? "AI tools checked: review and file-editing support are available."
+            : "AI tools checked, but Cozy needs one tool that can review and one that can edit files.",
       });
     } catch (error) {
       setProbeNotice({ kind: "error", text: messageFromError(error) });
@@ -547,8 +547,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({
             </h1>
             <p className="setup-section-copy" style={{ margin: "4px 0 0" }}>
               {setupAlreadyComplete
-                ? "Review or update the saved repository, engine, QA, and role configuration."
-                : "Persist a repository, probed engines, QA snapshot, and seven role profiles."}
+                ? "Review or update the saved repository, AI tool, QA, and role configuration."
+                : "Persist a repository, checked AI tools, QA snapshot, and seven role profiles."}
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -811,10 +811,10 @@ export const Onboarding: React.FC<OnboardingProps> = ({
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
                 <div>
-                  <h2 className="setup-section-heading">02. Probe official LLM engine CLIs</h2>
+                  <h2 className="setup-section-heading">02. Check AI tools on this device</h2>
                   <p className="setup-section-copy">
-                    Availability and capabilities come from live Codex, Claude, and Antigravity
-                    probes. At least one read-only and one worktree-write engine are required.
+                    Cozy checks Codex, Claude, and Antigravity here before assigning work. At least
+                    one tool must be able to review and one must be able to edit files.
                   </p>
                 </div>
                 <button
@@ -823,7 +823,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                   disabled={!projectId || probing}
                   onClick={() => void probeProviders()}
                 >
-                  {probing ? "Probing…" : "Probe official CLIs"}
+                  {probing ? "Checking..." : "Check AI Tools"}
                 </button>
               </div>
 
@@ -844,19 +844,19 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                       <div className="skill-list">
                         <span className="micro-chip">{provider.version ?? "version unknown"}</span>
                         {provider.capabilities.nonInteractive && (
-                          <span className="micro-chip success">non-interactive</span>
+                          <span className="micro-chip success">background ready</span>
                         )}
                         {provider.capabilities.readOnly && (
-                          <span className="micro-chip">read-only</span>
+                          <span className="micro-chip">can review</span>
                         )}
                         {provider.capabilities.worktreeWrite && (
-                          <span className="micro-chip">worktree write</span>
+                          <span className="micro-chip">can edit files</span>
                         )}
                       </div>
                       <p className="provider-diagnostic">
                         {provider.diagnostic ?? "No diagnostic returned."}
                       </p>
-                      <span className="eyebrow">{provider.models.length} discovered models</span>
+                      <span className="eyebrow">{provider.models.length} available models</span>
                       <span style={{ marginTop: "auto", color: "var(--wood-500)", fontSize: 8 }}>
                         Checked {new Date(provider.checkedAt).toLocaleString()}
                       </span>
@@ -881,7 +881,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
                         value={antigravityModel ?? ""}
                         onChange={(event) => setAntigravityModel(event.target.value || null)}
                       >
-                        <option value="">Provider default</option>
+                        <option value="">Tool default</option>
                         {currentAntigravity.models.map((model) => (
                           <option key={model} value={model}>
                             {model}
@@ -1106,8 +1106,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({
             <div>
               <h2 className="setup-section-heading">04. Calibrate the fixed seven-role swarm</h2>
               <p className="setup-section-copy">
-                Manager, four Workers, Advisor, and QA are contractual roles. Configure their live
-                provider fallback chains, model choices, timeouts, and prompt versions.
+                Manager, four Workers, Tech Lead, and QA are contractual roles. Configure their live
+                AI tool order, model choices, timeouts, and prompt versions.
               </p>
               <RoleSettings
                 profiles={profiles}
@@ -1129,7 +1129,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
               Repository {repositoryComplete ? "✓" : "—"}
             </span>
             <span className={providersComplete ? "status-chip success" : "status-chip warning"}>
-              Providers {providersComplete ? "✓" : "—"}
+              AI tools {providersComplete ? "✓" : "—"}
             </span>
             <span className={testsComplete ? "status-chip success" : "status-chip warning"}>
               QA context {testsComplete ? "✓" : "—"}

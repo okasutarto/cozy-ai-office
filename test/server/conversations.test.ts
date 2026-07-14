@@ -136,7 +136,7 @@ describe("Conversation Service direct role chats", () => {
           {
             id: "advisor",
             role: "advisor",
-            label: "Advisor",
+            label: "Tech Lead",
             providerChain: [{ provider: "claude", model: "sonnet" }],
             timeoutMs: 10000,
             promptVersion: "advisor-v1",
@@ -202,28 +202,28 @@ describe("Conversation Service direct role chats", () => {
         expect(conv.profileId).toBe("manager");
         expect(conv.runId).toBe("00000000-0000-4000-8000-000000000302");
 
-        // 2. Direct Advisor chat rejects unless additionalUsageConfirmed=true
+        // 2. Direct Tech Lead chat rejects unless additionalUsageConfirmed=true
         const advisorConv = conversationService.create({
           projectId: projectResult.id,
           role: "advisor",
           profileId: "advisor",
           contextSnapshotId: snapshot.id,
           runId: null,
-          title: "Advisor chat",
+          title: "Tech Lead chat",
         });
 
         await expect(
           conversationService.send(
             advisorConv.id,
             {
-              body: "Hi advisor",
+              body: "Hi Tech Lead",
               selectedMessageIds: [],
               selectedArtifactIds: [],
               additionalUsageConfirmed: false,
             },
             new AbortController().signal,
           ),
-        ).rejects.toThrow(/Advisor consultation is rejected unless additionalUsageConfirmed/);
+        ).rejects.toThrow(/Tech Lead consultation is rejected unless additionalUsageConfirmed/);
 
         // 3. Antigravity-only worker chain throws provider_capability_unavailable
         const agyConv = conversationService.create({
@@ -281,7 +281,7 @@ describe("Conversation Service direct role chats", () => {
         expect(replyMsg.sender).toBe("agent");
         expect(replyMsg.body).toContain("Yes manager");
 
-        // 5. Send to Manager preserves source details & creates draft version 1
+        // 5. Send to Manager can use recent chat automatically & creates draft version 1
         executeSpy.mockResolvedValueOnce({
           exitCode: 0,
           durationMs: 1,
@@ -298,7 +298,7 @@ describe("Conversation Service direct role chats", () => {
 
         const draftVersion = await conversationService.forwardToManager(
           conv.id,
-          [replyMsg.id],
+          [],
           new AbortController().signal,
         );
         expect(draftVersion.version).toBe(1);

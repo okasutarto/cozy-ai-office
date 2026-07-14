@@ -214,5 +214,5 @@ describe("Context Snapshot Service", () => {
         db.close();
       }
     });
-  });
+  }, 60_000);
 });

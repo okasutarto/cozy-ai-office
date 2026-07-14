@@ -93,7 +93,7 @@ export const SendMessageRequestSchema = z.object({
   additionalUsageConfirmed: z.boolean().default(false),
 });
 export const ForwardToManagerRequestSchema = z.object({
-  messageIds: z.array(z.string().uuid()).min(1).max(100),
+  messageIds: z.array(z.string().uuid()).max(100).default([]),
 });
 export const UpdateDraftRequestSchema = z.object({
   objective: z.string().min(1).max(10_000),

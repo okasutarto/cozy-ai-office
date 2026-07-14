@@ -74,8 +74,7 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [draftSelectionActive, setDraftSelectionActive] = useState(false);
-  const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
+  const [isCreatingDraft, setIsCreatingDraft] = useState(false);
   const [commands, setCommands] = useState<unknown[]>([]);
   const [editableProfiles, setEditableProfiles] = useState(roleProfiles);
   const [rolesSaving, setRolesSaving] = useState(false);
@@ -97,8 +96,6 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
     let active = true;
     setActiveConversation(null);
     setMessages([]);
-    setDraftSelectionActive(false);
-    setSelectedMessageIds([]);
     api
       .listConversations(projectId)
       .then((data) => {
@@ -128,7 +125,6 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
 
   useEffect(() => {
     if (!activeConversation) return;
-    setSelectedMessageIds([]);
     let active = true;
     api
       .listMessages(activeConversation.id)
@@ -194,15 +190,16 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
   };
 
   const forwardToManager = async () => {
-    if (!activeConversation || selectedMessageIds.length === 0) return;
+    if (!activeConversation || messages.length === 0 || isSending || isCreatingDraft) return;
+    setIsCreatingDraft(true);
     try {
-      const draft = await api.forwardToManager(activeConversation.id, selectedMessageIds);
+      const draft = await api.forwardToManager(activeConversation.id, []);
       onDraftCreated(draft);
-      setDraftSelectionActive(false);
-      setSelectedMessageIds([]);
       setTab("draft");
     } catch {
-      // Keep selected context available so the owner can retry.
+      // Keep the conversation visible so the owner can retry after adding detail.
+    } finally {
+      setIsCreatingDraft(false);
     }
   };
 
@@ -243,8 +240,8 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
           ))}
         </div>
         <div className="discussion-status">
-          <span>{activeProfile?.providerChain[0]?.provider ?? "no provider"}</span>
-          <span className="status-chip success">Read-only chat</span>
+          <span>{activeProfile?.providerChain[0]?.provider ?? "no AI tool"}</span>
+          <span className="status-chip success">Review chat</span>
         </div>
       </div>
       <ol ref={messageLogRef} className="message-log" aria-label="Message log">
@@ -253,28 +250,13 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
         ) : (
           <>
             {messages.map((message) => {
-              const selected = selectedMessageIds.includes(message.id);
               const outgoing = message.sender === "owner";
               return (
                 <li
                   className={`message-row ${outgoing ? "outgoing" : "incoming"}`}
                   key={message.id}
                 >
-                  {draftSelectionActive && (
-                    <input
-                      aria-label={`Select message from ${outgoing ? "You" : activePersona.label}`}
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() =>
-                        setSelectedMessageIds((current) =>
-                          selected
-                            ? current.filter((id) => id !== message.id)
-                            : [...current, message.id],
-                        )
-                      }
-                    />
-                  )}
-                  <div className={`message-bubble ${selected ? "selected" : ""}`}>
+                  <div className="message-bubble">
                     <span className="eyebrow">{outgoing ? "You" : activePersona.label}</span>
                     <p>{message.body}</p>
                   </div>
@@ -299,24 +281,9 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
       </ol>
       {antigravityOnly && (
         <p className="inline-message error">
-          Selected discussion persona lacks read-only capability. Select a compatible provider
-          fallback chain to enable chat.
+          Selected discussion persona cannot review yet. Select a compatible AI tool order to enable
+          chat.
         </p>
-      )}
-      {draftSelectionActive && (
-        <div className="draft-selection-bar">
-          <span>Select the messages that should become task context.</span>
-          <button
-            type="button"
-            className="cozy-button"
-            onClick={() => {
-              setDraftSelectionActive(false);
-              setSelectedMessageIds([]);
-            }}
-          >
-            Cancel
-          </button>
-        </div>
       )}
       <div className="composer">
         <textarea
@@ -344,17 +311,10 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
           <button
             type="button"
             className="cozy-button primary"
-            disabled={
-              !activeConversation || (draftSelectionActive && selectedMessageIds.length === 0)
-            }
-            onClick={() => {
-              if (draftSelectionActive) void forwardToManager();
-              else setDraftSelectionActive(true);
-            }}
+            disabled={!activeConversation || messages.length === 0 || isSending || isCreatingDraft}
+            onClick={() => void forwardToManager()}
           >
-            {draftSelectionActive
-              ? `Create Draft (${selectedMessageIds.length})`
-              : "Create Task Draft"}
+            {isCreatingDraft ? "Creating Draft..." : "Create Task Draft"}
           </button>
         </div>
       </div>
@@ -388,8 +348,8 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
       <div className="metrics-table">
         {attempts.length === 0 ? (
           <div className="empty-state">
-            No provider attempts recorded yet. Token and cost metrics are not exposed by the current
-            provider contracts.
+            No AI tool attempts recorded yet. Token and cost metrics are not exposed by the current
+            integrations.
           </div>
         ) : (
           attempts.map((attempt) => (
@@ -486,7 +446,7 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
       </div>
     ) : (
       <div className="empty-state">
-        No draft loaded. Choose Create Task Draft in Discussion and select its context.
+        No draft loaded. Discuss the task with Manager, then choose Create Task Draft.
       </div>
     );
   };

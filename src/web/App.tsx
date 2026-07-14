@@ -18,7 +18,7 @@ const OFFICE_ROLE_TABS = [
   ["worker-2", "W2"],
   ["worker-3", "W3"],
   ["worker-4", "W4"],
-  ["advisor", "Adv"],
+  ["advisor", "TL"],
   ["qa", "QA"],
 ] as const;
 
@@ -327,7 +327,7 @@ export const App: React.FC = () => {
           <p className="eyebrow">Authorization required</p>
           <h2>Cozy AI Office: Missing Session</h2>
           <p style={{ color: "var(--parchment-300)" }}>
-            No authorization token detected. Please launch the office server using the official CLI:
+            No authorization token detected. Please launch the office server with:
           </p>
           <pre className="terminal-box">npx cozy-agent-office</pre>
         </div>

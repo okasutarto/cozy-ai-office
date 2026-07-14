@@ -12,6 +12,10 @@ type TopBarProps = {
   realtimeStatus?: "connecting" | "active" | "offline";
 };
 
+function formatRunState(value: string): string {
+  return value.replace("advisor", "tech lead").replaceAll("_", " ");
+}
+
 export const TopBar: React.FC<TopBarProps> = ({
   onPause,
   onResume,
@@ -146,7 +150,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               className={`status-chip ${run.state === "failed" || run.state === "blocked" ? "danger" : run.dispatchPaused ? "warning" : "success"}`}
               style={{ marginLeft: 7 }}
             >
-              <i className="dot" /> {run.dispatchPaused ? "paused" : run.state.replaceAll("_", " ")}
+              <i className="dot" /> {run.dispatchPaused ? "paused" : formatRunState(run.state)}
             </span>
           </div>
         )}

@@ -22,7 +22,7 @@ function usableProviders(
 
 function providerDiagnostic(statuses: ProviderStatus[]): string | null {
   if (usableProviders(statuses, "readOnly").length === 0) {
-    return "No compatible read-only provider is authenticated. Manager, Advisor, and QA roles cannot be assigned.";
+    return "No compatible read-only provider is authenticated. Manager, Tech Lead, and QA roles cannot be assigned.";
   }
   if (usableProviders(statuses, "worktreeWrite").length === 0) {
     return "No compatible write provider is authenticated. Worker roles cannot be assigned.";
@@ -57,7 +57,7 @@ function buildDefaultProfiles(statuses: ProviderStatus[]): RoleProfile[] {
     {
       id: "advisor",
       role: "advisor",
-      label: "Advisor",
+      label: "Tech Lead",
       providerChain: [
         { provider: advisorProvider.provider, model: advisorProvider.models[0] || null },
       ],

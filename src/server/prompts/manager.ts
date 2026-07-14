@@ -17,7 +17,7 @@ export function buildDiscussionPrompt(input: {
 
 export function buildDraftPrompt(messages: MessageRecord[]): string {
   return [
-    "Convert only the selected messages into one editable task draft.",
+    "Convert the selected or recent conversation messages into one editable task draft.",
     "Do not execute the task and do not add requirements not supported by the messages.",
     "Return objective, scope, constraints, and acceptanceCriteria as JSON.",
     JSON.stringify(messages),
@@ -42,7 +42,7 @@ export function buildManagerRevisionPrompt(
 ): string {
   return [
     "You are the Manager in Cozy Agent Office.",
-    "Revise the execution plan according to the Advisor review feedback.",
+    "Revise the execution plan according to the Tech Lead review feedback.",
     "Strict Rules:",
     "- Provider/model assignment is owned by the scheduler and must not appear in briefs.",
     "- Output revised plan satisfying all requested changes.",

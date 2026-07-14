@@ -135,11 +135,11 @@ describe("Onboarding Wizard Component", () => {
         request.mock.calls.filter(([path]) => path === `/api/projects/${project.id}/onboarding`),
       ).toHaveLength(1);
     });
-    const enginesStep = screen.getByRole("button", { name: /LLM Engines/u });
+    const enginesStep = screen.getByRole("button", { name: /AI Tools/u });
     await waitFor(() => expect((enginesStep as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(enginesStep);
-    fireEvent.click(screen.getByRole("button", { name: /Probe official CLIs/u }));
-    await screen.findByText(/Probe complete/u);
+    fireEvent.click(screen.getByRole("button", { name: /Check AI Tools/u }));
+    await screen.findByText(/AI tools checked/u);
 
     const phrase = screen.getByLabelText(/Verify login/u);
     fireEvent.change(phrase, { target: { value: "USE SUBSCRIPTION TURN" } });
@@ -169,11 +169,11 @@ describe("Onboarding Wizard Component", () => {
     });
     fireEvent.click(screen.getByText(/Use as Workspace/u));
     await screen.findByText(/Repository ready/u);
-    const enginesStep = screen.getByRole("button", { name: /LLM Engines/u });
+    const enginesStep = screen.getByRole("button", { name: /AI Tools/u });
     await waitFor(() => expect((enginesStep as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(enginesStep);
-    fireEvent.click(screen.getByRole("button", { name: /Probe official CLIs/u }));
-    await screen.findByText(/Probe complete/u);
+    fireEvent.click(screen.getByRole("button", { name: /Check AI Tools/u }));
+    await screen.findByText(/AI tools checked/u);
     fireEvent.click(screen.getByRole("button", { name: /Test Suites & Context/u }));
 
     expect(screen.getByText("discovered-test")).toBeDefined();
@@ -237,8 +237,8 @@ describe("Onboarding Wizard Component", () => {
     await screen.findByText("Workspace Settings");
     expect(screen.getByText(/configured/u)).toBeDefined();
     expect(screen.getByRole("button", { name: /Save Setup Changes/u })).toBeDefined();
-    expect(
-      (screen.getByRole("button", { name: /LLM Engines/u }) as HTMLButtonElement).disabled,
-    ).toBe(false);
+    expect((screen.getByRole("button", { name: /AI Tools/u }) as HTMLButtonElement).disabled).toBe(
+      false,
+    );
   });
 });

@@ -6,6 +6,14 @@ type TimelineProps = {
   onLoadEarlier?(): void;
 };
 
+function formatEventKind(value: string): string {
+  return value.replace("advisor", "tech lead").replace(/[._]/gu, " ").toUpperCase();
+}
+
+function formatActor(value: string): string {
+  return value === "advisor" ? "Tech Lead" : value;
+}
+
 export const Timeline: React.FC<TimelineProps> = ({ events, onLoadEarlier }) => {
   return (
     <div
@@ -90,11 +98,11 @@ export const Timeline: React.FC<TimelineProps> = ({ events, onLoadEarlier }) => 
                 <span style={{ fontSize: "14px" }}>{icon}</span>
                 <div style={{ display: "flex", flexDirection: "column" }}>
                   <div style={{ fontWeight: "bold", color: "#fff" }}>
-                    {event.kind.replace(/_/g, " ").toUpperCase()}
+                    {formatEventKind(event.kind)}
                   </div>
                   {event.actorId && (
                     <div style={{ fontSize: "10px", color: "var(--gold-300)" }}>
-                      Actor: {event.actorId}
+                      Actor: {formatActor(event.actorId)}
                     </div>
                   )}
                   {event.taskId && (

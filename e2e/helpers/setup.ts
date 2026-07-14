@@ -7,9 +7,9 @@ export async function completeSetup(page: Page, projectPath: string) {
   await page.getByRole("button", { name: /Use as Workspace/ }).click();
   await expect(page.getByText("Clean").first()).toBeVisible();
 
-  await page.getByRole("button", { name: /LLM Engines/ }).click();
-  await page.getByRole("button", { name: /Probe official CLIs/ }).click();
-  await expect(page.getByText(/Probe complete/i)).toBeVisible();
+  await page.getByRole("button", { name: /AI Tools/ }).click();
+  await page.getByRole("button", { name: /Check AI Tools/ }).click();
+  await expect(page.getByText(/AI tools checked/i)).toBeVisible();
 
   await page.getByRole("button", { name: /Test Suites & Context/ }).click();
   const packageCandidate = page

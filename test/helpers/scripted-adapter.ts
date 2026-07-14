@@ -112,7 +112,7 @@ export class ScriptedAdapter implements ProviderAdapter {
       };
     }
 
-    // 2. Handle Advisor Preflight & Delivery Review
+    // 2. Handle Tech Lead Preflight & Delivery Review
     else if (request.outputContract === "advisor_review") {
       const gate = request.prompt.includes("delivery") ? "delivery" : "preflight";
       barrierName = gate === "delivery" ? "reviewing-delivery" : "reviewing";
@@ -120,7 +120,7 @@ export class ScriptedAdapter implements ProviderAdapter {
 
       mockJSON = {
         verdict: approve ? "approve" : "reject",
-        blockingFindings: approve ? [] : ["Blocked by advisor policy"],
+        blockingFindings: approve ? [] : ["Blocked by Tech Lead policy"],
         requestedChanges: [],
         risks: [],
       };

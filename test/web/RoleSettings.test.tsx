@@ -49,7 +49,7 @@ const mockProfiles: RoleProfile[] = [
   {
     id: "advisor",
     role: "advisor",
-    label: "Advisor",
+    label: "Tech Lead",
     providerChain: [{ provider: "claude", model: null }],
     timeoutMs: 60_000,
     promptVersion: "v1",
@@ -99,7 +99,7 @@ describe("RoleSettings Chain Configuration", () => {
     expect(screen.getByText("worker-2 (worker)")).toBeDefined();
     expect(screen.getByText("worker-3 (worker)")).toBeDefined();
     expect(screen.getByText("worker-4 (worker)")).toBeDefined();
-    expect(screen.getByText("Advisor (advisor)")).toBeDefined();
+    expect(screen.getByText("Tech Lead (advisor)")).toBeDefined();
     expect(screen.getByText("QA (qa)")).toBeDefined();
 
     // Verify fallback configuration change

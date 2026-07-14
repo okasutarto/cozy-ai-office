@@ -192,8 +192,8 @@ describe("Owner Run Controls UI & Dashboard Components", () => {
     ];
 
     render(<Timeline events={events} />);
-    expect(screen.getByText("RUN.CREATED")).toBeDefined();
-    expect(screen.getByText("ADVISOR.GATE")).toBeDefined();
+    expect(screen.getByText("RUN CREATED")).toBeDefined();
+    expect(screen.getByText("TECH LEAD GATE")).toBeDefined();
   });
 
   it("renders ConfirmDialog and traps focus and handles confirmation", () => {

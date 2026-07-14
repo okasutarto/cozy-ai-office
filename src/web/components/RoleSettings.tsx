@@ -90,7 +90,7 @@ export const RoleSettings: React.FC<RoleSettingsProps> = ({ profiles, providers,
       <div className="setup-card warning">
         <strong>Seven role profiles are required.</strong>
         <p className="setup-section-copy" style={{ marginBottom: 0 }}>
-          Probe compatible providers, then return here to configure Manager, four Workers, Advisor,
+          Check compatible AI tools, then return here to configure Manager, four Workers, Tech Lead,
           and QA.
         </p>
       </div>
@@ -202,13 +202,13 @@ export const RoleSettings: React.FC<RoleSettingsProps> = ({ profiles, providers,
           <div className="cozy-field">
             <label>Required capability</label>
             <div className="cozy-input" style={{ display: "flex", alignItems: "center" }}>
-              {selectedProfile.role === "worker" ? "Worktree write" : "Read-only consultation"}
+              {selectedProfile.role === "worker" ? "Can edit files" : "Can review"}
             </div>
           </div>
         </div>
 
         <p className="eyebrow" style={{ marginBottom: 8 }}>
-          Provider fallback chain · first usable candidate wins
+          AI tool order · first ready tool wins
         </p>
         <div className="command-list">
           {selectedProfile.providerChain.map((candidate, chainIndex) => {
@@ -227,11 +227,11 @@ export const RoleSettings: React.FC<RoleSettingsProps> = ({ profiles, providers,
                 >
                   <span className="setup-step-index">{chainIndex + 1}</span>
                   <div className="cozy-field">
-                    <label htmlFor={`provider-${selectedProfile.id}-${chainIndex}`}>Provider</label>
+                    <label htmlFor={`provider-${selectedProfile.id}-${chainIndex}`}>AI tool</label>
                     <select
                       id={`provider-${selectedProfile.id}-${chainIndex}`}
                       className="cozy-input"
-                      aria-label={`Provider for chain item ${chainIndex + 1}`}
+                      aria-label={`AI tool for chain item ${chainIndex + 1}`}
                       value={candidate.provider}
                       onChange={(event) => {
                         const nextStatus = providers.find(
@@ -264,7 +264,7 @@ export const RoleSettings: React.FC<RoleSettingsProps> = ({ profiles, providers,
                         })
                       }
                     >
-                      <option value="">Provider default</option>
+                      <option value="">Tool default</option>
                       {candidate.model && !models.includes(candidate.model) && (
                         <option value={candidate.model}>{candidate.model}</option>
                       )}
@@ -286,14 +286,14 @@ export const RoleSettings: React.FC<RoleSettingsProps> = ({ profiles, providers,
                 </div>
                 <div className="skill-list" style={{ marginTop: 8 }}>
                   <span className={`micro-chip ${valid ? "success" : "danger"}`}>
-                    <i className="dot" /> {valid ? "usable" : "capability unavailable"}
+                    <i className="dot" /> {valid ? "ready" : "not available"}
                   </span>
                   {status?.capabilities.nonInteractive && (
-                    <span className="micro-chip success">non-interactive</span>
+                    <span className="micro-chip success">background ready</span>
                   )}
-                  {status?.capabilities.readOnly && <span className="micro-chip">read-only</span>}
+                  {status?.capabilities.readOnly && <span className="micro-chip">can review</span>}
                   {status?.capabilities.worktreeWrite && (
-                    <span className="micro-chip">worktree write</span>
+                    <span className="micro-chip">can edit files</span>
                   )}
                   {status?.version && <span className="micro-chip">v{status.version}</span>}
                 </div>
