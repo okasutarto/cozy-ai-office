@@ -162,7 +162,7 @@ export function registerProjectRoutes(
         throw new AppError("invalid_role_update", "Manager role profile mismatch", 400);
       }
       if (profile.id === "advisor" && profile.role !== "advisor") {
-        throw new AppError("invalid_role_update", "Advisor role profile mismatch", 400);
+        throw new AppError("invalid_role_update", "Tech Lead role profile mismatch", 400);
       }
       if (profile.id === "qa" && profile.role !== "qa") {
         throw new AppError("invalid_role_update", "QA role profile mismatch", 400);
@@ -171,7 +171,7 @@ export function registerProjectRoutes(
         throw new AppError("invalid_role_update", "Worker role profile mismatch", 400);
       }
 
-      // Manager/Advisor/QA chains contain at least one currently read-only-capable provider
+      // Manager/Tech Lead/QA chains contain at least one currently read-only-capable provider
       if (["manager", "advisor", "qa"].includes(profile.id)) {
         const hasReadOnly = profile.providerChain.some((c) => readOnlyCapables.has(c.provider));
         if (!hasReadOnly) {

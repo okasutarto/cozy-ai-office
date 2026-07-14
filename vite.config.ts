@@ -4,6 +4,8 @@ import { readFile } from "node:fs";
 import { resolve } from "node:path";
 
 const localPixelLifeRoot = resolve(process.cwd(), ".local-assets", "pixel-life");
+const serverPort = Number(process.env.COZY_PORT || 4317);
+const webPort = Number(process.env.COZY_WEB_PORT || 5173);
 
 const localPixelLifeAssets = {
   name: "local-pixel-life-assets",
@@ -38,15 +40,15 @@ export default defineConfig({
   build: { outDir: "dist/web", emptyOutDir: false },
   server: {
     host: "127.0.0.1",
-    port: 5173,
+    port: webPort,
     strictPort: true,
     open: true,
     watch: {
       ignored: ["**/art/vendor/ordinary-bumblebee/**"],
     },
     proxy: {
-      "/api": "http://127.0.0.1:4317",
-      "/ws": { target: "ws://127.0.0.1:4317", ws: true },
+      "/api": `http://127.0.0.1:${serverPort}`,
+      "/ws": { target: `ws://127.0.0.1:${serverPort}`, ws: true },
     },
   },
 });

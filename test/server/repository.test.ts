@@ -223,7 +223,7 @@ describe("Project onboarding and role configuration", () => {
         const qa = roles.find((r) => r.id === "qa")!;
         const workers = roles.filter((r) => r.id.startsWith("worker-"));
 
-        // Manager/Advisor/QA defaults to read-only-capable providers (codex or claude)
+        // Manager/Tech Lead/QA defaults to read-only-capable providers (codex or claude)
         expect(manager.providerChain[0].provider).toBe("codex");
         expect(advisor.providerChain[0].provider).toBe("claude"); // Last read-only
         expect(qa.providerChain[0].provider).toBe("codex");

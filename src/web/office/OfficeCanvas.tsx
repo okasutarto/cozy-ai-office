@@ -14,7 +14,7 @@ const ACTORS: { id: ProfileId; label: string }[] = [
   { id: "worker-2", label: "W2" },
   { id: "worker-3", label: "W3" },
   { id: "worker-4", label: "W4" },
-  { id: "advisor", label: "Adv" },
+  { id: "advisor", label: "TL" },
   { id: "qa", label: "QA" },
 ];
 

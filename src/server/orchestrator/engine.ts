@@ -389,7 +389,7 @@ export class OrchestratorEngine {
       text: JSON.stringify(plan),
     });
 
-    // ── 7. Advisor Preflight Pass 1 ──
+    // ── 7. Tech Lead Preflight Pass 1 ──
     this.transitionRun(runId, "advisor_preflight");
     const preflightPrompt = buildPreflightPrompt({
       draft: draftVersion,
@@ -558,7 +558,7 @@ export class OrchestratorEngine {
       return;
     }
 
-    // ── 11. Advisor Delivery Pass 1 ──
+    // ── 11. Tech Lead Delivery Pass 1 ──
     this.transitionRun(runId, "advisor_delivery");
     const deliveryPrompt = buildDeliveryPrompt({
       plan,

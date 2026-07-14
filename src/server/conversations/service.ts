@@ -93,7 +93,7 @@ export class ConversationService {
     if (conv.role === "advisor" && !input.additionalUsageConfirmed) {
       throw new AppError(
         "usage_confirmation_required",
-        "Advisor consultation is rejected unless additionalUsageConfirmed=true",
+        "Tech Lead consultation is rejected unless additionalUsageConfirmed=true",
         400,
       );
     }
@@ -230,7 +230,21 @@ export class ConversationService {
     if (!conv) throw new AppError("conversation_not_found", "Conversation not found", 404);
 
     const allMessages = this.conversationStore.listMessages(conversationId);
-    const sourceMessages = allMessages.filter((m) => messageIds.includes(m.id));
+    const sourceMessages =
+      messageIds.length > 0
+        ? messageIds.map((id) => allMessages.find((message) => message.id === id))
+        : allMessages.slice(-8);
+    if (sourceMessages.some((message) => !message)) {
+      throw new AppError("message_not_found", "One or more source messages were not found", 404);
+    }
+    if (sourceMessages.length === 0) {
+      throw new AppError(
+        "message_not_found",
+        "No conversation messages available for a draft",
+        400,
+      );
+    }
+    const sourceMessageRecords = sourceMessages as MessageRecord[];
 
     const profiles = this.projectStore.listRoleProfiles(conv.projectId);
     const managerProfile = profiles.find((p) => p.id === "manager");
@@ -267,7 +281,7 @@ export class ConversationService {
       randomUUID(),
     );
     try {
-      const prompt = buildDraftPrompt(sourceMessages);
+      const prompt = buildDraftPrompt(sourceMessageRecords);
 
       const providerRequest: ProviderRequest = {
         requestId: randomUUID(),
@@ -312,9 +326,9 @@ export class ConversationService {
 
       const draftPayload = {
         objective: draftSuggestion.objective,
-        scope: draftSuggestion.scope.sort(),
-        constraints: draftSuggestion.constraints.sort(),
-        acceptanceCriteria: draftSuggestion.acceptanceCriteria.sort(),
+        scope: [...draftSuggestion.scope].sort(),
+        constraints: [...draftSuggestion.constraints].sort(),
+        acceptanceCriteria: [...draftSuggestion.acceptanceCriteria].sort(),
       };
       const canonicalJson = JSON.stringify(draftPayload);
       const sha256 = createHash("sha256").update(canonicalJson).digest("hex");
@@ -328,7 +342,7 @@ export class ConversationService {
         constraints: draftSuggestion.constraints,
         acceptanceCriteria: draftSuggestion.acceptanceCriteria,
         contextSnapshotId: conv.contextSnapshotId,
-        sourceMessageIds: messageIds,
+        sourceMessageIds: sourceMessageRecords.map((message) => message.id),
         sha256,
         createdAt: new Date().toISOString(),
       };
@@ -345,9 +359,9 @@ export class ConversationService {
 
     const draftPayload = {
       objective: input.objective,
-      scope: input.scope.sort(),
-      constraints: input.constraints.sort(),
-      acceptanceCriteria: input.acceptanceCriteria.sort(),
+      scope: [...input.scope].sort(),
+      constraints: [...input.constraints].sort(),
+      acceptanceCriteria: [...input.acceptanceCriteria].sort(),
     };
     const canonicalJson = JSON.stringify(draftPayload);
     const sha256 = createHash("sha256").update(canonicalJson).digest("hex");

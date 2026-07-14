@@ -4,8 +4,8 @@ Cozy Agent Office is a local-first, multi-model coding-agent orchestrator with a
 
 ## What it does
 
-- Detects locally installed Codex, Claude, and Antigravity CLIs and verifies their capabilities.
-- Assigns manager, advisor, QA, and worker roles to ordered provider fallback chains.
+- Checks locally installed Codex, Claude, and Antigravity AI tools before assigning work.
+- Assigns Manager, Tech Lead, QA, and Worker roles to ordered AI tool chains.
 - Stores conversations, versioned drafts, run attempts, and output artifacts locally.
 - Creates immutable context snapshots from tracked Git files.
 - Isolates worker changes in Git worktrees and validates allowed paths before committing them.
@@ -16,7 +16,7 @@ Cozy Agent Office is a local-first, multi-model coding-agent orchestrator with a
 - [Node.js](https://nodejs.org/) 24 or newer
 - npm
 - Git
-- At least one authenticated agent CLI available on `PATH`: `codex`, `claude`, or `agy`
+- At least one signed-in AI tool command available on `PATH`: `codex`, `claude`, or `agy`
 
 ## Development
 
@@ -36,17 +36,17 @@ npm start
 
 The production server binds to loopback on an available port and opens the authenticated local URL in your default browser.
 
-## Providers
+## AI Tools
 
-Cozy Agent Office probes each CLI at project setup and only uses installed, authenticated providers with the required capability.
+Cozy Agent Office checks each local AI tool during project setup and only assigns work to tools that are installed, signed in, and able to do the required job.
 
-| Provider    | CLI      | Read-only roles | Worktree writes |
-| ----------- | -------- | --------------- | --------------- |
-| Codex       | `codex`  | Yes             | Yes             |
-| Claude      | `claude` | Yes             | Yes             |
-| Antigravity | `agy`    | No              | Yes             |
+| AI tool     | Command  | Can review | Can edit files |
+| ----------- | -------- | ---------- | -------------- |
+| Codex       | `codex`  | Yes        | Yes            |
+| Claude      | `claude` | Yes        | Yes            |
+| Antigravity | `agy`    | No         | Yes            |
 
-Install and authenticate provider CLIs separately before starting the app. Antigravity login verification uses one subscription turn and requires explicit confirmation in the app.
+Install and sign in to these tools separately before starting the app. Antigravity login verification uses one subscription turn and requires explicit confirmation in the app.
 
 ## Contributor commands
 
@@ -66,7 +66,7 @@ Install and authenticate provider CLIs separately before starting the app. Antig
 
 ```text
 src/web/       React and Vite browser client
-src/server/    Fastify API, orchestration, providers, storage, and Git isolation
+src/server/    Fastify API, orchestration, AI tool adapters, storage, and Git isolation
 src/shared/    Shared API schemas and contracts
 test/          Vitest unit and integration tests
 ```
@@ -75,26 +75,26 @@ Runtime data is stored outside the repository in the platform application-data d
 
 ## Security model
 
-- **Authentication model**: ChatGPT/Claude/Google subscriptions authenticate their official CLIs; API credit is not used by this app. Subscription availability, quota, and model access remain provider-controlled.
-- **Antigravity eligibility**: Antigravity is eligible only for write Workers after current `--help` capability probing and explicit login verification; v0.1 does not claim a proven per-invocation read-only mode.
-- **CLI prompt exposure**: Antigravity's documented print mode receives the prompt as a process argument in v0.1, so the prompt may be visible to other local processes/users that can inspect process command lines; Codex and Claude prompts use stdin.
+- **Authentication model**: ChatGPT/Claude/Google subscriptions sign in to their local command-line tools; API credit is not used by this app. Subscription availability, quota, and model access remain controlled by each tool.
+- **Antigravity eligibility**: Antigravity is eligible only for write Workers after current `--help` capability checks and explicit login verification; v0.1 does not claim a proven per-invocation review-only mode.
+- **Prompt exposure**: Antigravity's documented print mode receives the prompt as a process argument in v0.1, so the prompt may be visible to other local processes/users that can inspect process command lines; Codex and Claude prompts use stdin.
 - **Git isolation**: Worktrees protect Git changes but are not an OS sandbox. The root working tree changes only after Apply and verified fast-forward conditions.
-- **Intended codebase**: The app is intended for local repositories and CLI accounts trusted by the Owner.
+- **Intended codebase**: The app is intended for local repositories and AI tool accounts trusted by the Owner.
 
 ## Manual Smoke Commands
 
-To test your local command-line client provider status:
+To test your local AI tool status:
 
 ```bash
-# Verify Codex CLI
+# Verify Codex command
 codex --version
 codex login status
 
-# Verify Claude CLI
+# Verify Claude command
 claude --version
 claude auth status
 
-# Verify Antigravity CLI
+# Verify Antigravity command
 agy --version
 
 # Launch the production orchestrator build

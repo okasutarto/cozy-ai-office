@@ -8,23 +8,23 @@
 
 Cozy Agent Office is a local-first, open-source coding-agent orchestrator with a polished original pixel-art office interface. A user starts one local Node.js command, which serves a React/PixiJS browser application and coordinates subscription-authenticated Codex CLI, Claude Code, and Antigravity CLI processes against a selected local Git repository.
 
-The formal roles are Manager, Worker, Advisor, and QA. Roles are independent from providers and supported models. The Manager plans and synthesizes, the automatic workflow invokes the Advisor only before execution and before delivery, Workers perform bounded tasks in isolated Git worktrees, and QA combines deterministic repository commands with an optional model-generated diagnostic report. The Owner may also open a clearly labeled read-only Advisor consultation outside a run. No API key, hosted backend, Mastra runtime, Electron wrapper, vector database, or copied game asset is part of v0.1.
+The formal roles are Manager, Worker, Tech Lead, and QA. Roles are independent from providers and supported models. The Manager plans and synthesizes, the automatic workflow invokes the Tech Lead only before execution and before delivery, Workers perform bounded tasks in isolated Git worktrees, and QA combines deterministic repository commands with an optional model-generated diagnostic report. The Owner may also open a clearly labeled read-only Tech Lead consultation outside a run. No API key, hosted backend, Mastra runtime, Electron wrapper, vector database, or copied game asset is part of v0.1.
 
 ## 2. Goals
 
 1. Run locally from one command and open the browser automatically.
 2. Support Codex CLI, Claude Code, and Antigravity CLI through their official subscription-authenticated command-line interfaces.
-3. Let the user assign a capability-compatible provider, supported model, and ordered fallback chain independently to Manager, Advisor, QA, and each of four Worker profiles.
+3. Let the user assign a capability-compatible provider, supported model, and ordered fallback chain independently to Manager, Tech Lead, QA, and each of four Worker profiles.
 4. Execute a deterministic workflow:
 
    ```text
    Request
    → Manager planning
-   → Advisor preflight
+   → Tech Lead preflight
    → Hybrid parallel workers
    → Integration
    → Deterministic QA
-   → Advisor delivery review
+   → Tech Lead delivery review
    → Manager synthesis
    → User-controlled apply
    ```
@@ -142,7 +142,7 @@ Terminal states are `applied`, `failed`, `blocked`, and `cancelled`. `ready_to_a
 
 ### 6.3 Role configuration service
 
-Manager, Advisor, and QA each have one role profile. Worker has four named profiles so different workers may use different providers and models concurrently. Each profile stores:
+Manager, Tech Lead, and QA each have one role profile. Worker has four named profiles so different workers may use different providers and models concurrently. Each profile stores:
 
 - Primary provider.
 - Selected model when the provider exposes model selection.
@@ -151,7 +151,7 @@ Manager, Advisor, and QA each have one role profile. Worker has four named profi
 - Role-specific prompt version.
 - Maximum attempts defined by this design.
 
-The configuration UI offers only providers whose probed capabilities can satisfy the profile's possible work. Manager, Advisor, and QA always require read-only capability. Worker capability is resolved per brief after planning: the scheduler filters that Worker's ordered provider chain by `readOnly` or `worktreeWrite`, skips incompatible candidates without creating or consuming an attempt, and blocks before launch only when no compatible candidate remains. It never silently weakens permissions.
+The configuration UI offers only providers whose probed capabilities can satisfy the profile's possible work. Manager, Tech Lead, and QA always require read-only capability. Worker capability is resolved per brief after planning: the scheduler filters that Worker's ordered provider chain by `readOnly` or `worktreeWrite`, skips incompatible candidates without creating or consuming an attempt, and blocks before launch only when no compatible candidate remains. It never silently weakens permissions.
 
 The four roles are:
 
@@ -163,7 +163,7 @@ The human user is the **Owner**. Owner is an authority level, not a model-backed
 - Produces a structured plan and worker briefs.
 - Labels each worker task `read_only` or `write`.
 - Supplies allowed and forbidden paths for every writer.
-- Produces final delivery synthesis after Advisor and QA complete.
+- Produces final delivery synthesis after Tech Lead and QA complete.
 - Does not write source files.
 
 #### Worker
@@ -173,7 +173,7 @@ The human user is the **Owner**. Owner is an authority level, not a model-backed
 - Cannot expand task scope or allowed paths.
 - Produces a structured result with summary, findings, changed files, verification, risks, and completion status.
 
-#### Advisor
+#### Tech Lead
 
 - Defines exactly two automatic gate types: preflight before worker execution and delivery review before Manager synthesis. Each gate type is entered at most once per run, and every run that reaches Manager synthesis must pass both.
 - Each gate permits one initial review and, only after a rejected artifact is revised or repaired, one final review. Optional direct consultations occur outside the workflow and do not change run state.
@@ -202,15 +202,15 @@ The conversation workflow has three explicit modes:
 Clicking an office character opens a direct conversation scoped to that role:
 
 - **Manager:** requirements, trade-offs, priorities, progress, and task drafting.
-- **Advisor:** architecture, security, risk, and second-opinion review. The UI warns that direct consultation is an additional premium-provider invocation outside the two automatic workflow gates.
+- **Tech Lead:** architecture, security, risk, and second-opinion review. The UI warns that direct consultation is an additional premium-provider invocation outside the two automatic workflow gates.
 - **Worker:** implementation details and artifacts for that Worker's assigned task. This starts a separate consultation from persisted task and artifact snapshots using the first read-only-capable provider in that Worker's configured chain; it never attaches to the active worker process or mutable worktree. If the chain has no read-only candidate, the chat action is disabled with a diagnostic asking for a Codex or Claude fallback. An idle Worker has no authority to accept new work directly.
 - **QA:** acceptance criteria, configured commands, failures, regressions, and test evidence.
 
 All direct role conversations are read-only. A role conversation cannot start, pause, cancel, replan, dispatch, repair, apply, or otherwise mutate a workflow or repository. **Send to Manager** copies selected messages into a new Manager draft with source conversation and message IDs retained; Manager remains responsible for normalizing them into scope and acceptance criteria.
 
-Pressing **Start Execution** freezes immutable copies and hashes of the approved task draft and selected context snapshot. Manager may revise its generated execution plan once inside Advisor preflight, but only to correct an Advisor finding within the frozen objective, scope, constraints, and acceptance criteria. The execution plan becomes immutable after Advisor approves it and before any Worker dispatch. Every Owner-requested scope or requirement change after Start Execution is routed to Manager as a proposed revised draft. The current run remains unchanged; the Owner must cancel it before starting the revised draft as a new run. Workers cannot expand their own briefs.
+Pressing **Start Execution** freezes immutable copies and hashes of the approved task draft and selected context snapshot. Manager may revise its generated execution plan once inside Tech Lead preflight, but only to correct an Tech Lead finding within the frozen objective, scope, constraints, and acceptance criteria. The execution plan becomes immutable after Tech Lead approves it and before any Worker dispatch. Every Owner-requested scope or requirement change after Start Execution is routed to Manager as a proposed revised draft. The current run remains unchanged; the Owner must cancel it before starting the revised draft as a new run. Workers cannot expand their own briefs.
 
-Only the Owner may press **Start Execution**, **Pause/Resume**, **Cancel Run**, or **Apply to Project**. Manager cannot start work from conversational intent alone. QA cannot waive a required failure, and Advisor cannot bypass deterministic QA or Owner approval.
+Only the Owner may press **Start Execution**, **Pause/Resume**, **Cancel Run**, or **Apply to Project**. Manager cannot start work from conversational intent alone. QA cannot waive a required failure, and Tech Lead cannot bypass deterministic QA or Owner approval.
 
 Project conversations and drafts are stored locally in SQLite. Execution receives the frozen approved task draft and explicitly selected context snapshot, not the entire raw conversation history. This keeps role context bounded and prevents an unrelated discussion from silently changing task scope.
 
@@ -270,7 +270,7 @@ The v0.1 capability baseline, verified against official CLI documentation on 202
 
 - **Codex CLI:** read-only and worktree-write capable. Read-only calls use non-interactive `exec` with explicit `--sandbox read-only`, no approvals, ephemeral session state, and JSONL output.
 - **Claude Code:** read-only and worktree-write capable. Read-only calls use print mode, safe mode, plan permission mode, and an allowlist limited to `Read`, `Glob`, and `Grep`; shell, edit, write, MCP, hooks, plugins, skills, and session persistence remain disabled.
-- **Antigravity CLI:** worktree-write only in v0.1. Its documented hard-deny permissions live in shared global settings rather than an isolated per-invocation profile, so the application does not offer it for Manager, Advisor, QA diagnosis, direct consultation, or read-only Worker tasks. A future version may enable those roles only after `probe()` verifies a documented per-invocation read-only mechanism. The application never rewrites a user's global Antigravity settings.
+- **Antigravity CLI:** worktree-write only in v0.1. Its documented hard-deny permissions live in shared global settings rather than an isolated per-invocation profile, so the application does not offer it for Manager, Tech Lead, QA diagnosis, direct consultation, or read-only Worker tasks. A future version may enable those roles only after `probe()` verifies a documented per-invocation read-only mechanism. The application never rewrites a user's global Antigravity settings.
 
 ### 6.6 Process supervisor
 
@@ -315,7 +315,7 @@ type CommandSpec = {
 };
 ```
 
-The user reviews detected commands during project onboarding. Commands run inside the integration worktree with `shell: false`. Required commands must pass before Advisor delivery review. Optional commands appear in the report but do not block delivery.
+The user reviews detected commands during project onboarding. Commands run inside the integration worktree with `shell: false`. Required commands must pass before Tech Lead delivery review. Optional commands appear in the report but do not block delivery.
 
 ### 6.9 Persistence and artifacts
 
@@ -369,7 +369,7 @@ Read-only briefs must have empty `allowedPaths`. Write briefs must have at least
 
 1. User starts the local server and selects a Git repository.
 2. Project onboarding probes all three providers and detects candidate install, lint, test, and build commands.
-3. User confirms project commands and assigns provider/model/fallback chains to Manager, Advisor, QA, and all four Worker profiles.
+3. User confirms project commands and assigns provider/model/fallback chains to Manager, Tech Lead, QA, and all four Worker profiles.
 4. User selects Git-tracked repository paths; the server builds and hashes a context snapshot tied to the current branch and HEAD commit.
 5. User discusses the project with Manager or a directly selected read-only role using that snapshot.
 6. Manager turns selected discussion into an editable task draft with objective, scope, constraints, and acceptance criteria.
@@ -378,7 +378,7 @@ Read-only briefs must have empty `allowedPaths`. Write briefs must have at least
 9. Manager receives the frozen draft, frozen context snapshot, project rules, and command list.
 10. Manager returns the structured plan and briefs.
 11. Orchestrator validates and stores the plan version.
-12. Advisor preflight reviews the plan. If rejected, Manager may revise once and Advisor performs one final preflight review; a second rejection blocks the run.
+12. Tech Lead preflight reviews the plan. If rejected, Manager may revise once and Tech Lead performs one final preflight review; a second rejection blocks the run.
 13. The approved execution plan is frozen before dispatch.
 14. Orchestrator computes task dependencies and safe parallel groups.
 15. Git service creates writer branches and worktrees.
@@ -390,8 +390,8 @@ Read-only briefs must have empty `allowedPaths`. Write briefs must have at least
 21. QA runner executes required commands in configured order.
 22. If commands fail, QA's selected provider may diagnose the bounded output and one repair task may run in the integration worktree. QA commands then run again.
 23. A second required QA failure blocks delivery.
-24. Advisor delivery reviews the approved plan, integration diff, worker results, and QA report.
-25. If Advisor rejects delivery, one bounded repair task runs in the integration worktree, all required QA commands run again, and Advisor performs one final delivery review. Failed required QA or a second rejection blocks delivery.
+24. Tech Lead delivery reviews the approved plan, integration diff, worker results, and QA report.
+25. If Tech Lead rejects delivery, one bounded repair task runs in the integration worktree, all required QA commands run again, and Tech Lead performs one final delivery review. Failed required QA or a second rejection blocks delivery.
 26. Manager produces final synthesis and the run becomes `ready_to_apply`.
 27. UI shows diff, tests, risks, provider attempts, and **Apply to Project**.
 28. Apply rechecks that the root is clean, on the recorded branch, and still at the base commit.
@@ -405,8 +405,8 @@ Read-only briefs must have empty `allowedPaths`. Write briefs must have at least
 - Invalid structured output: one repair prompt on the same attempt chain.
 - Provider chain exhaustion: task fails with all attempt diagnostics retained.
 - Capability-incompatible fallback candidates are skipped before launch and do not consume attempts; no compatible candidate blocks the task with `provider_capability_unavailable`.
-- Advisor plan revisions: maximum one.
-- Advisor delivery repair cycles: maximum one.
+- Tech Lead plan revisions: maximum one.
+- Tech Lead delivery repair cycles: maximum one.
 - Automatic workflow gate types: exactly two; each is entered at most once, and each permits a maximum of two semantic reviews.
 - Integration conflict resolution tasks: maximum one.
 - QA repair tasks: maximum one.
@@ -450,9 +450,9 @@ The PixiJS office is the visual center. Side panels collapse. The conversation d
 ### 11.2 Office areas
 
 - Manager cabin.
-- Meeting table for planning and Advisor preflight.
+- Meeting table for planning and Tech Lead preflight.
 - Four Worker desks.
-- Advisor library/review room.
+- Tech Lead library/review room.
 - QA laboratory.
 - Integration desk.
 - Coffee/rest area.
@@ -465,7 +465,7 @@ reading     → bookshelf
 writing     → typing at assigned desk
 testing     → QA laboratory
 waiting     → coffee/rest area
-reviewing   → Advisor room
+reviewing   → Tech Lead room
 integrating → integration desk
 failed      → error emote and warning indicator
 done        → celebration, then assigned desk
@@ -479,7 +479,7 @@ The visual direction is an original cozy rural workshop office using warm timber
 
 - Base tile: 16×16 pixels.
 - Rendering: integer scaling and nearest-neighbor sampling.
-- Character presets: one Manager, four Workers, one Advisor, and one QA.
+- Character presets: one Manager, four Workers, one Tech Lead, and one QA.
 - No character creator in v0.1.
 - Every binary asset has a source and license entry in the repository asset manifest.
 - Pixel display typography is limited to headings; logs and diffs use readable monospace fonts.
@@ -533,7 +533,7 @@ No Stardew Valley or Pixel Agents character, name, portrait, map, color palette 
 
 - Legal and illegal workflow transitions.
 - Frozen draft, context snapshot, and post-preflight plan version boundaries.
-- Advisor's two-gate and maximum-two-reviews-per-gate limits.
+- Tech Lead's two-gate and maximum-two-reviews-per-gate limits.
 - Worker mode-to-provider capability filtering, incompatible-candidate skipping, and no-compatible-candidate blocking.
 - Persisted pause and resume behavior.
 - Context path validation, manifest hashing, and forwarded-message provenance.
@@ -564,11 +564,11 @@ Tests verify loopback binding, session token requirements, origin rejection, API
 
 ### 15.6 UI tests
 
-React tests cover onboarding, context selection, role configuration, Discussion/Draft Task/Execution transitions, forwarded-message provenance, direct-Advisor usage warning, mid-run scope changes, persisted pause, task submission, inspector, approval dialogs, diff review, apply guards, provider-unavailable states, and keyboard navigation. Pixi tests cover scene setup, movement targets, state animation selection, reduce motion, and recovery repositioning.
+React tests cover onboarding, context selection, role configuration, Discussion/Draft Task/Execution transitions, forwarded-message provenance, direct-Tech Lead usage warning, mid-run scope changes, persisted pause, task submission, inspector, approval dialogs, diff review, apply guards, provider-unavailable states, and keyboard navigation. Pixi tests cover scene setup, movement targets, state animation selection, reduce motion, and recovery repositioning.
 
 ### 15.7 End-to-end and visual tests
 
-Playwright runs one complete fake-provider workflow from onboarding through apply. Screenshot assertions cover idle, planning, parallel work, QA, Advisor review, failure, blocked, and done scenes at 1280×720. Real provider smoke tests are manual and documented separately from CI.
+Playwright runs one complete fake-provider workflow from onboarding through apply. Screenshot assertions cover idle, planning, parallel work, QA, Tech Lead review, failure, blocked, and done scenes at 1280×720. Real provider smoke tests are manual and documented separately from CI.
 
 CI runs supported tests on Windows, Linux, and macOS.
 
@@ -579,12 +579,12 @@ v0.1 is complete only when all conditions below hold:
 1. One local command starts the backend, serves the built frontend, and opens the browser.
 2. The browser reconnects after reload without stopping an active run.
 3. Codex CLI, Claude Code, and Antigravity CLI each pass the same fake-adapter contract suite and have manual real-CLI smoke instructions.
-4. Manager, Advisor, QA, and each of four Worker profiles allow independent provider/model/fallback configuration; dispatch filters each chain by required capability, skips incompatible candidates without attempts, and visibly blocks when none remain.
+4. Manager, Tech Lead, QA, and each of four Worker profiles allow independent provider/model/fallback configuration; dispatch filters each chain by required capability, skips incompatible candidates without attempts, and visibly blocks when none remain.
 5. The Owner can discuss a project with Manager, create and edit a task draft, and no run starts until explicit **Start Execution** approval.
 6. Start Execution revalidates the approved snapshot against the clean current branch and HEAD, then freezes hashed versions of the approved draft and context; a mismatch requires reapproval and later edits cannot affect the active run.
 7. Direct role conversations use isolated context snapshots and verified provider read-only modes, are role-scoped, retain forwarding provenance, and cannot mutate a run or repository.
-8. The automatic workflow defines exactly two Advisor gate types, enters each at most once, requires both before Manager synthesis, and permits no more than two semantic reviews per gate; optional direct Advisor consultations are separately labeled as premium usage.
-9. Advisor may revise a preflight plan only within the frozen task scope; every Owner-requested change after Start Execution can only create a new draft for a new run, and the execution plan is immutable after preflight approval.
+8. The automatic workflow defines exactly two Tech Lead gate types, enters each at most once, requires both before Manager synthesis, and permits no more than two semantic reviews per gate; optional direct Tech Lead consultations are separately labeled as premium usage.
+9. Tech Lead may revise a preflight plan only within the frozen task scope; every Owner-requested change after Start Execution can only create a new draft for a new run, and the execution plan is immutable after preflight approval.
 10. Pause survives reload and server restart, blocks new dispatch, and does not terminate already active children.
 11. Up to three workers execute concurrently by default, and parallel writers have disjoint allowed paths.
 12. Every writer runs in an isolated worktree and unexpected path changes are rejected.

@@ -18,7 +18,7 @@ const mockProfiles: RoleProfile[] = [
   {
     id: "advisor",
     role: "advisor",
-    label: "Advisor",
+    label: "Tech Lead",
     providerChain: [{ provider: "claude", model: null }],
     timeoutMs: 60_000,
     promptVersion: "v1",
@@ -88,11 +88,31 @@ describe("ConversationDock Component", () => {
         if (urlStr.includes("onboarding")) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve({ commands: [], roles: mockProfiles }),
+            json: () => Promise.resolve({ commands: [{ id: "test" }], roles: mockProfiles }),
           });
         }
 
-        // 3. create conversation / list conversations
+        // 3. one-click draft creation
+        if (urlStr.includes("forward-to-manager")) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                draftId: "1c9e6f6a-1ba4-492c-9387-36df9bb372c4",
+                version: 1,
+                objective: "Draft from recent chat",
+                scope: ["src/web"],
+                constraints: [],
+                acceptanceCriteria: ["User can create a draft without selecting messages"],
+                contextSnapshotId: VALID_SNAP_ID,
+                sourceMessageIds: [VALID_MSG_ID],
+                sha256: "a".repeat(64),
+                createdAt: "2026-07-11T12:03:00.000Z",
+              }),
+          });
+        }
+
+        // 4. create conversation / list conversations
         if (urlStr.includes("conversations")) {
           if (options.method === "POST") {
             const body = JSON.parse(options.body || "{}");
@@ -163,7 +183,7 @@ describe("ConversationDock Component", () => {
 
     // Verify read-only chat header and the two exposed discussion personas
     await waitFor(() => {
-      expect(screen.getByText("Read-only chat")).toBeDefined();
+      expect(screen.getByText("Review chat")).toBeDefined();
     });
     expect(screen.getByRole("tab", { name: "Manager" })).toBeDefined();
     expect(screen.getByRole("tab", { name: "Tech Lead" })).toBeDefined();
@@ -241,7 +261,9 @@ describe("ConversationDock Component", () => {
     });
   });
 
-  it("keeps task-draft selection out of normal chat", async () => {
+  it("creates a task draft from recent chat without selecting messages", async () => {
+    const fetchMock = vi.mocked(fetch);
+    const onDraftCreated = vi.fn();
     render(
       <AppStoreProvider>
         <ConversationDock
@@ -250,7 +272,7 @@ describe("ConversationDock Component", () => {
           roleProfiles={mockProfiles}
           providerStatuses={mockProviders}
           contextSnapshotId={VALID_SNAP_ID}
-          onDraftCreated={vi.fn()}
+          onDraftCreated={onDraftCreated}
         />
       </AppStoreProvider>,
     );
@@ -259,10 +281,19 @@ describe("ConversationDock Component", () => {
     expect(screen.queryByRole("checkbox", { name: /Select message/u })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Create Task Draft" }));
-    expect(screen.getByRole("checkbox", { name: "Select message from You" })).toBeDefined();
-    expect(
-      (screen.getByRole("button", { name: "Create Draft (0)" }) as HTMLButtonElement).disabled,
-    ).toBe(true);
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        `/api/conversations/${VALID_CONV_ID}/forward-to-manager`,
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ messageIds: [] }),
+        }),
+      );
+    });
+    expect(onDraftCreated).toHaveBeenCalledWith(
+      expect.objectContaining({ objective: "Draft from recent chat" }),
+    );
+    expect(screen.queryByRole("checkbox", { name: /Select message/u })).toBeNull();
   });
 
   it("shows a typing indicator while the selected persona is replying", async () => {

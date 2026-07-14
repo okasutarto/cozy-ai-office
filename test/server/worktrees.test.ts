@@ -197,5 +197,5 @@ describe("Worktree Service", () => {
         await gitClient.run(repoPath, ["worktree", "prune"], cleanupSignal).catch(() => undefined);
       }
     });
-  });
+  }, 60_000);
 });

@@ -48,16 +48,11 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
       "Implement greeting, farewell, and punctuation constants",
     );
     await page.click('button:has-text("Send")');
+    await expect(page.getByText("Mocked response")).toBeVisible();
 
     await page.click('button:has-text("Create Task Draft")');
-    // Select the discussion context for the task draft.
-    const checkbox1 = page.getByRole("checkbox", { name: "Select message from You" });
-    await expect(checkbox1).toBeVisible();
-    await checkbox1.check();
-
-    await page.click('button:has-text("Create Draft (")');
     await page.click('button:has-text("Draft Task")');
-    await page.click('button:has-text("Review execution")');
+    await page.click('button:has-text("Start Execution")');
     await page.click('dialog button:has-text("Start Execution")');
 
     await expect(page.locator("text=PLANNED")).toBeVisible();
@@ -91,13 +86,13 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
       mask: [page.locator(".timestamp"), page.locator(".duration"), page.locator(".commit-sha")],
     });
 
-    // 5. Advisor Review State
+    // 5. Tech Lead Review State
     await releaseBarrier(baseURL!, "testing");
-    await expect(page.getByText(/advisor delivery/i).first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByText(/tech lead delivery/i).first()).toBeVisible({ timeout: 60_000 });
     await expect(wrapper).toHaveAttribute("data-motion-state", "settled");
 
     await page.screenshot({
-      path: "test-results/office-advisor-review.png",
+      path: "test-results/office-tech-lead-review.png",
       mask: [page.locator(".timestamp"), page.locator(".duration"), page.locator(".commit-sha")],
     });
 
@@ -135,16 +130,11 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
       "Implement greeting, farewell, and punctuation constants",
     );
     await page.click('button:has-text("Send")');
+    await expect(page.getByText("Mocked response")).toBeVisible();
 
     await page.click('button:has-text("Create Task Draft")');
-    // Select the discussion context for the task draft.
-    const checkbox2 = page.getByRole("checkbox", { name: "Select message from You" });
-    await expect(checkbox2).toBeVisible();
-    await checkbox2.check();
-
-    await page.click('button:has-text("Create Draft (")');
     await page.click('button:has-text("Draft Task")');
-    await page.click('button:has-text("Review execution")');
+    await page.click('button:has-text("Start Execution")');
     await page.click('dialog button:has-text("Start Execution")');
 
     // Run planning
@@ -179,16 +169,11 @@ test.describe("Cozy Agent Office Visual Snapshot Generator", () => {
       "Implement greeting, farewell, and punctuation constants",
     );
     await page.click('button:has-text("Send")');
+    await expect(page.getByText("Mocked response")).toBeVisible();
 
     await page.click('button:has-text("Create Task Draft")');
-    // Select the discussion context for the task draft.
-    const checkbox3 = page.getByRole("checkbox", { name: "Select message from You" });
-    await expect(checkbox3).toBeVisible();
-    await checkbox3.check();
-
-    await page.click('button:has-text("Create Draft (")');
     await page.click('button:has-text("Draft Task")');
-    await page.click('button:has-text("Review execution")');
+    await page.click('button:has-text("Start Execution")');
     await page.click('dialog button:has-text("Start Execution")');
 
     // Planning and preflight review (rejected)

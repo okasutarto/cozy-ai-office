@@ -27,6 +27,10 @@ function toneForStatus(status: string | undefined): string {
   return "";
 }
 
+function formatEventKind(value: string): string {
+  return value.replace("advisor", "tech lead").replace(/[._]/gu, " ");
+}
+
 export const Inspector: React.FC<InspectorProps> = ({
   actorId,
   taskId,
@@ -72,7 +76,7 @@ export const Inspector: React.FC<InspectorProps> = ({
     <section className="inspector" aria-label="Agent inspector">
       <header className="panel-heading">
         <span>⚙ Agent Inspector</span>
-        <span className="micro-chip">{actorId}</span>
+        <span className="micro-chip">{profile?.label ?? actorId}</span>
       </header>
 
       <div className="inspector-scroll">
@@ -92,16 +96,16 @@ export const Inspector: React.FC<InspectorProps> = ({
               {profile?.role ?? "unknown"}
             </span>
             <span>
-              <b>Provider</b>
+              <b>AI tool</b>
               {provider?.provider ?? profile?.providerChain[0]?.provider ?? "unassigned"}
             </span>
             <span>
               <b>Model</b>
-              {profile?.providerChain[0]?.model ?? "provider default"}
+              {profile?.providerChain[0]?.model ?? "tool default"}
             </span>
             <span>
               <b>Capability</b>
-              {profile?.role === "worker" ? "worktree write" : "read-only"}
+              {profile?.role === "worker" ? "can edit files" : "can review"}
             </span>
           </div>
           <div className="skill-list" style={{ marginTop: 10 }}>
@@ -211,7 +215,7 @@ export const Inspector: React.FC<InspectorProps> = ({
               {actorEvents.map((event) => (
                 <div className="inspector-event" key={event.sequence}>
                   <span className="eyebrow">{formatTime(event.createdAt)}</span>
-                  <span>{event.kind}</span>
+                  <span>{formatEventKind(event.kind)}</span>
                 </div>
               ))}
             </div>

@@ -64,21 +64,16 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
       "Implement greeting, farewell, and punctuation constants",
     );
     await page.click('button:has-text("Send")');
+    await expect(page.getByText("Mocked response")).toBeVisible();
 
     await page.click('button:has-text("Create Task Draft")');
-    // Select the discussion context for the task draft.
-    const checkbox = page.getByRole("checkbox", { name: "Select message from You" });
-    await expect(checkbox).toBeVisible();
-    await checkbox.check();
-
-    await page.click('button:has-text("Create Draft (")');
 
     // 8. Review draft in ConversationDock
     await page.click('button:has-text("Draft Task")');
-    await expect(page.locator("text=Draft Task Editor")).toBeVisible();
+    await expect(page.locator("text=Draft Review")).toBeVisible();
 
     // Trigger Start Execution
-    await page.click('button:has-text("Review execution")');
+    await page.click('button:has-text("Start Execution")');
 
     // Confirm dialog with concurrency selector
     await expect(page.locator("text=Start Run Execution")).toBeVisible();
@@ -90,7 +85,7 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     // 9. Now running. Release planning barrier first
     await releaseBarrier(baseURL!, "planning");
 
-    // The manager generates the plan, then passes to advisor reviews
+    // The manager generates the plan, then passes to Tech Lead reviews
     await releaseBarrier(baseURL!, "reviewing");
 
     // Now workers are dispatched in parallel. Since concurrency=3, all three workers (worker-1, worker-2, worker-3) run.
@@ -102,7 +97,7 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
     // Next is QA tests
     await releaseBarrier(baseURL!, "testing");
 
-    // Finally, Advisor delivery review
+    // Finally, Tech Lead delivery review
     await releaseBarrier(baseURL!, "reviewing-delivery");
 
     // Reach ready_to_apply through the live subscription, then reload to prove
@@ -162,23 +157,18 @@ test.describe("Cozy Agent Office Workflow E2E", () => {
       "Implement greeting, farewell, and punctuation constants",
     );
     await page.click('button:has-text("Send")');
+    await expect(page.getByText("Mocked response")).toBeVisible();
 
     await page.click('button:has-text("Create Task Draft")');
-    // Select the discussion context for the task draft.
-    const checkbox = page.getByRole("checkbox", { name: "Select message from You" });
-    await expect(checkbox).toBeVisible();
-    await checkbox.check();
-
-    await page.click('button:has-text("Create Draft (")');
 
     // Start Execution with Concurrency=1
     await page.click('button:has-text("Draft Task")');
-    await page.click('button:has-text("Review execution")');
+    await page.click('button:has-text("Start Execution")');
     await page.selectOption("#confirm-concurrency", "1");
     await page.click('dialog button:has-text("Start Execution")');
     await expect(page.getByText(/Plan \(/).first()).toBeVisible();
 
-    // Release planning & advisor preflight
+    // Release planning & Tech Lead preflight
     await releaseBarrier(baseURL!, "planning");
     await releaseBarrier(baseURL!, "reviewing");
 
