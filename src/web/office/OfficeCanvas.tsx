@@ -150,6 +150,12 @@ export const OfficeCanvas: React.FC<{ api: ApiClient; projectId: string }> = ({
     }
   };
 
+  const placeFurnitureAtCenter = (kind: OfficeLayout["furniture"][number]["kind"]) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    sceneRef.current?.placeFurniture(kind, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  };
+
   // 2. Hydrate states
   useEffect(() => {
     if (sceneRef.current && initialized) {
@@ -241,6 +247,7 @@ export const OfficeCanvas: React.FC<{ api: ApiClient; projectId: string }> = ({
                     key={asset.id}
                     type="button"
                     draggable
+                    onClick={() => placeFurnitureAtCenter(asset.id)}
                     onDragStart={(event) =>
                       event.dataTransfer.setData("application/x-pixel-life-asset", asset.id)
                     }

@@ -426,7 +426,6 @@ export const App: React.FC = () => {
         />
         <ConversationDock
           projectId={state.selectedProjectId || ""}
-          selectedActorId={state.selectedActorId}
           activeRun={state.run}
           roleProfiles={roleProfiles}
           providerStatuses={state.bootstrap?.providers || []}

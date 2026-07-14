@@ -221,4 +221,24 @@ describe("Onboarding Wizard Component", () => {
       );
     });
   });
+
+  it("opens completed setup as workspace settings without forcing step one again", async () => {
+    const { api } = makeApi();
+    render(
+      <AppStoreProvider>
+        <Onboarding
+          bootstrap={{ ...mockBootstrap, projects: [{ ...project, setupComplete: true }] }}
+          api={api}
+          projectId={project.id}
+        />
+      </AppStoreProvider>,
+    );
+
+    await screen.findByText("Workspace Settings");
+    expect(screen.getByText(/configured/u)).toBeDefined();
+    expect(screen.getByRole("button", { name: /Save Setup Changes/u })).toBeDefined();
+    expect(
+      (screen.getByRole("button", { name: /LLM Engines/u }) as HTMLButtonElement).disabled,
+    ).toBe(false);
+  });
 });
