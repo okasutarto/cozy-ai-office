@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ConversationDock } from "../../src/web/components/ConversationDock.js";
 import { AppStoreProvider } from "../../src/web/store.js";
 import type { RoleProfile, ProviderStatus } from "../../shared/contracts.js";
@@ -147,7 +147,6 @@ describe("ConversationDock Component", () => {
       <AppStoreProvider>
         <ConversationDock
           projectId={VALID_PROJECT_ID}
-          selectedActorId="manager"
           activeRun={null}
           roleProfiles={mockProfiles}
           providerStatuses={mockProviders}
@@ -162,10 +161,13 @@ describe("ConversationDock Component", () => {
     expect(screen.getByText("Draft Task")).toBeDefined();
     expect(screen.getByText("Execution")).toBeDefined();
 
-    // Verify read-only warning header
+    // Verify read-only chat header and the two exposed discussion personas
     await waitFor(() => {
-      expect(screen.getByText("Read-only consultation")).toBeDefined();
+      expect(screen.getByText("Read-only chat")).toBeDefined();
     });
+    expect(screen.getByRole("tab", { name: "Manager" })).toBeDefined();
+    expect(screen.getByRole("tab", { name: "Tech Lead" })).toBeDefined();
+    expect(screen.queryByText("worker-1")).toBeNull();
 
     // Check message list renders
     await waitFor(() => {
@@ -173,13 +175,12 @@ describe("ConversationDock Component", () => {
     });
   });
 
-  it("advisor selected chat shows premium turn warning, and antigravity-only worker disables chat", async () => {
-    // 1. Advisor Chat
-    const { rerender } = render(
+  it("sends Tech Lead chat through the advisor conversation without a blocking checkbox", async () => {
+    const fetchMock = vi.mocked(fetch);
+    render(
       <AppStoreProvider>
         <ConversationDock
           projectId={VALID_PROJECT_ID}
-          selectedActorId="advisor"
           activeRun={null}
           roleProfiles={mockProfiles}
           providerStatuses={mockProviders}
@@ -189,27 +190,42 @@ describe("ConversationDock Component", () => {
       </AppStoreProvider>,
     );
 
+    fireEvent.click(screen.getByRole("tab", { name: "Tech Lead" }));
     await waitFor(() => {
-      expect(screen.getByText(/premium token usage warning/u)).toBeDefined();
+      expect(fetchMock).toHaveBeenCalledWith(
+        `/api/projects/${VALID_PROJECT_ID}/conversations`,
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            role: "advisor",
+            profileId: "advisor",
+            contextSnapshotId: VALID_SNAP_ID,
+            runId: null,
+          }),
+        }),
+      );
     });
+    expect(screen.queryByText(/premium token usage warning/u)).toBeNull();
 
-    // 2. Antigravity-only Worker Chat (disables composer)
-    rerender(
-      <AppStoreProvider>
-        <ConversationDock
-          projectId={VALID_PROJECT_ID}
-          selectedActorId="worker-1"
-          activeRun={null}
-          roleProfiles={mockProfiles}
-          providerStatuses={mockProviders}
-          contextSnapshotId={VALID_SNAP_ID}
-          onDraftCreated={vi.fn()}
-        />
-      </AppStoreProvider>,
-    );
-
+    fireEvent.change(screen.getByLabelText("Composer input"), {
+      target: { value: "Review this plan" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
     await waitFor(() => {
-      expect(screen.getByText(/Worker lacks read-only capability/u)).toBeDefined();
+      expect(fetchMock).toHaveBeenCalledWith(
+        `/api/conversations/${VALID_CONV_ID}/messages`,
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({
+            body: "Review this plan",
+            selectedMessageIds: [],
+            selectedArtifactIds: [],
+            additionalUsageConfirmed: true,
+          }),
+        }),
+      );
     });
   });
+
+  afterEach(cleanup);
 });

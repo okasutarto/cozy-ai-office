@@ -40,11 +40,24 @@ const FALLBACK_CATALOG: CatalogAsset[] = [
 
 export const catalogUrl = (file: string) =>
   file.startsWith("/") ? file : `/local-assets/pixel-life/catalog/${file}`;
+
+function usableCatalog(catalog: CatalogAsset[]): CatalogAsset[] {
+  return catalog.some((asset) => asset.floor) ? catalog : FALLBACK_CATALOG;
+}
+
 export const loadCatalog = async (): Promise<CatalogAsset[]> => {
-  const response = await fetch(catalogUrl("manifest.json"));
+  let response: Response;
+  try {
+    response = await fetch(catalogUrl("manifest.json"));
+  } catch {
+    return FALLBACK_CATALOG;
+  }
   if (response.status === 404) return FALLBACK_CATALOG;
   if (!response.ok) throw new Error(`Failed to load asset catalog (${response.status})`);
+  if (!response.headers.get("content-type")?.includes("application/json")) {
+    return FALLBACK_CATALOG;
+  }
   const catalog: unknown = await response.json();
   if (!Array.isArray(catalog)) throw new Error("Invalid asset catalog");
-  return catalog as CatalogAsset[];
+  return usableCatalog(catalog as CatalogAsset[]);
 };

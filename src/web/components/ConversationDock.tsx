@@ -18,7 +18,6 @@ type DockTab = "discussion" | "draft" | "metrics" | "roles" | "execution" | "war
 
 type ConversationDockProps = {
   projectId: string;
-  selectedActorId: ProfileId;
   activeRun: RunSnapshot | null;
   roleProfiles: RoleProfile[];
   providerStatuses: ProviderStatus[];
@@ -38,6 +37,13 @@ const TAB_LABELS: Array<{ id: DockTab; label: string }> = [
   { id: "warnings", label: "Warnings & Logs" },
 ];
 
+type DiscussionProfileId = Extract<ProfileId, "manager" | "advisor">;
+
+const DISCUSSION_PERSONAS: Array<{ id: DiscussionProfileId; label: string }> = [
+  { id: "manager", label: "Manager" },
+  { id: "advisor", label: "Tech Lead" },
+];
+
 function eventIsWarning(event: RunEvent): boolean {
   return /fail|block|conflict|error|warn|reject|cancel/i.test(event.kind);
 }
@@ -50,7 +56,6 @@ function formatDuration(value: number): string {
 
 export const ConversationDock: React.FC<ConversationDockProps> = ({
   projectId,
-  selectedActorId,
   activeRun,
   roleProfiles,
   providerStatuses,
@@ -64,11 +69,11 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
   const dispatch = useAppDispatch();
   const api = useMemo(() => new ApiClient(sessionStorage.getItem("cozy-session") || ""), []);
   const [tab, setTab] = useState<DockTab>("discussion");
+  const [discussionProfileId, setDiscussionProfileId] = useState<DiscussionProfileId>("manager");
   const [activeConversation, setActiveConversation] = useState<ConversationRecord | null>(null);
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [inputText, setInputText] = useState("");
   const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
-  const [advisorConfirmed, setAdvisorConfirmed] = useState(false);
   const [commands, setCommands] = useState<unknown[]>([]);
   const [editableProfiles, setEditableProfiles] = useState(roleProfiles);
   const [rolesSaving, setRolesSaving] = useState(false);
@@ -88,23 +93,22 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
   useEffect(() => {
     if (!projectId || !contextSnapshotId) return;
     let active = true;
+    setActiveConversation(null);
+    setMessages([]);
+    setSelectedMessageIds([]);
     api
       .listConversations(projectId)
       .then((data) => {
         if (!active) return;
-        const found = data.find((conversation) => conversation.profileId === selectedActorId);
+        const found = data.find((conversation) => conversation.profileId === discussionProfileId);
         if (found) {
           setActiveConversation(found);
           return;
         }
-        const role =
-          selectedActorId === "manager" || selectedActorId === "advisor" || selectedActorId === "qa"
-            ? selectedActorId
-            : "worker";
         return api
           .createConversation(projectId, {
-            role,
-            profileId: selectedActorId,
+            role: discussionProfileId,
+            profileId: discussionProfileId,
             contextSnapshotId,
             runId: activeRun?.id || null,
           })
@@ -117,10 +121,11 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
     return () => {
       active = false;
     };
-  }, [activeRun?.id, api, contextSnapshotId, projectId, selectedActorId]);
+  }, [activeRun?.id, api, contextSnapshotId, discussionProfileId, projectId]);
 
   useEffect(() => {
     if (!activeConversation) return;
+    setSelectedMessageIds([]);
     let active = true;
     api
       .listMessages(activeConversation.id)
@@ -137,27 +142,29 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
     if (messageLogRef.current) messageLogRef.current.scrollTop = messageLogRef.current.scrollHeight;
   }, [messages]);
 
-  const activeProfile = roleProfiles.find((profile) => profile.id === selectedActorId);
+  const activeProfile = roleProfiles.find((profile) => profile.id === discussionProfileId);
+  const activePersona =
+    DISCUSSION_PERSONAS.find((persona) => persona.id === discussionProfileId) ??
+    DISCUSSION_PERSONAS[0]!;
   const primaryProvider = providerStatuses.find(
     (provider) => provider.provider === activeProfile?.providerChain[0]?.provider,
   );
   const antigravityOnly =
     activeProfile?.providerChain[0]?.provider === "antigravity" &&
     primaryProvider?.capabilities.readOnly === false;
-  const isAdvisor = selectedActorId === "advisor";
+  const isTechLead = discussionProfileId === "advisor";
   const warningEvents = timelineEvents.filter(eventIsWarning);
   const completedAttempts = attempts.filter((attempt) => attempt.status === "succeeded");
   const totalDuration = attempts.reduce((sum, attempt) => sum + (attempt.durationMs ?? 0), 0);
 
   const sendMessage = async () => {
     if (!activeConversation || !inputText.trim() || antigravityOnly) return;
-    if (isAdvisor && !advisorConfirmed) return;
     try {
       const message = await api.sendMessage(activeConversation.id, {
         body: inputText.trim(),
         selectedMessageIds: [],
         selectedArtifactIds: [],
-        additionalUsageConfirmed: advisorConfirmed,
+        additionalUsageConfirmed: isTechLead,
       });
       setMessages((current) => [...current, message]);
       setInputText("");
@@ -197,18 +204,29 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
 
   const renderDiscussion = () => (
     <div className="dock-content discussion-panel">
-      <div className="dock-subheader">
-        <div>
-          <strong>{activeProfile?.label ?? selectedActorId}</strong>
-          <span> · {activeProfile?.providerChain[0]?.provider ?? "no provider"}</span>
+      <div className="dock-subheader discussion-subheader">
+        <div className="discussion-personas" role="tablist" aria-label="Discussion personas">
+          {DISCUSSION_PERSONAS.map((persona) => (
+            <button
+              key={persona.id}
+              type="button"
+              role="tab"
+              aria-selected={discussionProfileId === persona.id}
+              className={`persona-tab ${discussionProfileId === persona.id ? "active" : ""}`}
+              onClick={() => setDiscussionProfileId(persona.id)}
+            >
+              {persona.label}
+            </button>
+          ))}
         </div>
-        <span className="status-chip success">Read-only consultation</span>
+        <div className="discussion-status">
+          <span>{activeProfile?.providerChain[0]?.provider ?? "no provider"}</span>
+          <span className="status-chip success">Read-only chat</span>
+        </div>
       </div>
       <ol ref={messageLogRef} className="message-log" aria-label="Message log">
         {messages.length === 0 ? (
-          <li className="empty-state">
-            No messages yet. Start a consultation or select a different role.
-          </li>
+          <li className="empty-state">No messages yet. Start a chat with {activePersona.label}.</li>
         ) : (
           messages.map((message) => {
             const selected = selectedMessageIds.includes(message.id);
@@ -235,20 +253,10 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
           })
         )}
       </ol>
-      {isAdvisor && (
-        <label className="dock-warning-check">
-          <input
-            type="checkbox"
-            checked={advisorConfirmed}
-            onChange={(event) => setAdvisorConfirmed(event.target.checked)}
-          />
-          Confirm premium token usage warning for Advisor turn.
-        </label>
-      )}
       {antigravityOnly && (
         <p className="inline-message error">
-          Worker lacks read-only capability. Select a provider fallback chain supporting readOnly to
-          enable chat.
+          Selected discussion persona lacks read-only capability. Select a compatible provider
+          fallback chain to enable chat.
         </p>
       )}
       <div className="composer">
@@ -257,7 +265,7 @@ export const ConversationDock: React.FC<ConversationDockProps> = ({
           value={inputText}
           disabled={antigravityOnly || !activeConversation}
           onChange={(event) => setInputText(event.target.value.slice(0, 40_000))}
-          placeholder={antigravityOnly ? "Chat disabled" : "Type a message…"}
+          placeholder={antigravityOnly ? "Chat disabled" : `Message ${activePersona.label}…`}
         />
         <div className="composer-actions">
           <button

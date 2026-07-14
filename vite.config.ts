@@ -10,14 +10,17 @@ const localPixelLifeAssets = {
   configureServer(server: import("vite").ViteDevServer) {
     server.middlewares.use("/local-assets/pixel-life", (request, response, next) => {
       const file = decodeURIComponent((request.url ?? "").split("?", 1)[0]!).replace(/^\/+/, "");
-      if (file !== "office-atlas.json" && file !== "office-atlas.png") {
+      if (
+        !/^(?:office-atlas\.(?:json|png)|catalog\/(?:[a-z0-9-]+\.png|manifest\.json))$/u.test(file)
+      ) {
         next();
         return;
       }
 
       readFile(resolve(localPixelLifeRoot, file), (error, contents) => {
         if (error) {
-          next();
+          response.statusCode = 404;
+          response.end("Not Found");
           return;
         }
         response.setHeader(

@@ -16,6 +16,22 @@ describe("office asset catalog", () => {
     );
   });
 
+  it("uses bundled editing assets when Vite falls back to the HTML shell", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response("<!doctype html>", {
+          status: 200,
+          headers: { "content-type": "text/html" },
+        }),
+      ),
+    );
+
+    await expect(loadCatalog()).resolves.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "fallback-floor", floor: true })]),
+    );
+  });
+
   it("rejects a malformed catalog response", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ error: "not a catalog" })));
 

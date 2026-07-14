@@ -134,7 +134,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
   const initialProject =
     bootstrap.projects.find((project) => project.id === initialId) ?? bootstrap.projects[0] ?? null;
 
-  const [step, setStep] = useState<SetupStep>(1);
+  const [step, setStep] = useState<SetupStep>(initialProject?.setupComplete ? 4 : 1);
   const [projectId, setProjectId] = useState<string | null>(
     initialId ?? initialProject?.id ?? null,
   );
@@ -245,28 +245,42 @@ export const Onboarding: React.FC<OnboardingProps> = ({
     (status) => isProviderReady(status) && status.capabilities.worktreeWrite,
   );
 
-  const repositoryComplete = Boolean(projectId && inspection?.clean === true && !loadingProject);
+  const setupAlreadyComplete = Boolean(
+    projectId && (bootstrapProject?.setupComplete || inspection?.setupComplete),
+  );
+  const repositoryComplete =
+    setupAlreadyComplete || Boolean(projectId && inspection?.clean === true && !loadingProject);
   const providersComplete =
-    providersProbedThisSession && readProviders.length > 0 && writeProviders.length > 0;
-  const testsComplete = commands.length > 0 && contextPaths.length > 0;
+    setupAlreadyComplete ||
+    (providersProbedThisSession && readProviders.length > 0 && writeProviders.length > 0);
+  const testsComplete = setupAlreadyComplete || (commands.length > 0 && contextPaths.length > 0);
   const rolesComplete =
-    profiles.length === REQUIRED_PROFILE_IDS.length &&
-    REQUIRED_PROFILE_IDS.every((id) => profiles.some((profile) => profile.id === id)) &&
-    profiles.every((profile) => {
-      const capability = profile.role === "worker" ? "worktreeWrite" : "readOnly";
-      return (
-        profile.label.trim().length > 0 &&
-        profile.promptVersion.trim().length > 0 &&
-        profile.providerChain.length > 0 &&
-        profile.providerChain.some((candidate) => {
-          const status = providerStatuses.find(
-            (provider) => provider.provider === candidate.provider,
-          );
-          return Boolean(status && isProviderReady(status) && status.capabilities[capability]);
-        })
-      );
-    });
-  const allComplete = repositoryComplete && providersComplete && testsComplete && rolesComplete;
+    setupAlreadyComplete ||
+    (profiles.length === REQUIRED_PROFILE_IDS.length &&
+      REQUIRED_PROFILE_IDS.every((id) => profiles.some((profile) => profile.id === id)) &&
+      profiles.every((profile) => {
+        const capability = profile.role === "worker" ? "worktreeWrite" : "readOnly";
+        return (
+          profile.label.trim().length > 0 &&
+          profile.promptVersion.trim().length > 0 &&
+          profile.providerChain.length > 0 &&
+          profile.providerChain.some((candidate) => {
+            const status = providerStatuses.find(
+              (provider) => provider.provider === candidate.provider,
+            );
+            return Boolean(status && isProviderReady(status) && status.capabilities[capability]);
+          })
+        );
+      }));
+  const allComplete =
+    setupAlreadyComplete ||
+    (repositoryComplete && providersComplete && testsComplete && rolesComplete);
+  const canSaveSetup =
+    allComplete &&
+    !loadingProject &&
+    commands.length > 0 &&
+    contextPaths.length > 0 &&
+    profiles.length === REQUIRED_PROFILE_IDS.length;
 
   const completedByStep: Record<SetupStep, boolean> = {
     1: repositoryComplete,
@@ -276,6 +290,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
   };
 
   const canVisitStep = (target: SetupStep): boolean => {
+    if (setupAlreadyComplete) return true;
     if (target === 1) return true;
     if (target === 2) return repositoryComplete;
     if (target === 3) return repositoryComplete && providersComplete;
@@ -475,7 +490,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({
   };
 
   const saveOnboarding = async () => {
-    if (!projectId || !allComplete) return;
+    if (!projectId || !canSaveSetup) return;
     setSaving(true);
     setSaveNotice({ kind: "working", text: "Persisting setup and validating readiness…" });
     try {
@@ -528,15 +543,18 @@ export const Onboarding: React.FC<OnboardingProps> = ({
           <div>
             <p className="eyebrow">Local-first orchestration</p>
             <h1 id="setup-title" className="setup-title">
-              Workspace Setup
+              {setupAlreadyComplete ? "Workspace Settings" : "Workspace Setup"}
             </h1>
             <p className="setup-section-copy" style={{ margin: "4px 0 0" }}>
-              Persist a repository, probed engines, QA snapshot, and seven role profiles.
+              {setupAlreadyComplete
+                ? "Review or update the saved repository, engine, QA, and role configuration."
+                : "Persist a repository, probed engines, QA snapshot, and seven role profiles."}
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span className={`status-chip ${allComplete ? "success" : "warning"}`}>
-              <i className="dot" /> {allComplete ? "ready" : "setup required"}
+              <i className="dot" />{" "}
+              {setupAlreadyComplete ? "configured" : allComplete ? "ready" : "setup required"}
             </span>
             {(onClose || (canReturnToOffice && projectId)) && (
               <button
@@ -1142,10 +1160,14 @@ export const Onboarding: React.FC<OnboardingProps> = ({
               <button
                 type="button"
                 className="cozy-button primary"
-                disabled={!allComplete || saving}
+                disabled={!canSaveSetup || saving}
                 onClick={() => void saveOnboarding()}
               >
-                {saving ? "Persisting setup…" : "Activate Swarm Office"}
+                {saving
+                  ? "Persisting setup…"
+                  : setupAlreadyComplete
+                    ? "Save Setup Changes"
+                    : "Activate Swarm Office"}
               </button>
             )}
           </div>

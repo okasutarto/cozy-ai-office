@@ -1133,8 +1133,15 @@ textarea::placeholder {
   text-align: center;
 }
 
-.dock-tabpanel,
+.dock-tabpanel {
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
 .dock-content {
+  min-width: 0;
   min-height: 0;
   flex: 1;
   overflow: auto;
@@ -1151,6 +1158,40 @@ textarea::placeholder {
 
 .dock-subheader span:not(.status-chip):not(.micro-chip) {
   color: var(--wood-500);
+}
+
+.discussion-subheader,
+.discussion-personas,
+.discussion-status {
+  display: flex;
+  align-items: center;
+}
+
+.discussion-subheader {
+  justify-content: space-between;
+}
+
+.discussion-personas,
+.discussion-status {
+  gap: 6px;
+}
+
+.persona-tab {
+  min-height: 24px;
+  padding: 4px 9px;
+  color: var(--wood-500);
+  background: var(--ink-950);
+  border: 1px solid var(--wood-900);
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.persona-tab.active {
+  color: var(--ink-950);
+  background: var(--gold-400);
+  border-color: var(--gold-300);
 }
 
 .discussion-panel {
